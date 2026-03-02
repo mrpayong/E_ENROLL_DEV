@@ -41,11 +41,7 @@ if (isset($_GET['token']) && $_GET['token'] != '') {
     $img = "";
     $user_role = "";
     $position = "";
-    $assign_id = "";
-    $office_id = "";
-    $office_name = "";
-    $sign_id = "";
-    $school_year_id = "";
+    $sex = "";
 
     if (empty($ref_id) || empty($role) || empty($token_date) || empty($token_auth) || empty($token_id) || empty($device)) {
         $response = base64_encode("Invalid Token Data. Please log in again to continue.");
@@ -87,9 +83,6 @@ if (isset($_GET['token']) && $_GET['token'] != '') {
                 $img = !empty($data['img']) ? $data['img'] : DEFAULT_IMG;
                 $user_role = $data['user_role'];
                 $position = $data['position'];
-                $office_id = $data['office_id'];
-                $office_name = $data['name'];
-                $sign_id = $data['user_sign'];
                 $sex = $data['sex'];
             }
         }
