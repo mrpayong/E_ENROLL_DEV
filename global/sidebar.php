@@ -236,6 +236,81 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
+                
+                <?php } else if ($g_user_role == 'REGISTRAR') { ?>
+                    <!-- navigation section (remove if not needed) -->
+                    <li class="nav-section">
+                        <span class="sidebar-mini-icon">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </span>
+                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4> <!-- change based on role -->
+                    </li>
+
+                    <!-- start navigation -->
+                    <li class="nav-item <?php echo navigation_active("main_registrar"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/main_registrar.php">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("student_infos"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/student_infos.php">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Student Information</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("fiscalYear"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/fiscalYear.php">
+                            <i class="fas fa-calendar"></i>
+                            <span>Fiscal Year</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("department"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/department.php">
+                            <i class="fas fa-university"></i>
+                            <span>Department</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("main_registrar"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/main_registrar.php">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Enrollment</span>
+                        </a>
+                    </li>
+                
+                    <li class="nav-item <?php echo navigation_active("prospectus"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/prospectus.php">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Prospectus</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("curriculum"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/curriculum.php">
+                            <i class="fas fa-book-open"></i>
+                            <span>Curriculum</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("section"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/section.php">
+                            <i class="fas fa-th"></i>
+                            <span>Section</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("schedule"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/schedule.php">
+                            <i class="fas fa-clock"></i>
+                            <span>Schedule</span>
+                        </a>
+                    </li>
+
+
                 <?php } ?>
             </ul>
         </div>

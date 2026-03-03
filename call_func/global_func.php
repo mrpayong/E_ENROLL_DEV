@@ -14,6 +14,17 @@ function del_file($file)
 	}
 }
 
+function formatterDateLong($date) {
+	// added by Tristan
+	// added when: Jan. 2026
+	date_default_timezone_set(DEFAULT_TIMEZONE);
+    if (empty($date)) return "";
+    $timestamp = strtotime($date);
+    if ($timestamp === false) return $date; // fallback if invalid
+    // Format as "Month Day, Year"
+    return date('F d, Y', $timestamp);
+}
+
 function deleteDir($dirPath)
 {
 	if ($dirPath == "" or empty($dirPath)) {
