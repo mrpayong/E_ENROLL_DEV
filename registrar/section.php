@@ -101,7 +101,7 @@ if ($query = call_mysql_query($select)) {
                 <div class="modal fade" id="sectionFormModal" tabindex="-1" aria-labelledby="sectionLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <form class="modal-content" id="sectionForm" autocomplete="off">
-                            <div class="modal-header bg-eclearance text-white py-2">
+                            <div class="modal-header bg-primary text-white py-2">
                                 <h5 class="modal-title" id="sectionFormLabel">Create Section</h5>
                                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -133,7 +133,7 @@ if ($query = call_mysql_query($select)) {
                 <div class="modal fade" id="editSectionFormModal" tabindex="-1" aria-labelledby="sectionLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <form class="modal-content" id="editSectionForm" autocomplete="off">
-                            <div class="modal-header bg-eclearance text-white py-2">
+                            <div class="modal-header bg-primary text-white py-2">
                                 <h5 class="modal-title" id="editSectionFormLabel"></h5>
                                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = cell.getRow().getData();
 
         return `
-            <button data-id="${row.class_id}" class="btn btn-sm btn-primary me-2 edit-section-btn" title="Edit"><i class="bi bi-pencil"></i> Updated Section</button>
+            <button data-id="${row.class_id}" class="btn btn-sm btn-primary me-2 edit-section-btn fs-6" title="Edit"><i class="bi bi-pencil"></i> Update Section</button>
         `;
     }
 
@@ -254,6 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
         pagination: "remote",
         paginationSize: 10,
         movableColumns: true,
+        ajaxFiltering:true,
+        ajaxSorting:true,
         rowHeight:80,
         height: "auto",
         headerFilterPlaceholder: "Search",
@@ -310,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             {
                 title: "Last Updated",
-                field: "updated_At",
+                field: "date_modified",
                 headerFilter: "input",
                 hozAlign: "center",
                 headerHozAlign: "center",
@@ -320,15 +322,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadingAPIrequest(status){
         if(status === true){
-            Swal.fire({
+            swal({
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait"
             });
-            Swal.showLoading();
         }
         if(status === false){
-            Swal.close();
+            swal.close();
         }
     }
 
@@ -356,11 +357,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             error: function() {
-                Swal.fire({
+                swal({
                     title: "Error",
                     icon: "error",
                     text: "Failed to load programs.",
-                    showConfirmButton: true
+                    button: true
                 });
             }
         });
@@ -404,12 +405,12 @@ document.addEventListener('DOMContentLoaded', function() {
             success: function(data){
                 if(data){
                     if(data.status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             icon: "success",
                             title: "Section created!",
                             text: "Section has been created.",
                             timer: 3000,
-                            showConfirmButton: false
+                            button: false
                         }).then(function(){
                             $('#sectionFormModal').modal('hide');
                             $('#sectionForm')[0].reset();
@@ -417,37 +418,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                     }
                     if(data.status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                 }
             },
             error: function(){
-                Swal.fire({
+                swal({
                     icon: "error",
                     title: "Error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })
@@ -511,12 +512,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(data){
                     console.log("data:", data)
                     if(data.msg_status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             icon: "success",
                             title: "Section updated!",
                             text: "Section has been updated.",
                             timer: 3000,
-                            showConfirmButton: false
+                            button: false
                         }).then(function(){
                             $('#editSectionFormModal').modal('hide');
                             $('#editSectionForm')[0].reset();
@@ -524,53 +525,53 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                     }
                     if(data.msg_status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 504){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 505){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update section.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                 }
             },
             error: function(){
-                Swal.fire({
+                swal({
                     icon: "error",
                     title: "Error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })

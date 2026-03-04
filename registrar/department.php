@@ -12,6 +12,13 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
+$departments = array();
+$sql_depts = "SELECT department_id, department FROM departments";
+if($sql_depts = call_mysql_query($sql_depts)){
+    while($dept = call_mysql_fetch_array($sql_depts)){
+        array_push($departments, $dept);
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -66,7 +73,7 @@ if (!($g_user_role == "REGISTRAR")) {
                 <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-modal="true" role="dialog">
                     <div class="modal-dialog" role="document">
                     <form class="modal-content" id="departmentForm" autocomplete="off">
-                        <header class="modal-header py-2 bg-eclearance text-white">
+                        <header class="modal-header py-2 bg-primary text-white">
                         <h2 class="modal-title fs-5" id="departmentModalLabel">Add Department</h2>
                         <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </header>
@@ -100,8 +107,8 @@ if (!($g_user_role == "REGISTRAR")) {
                 <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-modal="true" role="dialog">
                     <div class="modal-dialog" role="document">
                     <form class="modal-content" id="editDepartmentForm" autocomplete="off">
-                        <header class="modal-header py-2 bg-eclearance text-white">
-                        <h2 class="modal-title bg-eclearance text-light fs-5" id="editDepartmentModalTitle"></h2>
+                        <header class="modal-header py-2 bg-primary text-white">
+                        <h2 class="modal-title bg-primary text-light fs-5" id="editDepartmentModalTitle"></h2>
                         <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </header>
                         <section class="modal-body">
@@ -134,14 +141,14 @@ if (!($g_user_role == "REGISTRAR")) {
                     <div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <form class="modal-content" id="programForm" autocomplete="off">
-                                <div class="modal-header bg-eclearance text-white py-2">
+                                <div class="modal-header bg-primary text-white py-2">
                                     <h5 class="modal-title" id="programModalLabel">Add Program</h5>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
                                         <label for="department" class="form-label">Department</label>
-                                        <input type="text" class="form-control bg-secondary text-white" id="department" name="department" readOnly required>
+                                        <input type="text" class="form-control bg-secondary text-black" id="department" name="department" readOnly required>
                                     </div>
 
                                     <div class="mb-3 d-flex flex-row gap-2 w-100">
@@ -181,7 +188,7 @@ if (!($g_user_role == "REGISTRAR")) {
                     <div class="modal fade" id="majorModal" tabindex="-1" aria-labelledby="majorModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="majorForm" autocomplete="off">
-                                <div class="modal-header bg-eclearance text-white py-2">
+                                <div class="modal-header bg-primary text-white py-2">
                                     <h5 class="modal-title" id="majorModalLabel">Add major</h5>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
@@ -190,11 +197,11 @@ if (!($g_user_role == "REGISTRAR")) {
                                     <div class="mb-3 d-flex flex-row gap-2 w-100">
                                         <div class="d-flex flex-column gap-2 w-50">
                                             <label for="programName-major" class="form-label">Program Name</label>
-                                            <input type="text" class="form-control bg-secondary text-white" id="programName-major" name="programName-major" readOnly required>
+                                            <input type="text" class="form-control bg-secondary text-black" id="programName-major" name="programName-major" readOnly required>
                                         </div>
                                         <div class="d-flex flex-column gap-2 w-50">
                                             <label for="programCode-major" class="form-label">Program Name</label>
-                                            <input type="text" class="form-control bg-secondary text-white" id="programCode-major" name="programCode-major" readOnly required>
+                                            <input type="text" class="form-control bg-secondary text-black" id="programCode-major" name="programCode-major" readOnly required>
                                         </div>
                                     </div>
 
@@ -217,15 +224,19 @@ if (!($g_user_role == "REGISTRAR")) {
                 <!-- update program -->
                 <section>
                     <div class="modal fade" id="editProgramModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
+                        <div class="modal-dialog modal-md">
                             <form class="modal-content" id="editProgramModalForm" autocomplete="off">
-                                <div class="modal-header bg-eclearance text-white py-2">
+                                <div class="modal-header bg-primary text-white py-2">
                                     <h5 class="modal-title" id="editProgramModalLabel"></h5>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
 
 
                                 <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="department" class="form-label">Department</label>
+                                        <select id="departmentProgram" name="department" class=" text-black" required></select>
+                                    </div>
 
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -272,8 +283,33 @@ document.addEventListener('DOMContentLoaded', function () {
         if(cancelBtn) cancelBtn.addEventListener('click', function () {
             departmentModal.hide();
         });
-        // Tabulator logic
+
+        const departments = <?php echo json_encode($departments); ?>
         
+        function populateDepartmentDropdown(selector, selectedId = null) {
+            const dropdown = $(selector);
+            if(dropdown[0].selectize){
+                dropdown[0].selectize.destroy();
+            }
+            dropdown.empty();
+            dropdown.append('<option value="" selected disabled>Select Department</option>');
+            departments.forEach(function(item){
+                dropdown.append(
+                    $('<option>', {
+                        value: item.department_id,
+                        text: item.department
+                    })
+                );
+            });
+            dropdown.selectize({
+                allowEmptyOption: true,
+                create: false,
+                sortField: 'text'
+            });
+            if(selectedId){
+                dropdown[0].selectize.setValue(selectedId);
+            }
+        }
 
 
         function actionsFormatter(cell) {
@@ -281,12 +317,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if(row.major === "") {
                 return `
-                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
+                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
             `;
             }
             return `
-                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
-                <button data-id="${row.program_id}" class="btn btn-sm btn-warning update-prog-btn" title="Update Program"><i class="bi bi-pencil-square"></i> Update Program</button>
+                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
+                <button data-id="${row.program_id}" data-major="${row.major}" class="btn btn-sm btn-warning update-prog-btn fs-6" title="Update Program"><i class="bi bi-pencil-square"></i> Update Program</button>
             `;
         }
 
@@ -308,8 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return `
                     <span class="text-black fw-bold">${dept.department} (${dept.code_name})</span>
                     <span class="ms-2">Dean: ${dept.dean}</span>
-                    <button data-id="${dept.department_id}" class="btn btn-sm btn-success ms-2 add-btn"><i class="bi bi-plus-circle-dotted"></i> Add Program</button>
-                    <button data-id="${dept.department_id}" class="btn btn-sm btn-primary ms-2 edit-dept-btn"><i class="bi bi-pencil-square"></i> Update Department</button>
+                    <button data-id="${dept.department_id}" class="btn btn-sm btn-success ms-2 fs-6 add-btn"><i class="bi bi-plus-circle-dotted"></i> Add Program</button>
+                    <button data-id="${dept.department_id}" class="btn btn-sm btn-primary ms-2 fs-6 edit-dept-btn"><i class="bi bi-pencil-square"></i> Update Department</button>
                 `;
             },
             columns: [
@@ -380,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let department_id = '';
         let departmentNewName = '';
         let program_id = '';
+        let oldMajor = '';
         // set up data for Edit form
         document.querySelector("#department-table").addEventListener("click", function(e){
             const editBtn = e.target.closest(".edit-dept-btn")
@@ -388,15 +425,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const updateProg = e.target.closest('.update-prog-btn');
             if(editBtn){
                 const rowId = editBtn.getAttribute('data-id');
-
+                
                 const row = departmentTable.getRows().find(r => r.getData().department_id == rowId);
                 if(!row) {
-                    Swal.fire({
+                    swal({
                         title: "Something went wrong.",
                         icon: "error",
                         text: "Can't find this department. Possible network disruption.",
                         timer: 5000,
-                        showConfirmButton: true
+                        button: true
                     })
                     return;
                 }
@@ -416,12 +453,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const row = departmentTable.getRows().find(r => r.getData().department_id == rowId);
                 if(!row) {
-                    Swal.fire({
+                    swal({
                         title: "Something went wrong.",
                         icon: "error",
                         text: "Can't find this department",
                         timer: 5000,
-                        showConfirmButton: true
+                        button: true
                     })
                     return;
                 }
@@ -440,12 +477,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const row = departmentTable.getRows().find(r => r.getData().program_id == rowId);
                 if(!row) {
-                    Swal.fire({
+                    swal({
                         title: "Something went wrong.",
                         icon: "error",
                         text: "Can't find this department",
                         timer: 5000,
-                        showConfirmButton: true
+                        button: true
                     })
                     return;
                 }
@@ -461,14 +498,18 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if(updateProg){
                 const rowId = updateProg.getAttribute('data-id');
+                const majorValue = updateProg.getAttribute('data-major');
 
-                const row = departmentTable.getRows().find(r => r.getData().program_id == rowId);
+                const row = departmentTable.getRows().find(r => {
+                    const data = r.getData();
+                    return data.program_id == rowId && data.major == majorValue;
+                });
                 if(!row) {
-                    Swal.fire({
+                    swal({
                         title: "Something went wrong.",
                         icon: "error",
                         text: "Can't find this program. Possible network disruption.",
-                        showConfirmButton: true
+                        button: true
                     })
                     return;
                 }
@@ -479,6 +520,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('newProgram').value = rowData.program;
                 document.getElementById('newCode').value = rowData.short_name;
                 document.getElementById('newMajor').value = rowData.major;
+                oldMajor = rowData.major;
+                department_id = rowData.department_id;
+                populateDepartmentDropdown('#departmentProgram', String(rowData.department_id));
                 document.getElementById('editProgramModalLabel').textContent = `Update ${rowData.program}`; 
                 program_id = rowData.program_id;
                 $('#editProgramModal').modal('show');
@@ -490,15 +534,14 @@ document.addEventListener('DOMContentLoaded', function () {
         function loadingAPIrequest(status){
             console.log("stat: ", status)
             if(status === true){
-                Swal.fire({
+                swal({
                     title: "Loading",
                     icon: 'info',
                     text: "Please wait"
                 });
-                Swal.showLoading();
             }
             if(status === false){
-                Swal.close();
+                swal.close();
             }
 
         }
@@ -531,14 +574,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 complete: loadingAPIrequest(false),
                 success: function(data){
                     if(data){
-                        Swal.close();
+                        swal.close();
                         if(data.status === true && data.code === 200){
-                            Swal.fire({
+                            swal({
                                 title: "Program created!",
                                 text: "Program has been created successfully!",
                                 icon: "success",
                                 timer: 3000,
-                                showConfirmButton: false,
+                                button: false,
                             }).then(function(){
                                 $('#programForm')[0].reset();
                                 $('#programModal').modal('hide');
@@ -546,40 +589,40 @@ document.addEventListener('DOMContentLoaded', function () {
                             })
                         }
                         if(data.status === false && data.code === 501){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create program.",
                                 text: data.msg_response,
                                 icon: "error",
-                                showConfirmButton: true,
+                                button: true,
                             })
                         }
                         if(data.status === false && data.code === 502){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create program.",
                                 text: "Program name or code already exist.",
                                 icon: "error",
-                                showConfirmButton: true,
+                                button: true,
                             }).then(function(){
                                 document.getElementById('programCode').value = "";
                                 document.getElementById('programName').value = "";
                             })
                         }
                         if(data.status === false && data.code === 500){
-                            Swal.fire({
+                            swal({
                                 title: "An error occured.",
                                 text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
                                 icon: "error",
-                                showConfirmButton: true,
+                                button: true,
                             })
                         }
                     }
                 },
                 error: function(xhr, status, error){
-                    Swal.fire({
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                        showConfirmButton: true
+                        button: true
                     });
                 }
             })
@@ -613,14 +656,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 complete: loadingAPIrequest(false),
                 success: function(data){
                     if(data){
-                        Swal.close();
+                        swal.close();
                         if(data.msg_status === true && data.code === 200){
-                            Swal.fire({
+                            swal({
                                 title: "Major added!",
                                 text: data.msg_response,
                                 icon: "success",
                                 timer: 3000,
-                                showConfirmButton: false,
+                                button: false,
                             }).then(function(){
                                 $('#majorForm')[0].reset();
                                 $('#majorModal').modal('hide');
@@ -628,25 +671,41 @@ document.addEventListener('DOMContentLoaded', function () {
                             })
                         }
                         if(data.msg_status === false && data.code === 505){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to add",
                                 text: data.msg_response,
                                 icon: "error",
-                                showConfirmButton: true,
+                                button: true,
                             })
                         }
                     }
                 },
                 error: function(xhr, status, error){
-                    Swal.fire({
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                        showConfirmButton: true
+                        button: true
                     });
                 }
             })
         })
+
+        function loadingAPIrequest(status){
+            if(status === true){
+                swal({
+                    title: "Loading",
+                    icon: 'info',
+                    text: "Please wait",
+                    button:false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
+                });
+            }
+            if(status === false){
+                swal.close();
+            }
+        }
 
         //  create department
         DeanData('#deptHead'); 
@@ -670,24 +729,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     method: "POST",
                     data: postData,
                     dataType: "json",
-                    beforeSend: function(){
-                        Swal.fire({
-                            title: "Creating",
-                            allowOutsideClick:false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                    },
+                    beforeSend: loadingAPIrequest(true),
+                    complete: loadingAPIrequest(false),
                     success: function(data){
-                        Swal.close(); //close loading
+                        swal.close(); //close loading
                         if(data){
                             if(data.code === 200 && data.msg_status === true){
-                                Swal.fire({
+                                swal({
                                     title: "Department Created",
                                     icon: "success",
                                     text: data.msg_response,
-                                    showConfirmButton: false,
+                                    button: false,
                                     timer: 3000,
                                 }).then(function(){
                                     $('#departmentModal').modal('hide');
@@ -697,81 +749,81 @@ document.addEventListener('DOMContentLoaded', function () {
                             };
                             if(data.code === 501 && data.msg_status === false){
                                 // Require fields error hanlder
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                             };
                             if(data.code === 502 && data.msg_status === false){
                                 // Department duplicate error handler
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                             };
                             if(data.code === 404 && data.msg_status === false){
                                 //  caught error in try-catch handler
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: "Failed to execute action.",
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                             };
                             if(data.code === 503 && data.msg_status === false){
                                 // Failed query handler
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: "Action was unsuccessful",
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                                 console.error(data.msg_response);
                             };
                             if(data.code === 504 && data.msg_status === false){
                                 // dean already assigned
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                             };
                             if(data.code === 500 && data.msg_status === false){
                                 // POST method and requeste condition error handler
-                                Swal.fire({
+                                swal({
                                     title: "Failed creating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 5000,
                                 })
                             };
                         } else {
-                            Swal.fire({
+                            swal({
                                 title: "Failed creating department",
                                 icon: "error",
                                 text: "Network/System disruption occured",
-                                showConfirmButton: true,
+                                button: true,
                             })
                         }
                     },
                     error: function(xhr, status, error){
-                        Swal.close();
-                        Swal.fire({
+                        swal.close();
+                        swal({
                             title: "Error",
                             icon: "error",
                             text: "Network/Server error occured",
-                            showConfirmButton:true
+                            button:true
                         })
                     }
                     
@@ -787,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let formData = jQuery('#editDepartmentForm').serializeArray();
                 
 
-                newData = [
+                const newData = [
                     {
                         name: "departmentSubmit",
                         value: "updateDepartment"
@@ -818,11 +870,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     success: function(data){
                         if(data){
                             if(data.code === 200 && data.msg_status === true){
-                                Swal.fire({
+                                swal({
                                     title: "Department Updated!",
                                     icon: "success",
                                     text: data.msg_response,
-                                    showConfirmButton: false,
+                                    button: false,
                                     timer: 2000
                                 }).then(function(){
                                     $('#editDepartmentModal').modal('hide');
@@ -832,182 +884,85 @@ document.addEventListener('DOMContentLoaded', function () {
                             };
                             if(data.code === 501 && data.msg_status === false){
                                 // Require fields error hanlder
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 500 && data.msg_status === false){
                                 // Require fields error hanlder
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 503 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 502 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 404 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 400 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                             if(data.code === 504 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed updating department",
                                     icon: "error",
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                     timer: 2000,
                                 })
                             };
                         } else {
-                            Swal.fire({
+                            swal({
                                 title: "Failed updating department",
                                 icon: "error",
                                 text: "Network/System disruption occured",
-                                showConfirmButton: true,
+                                button: true,
                             })
                         }
                     },
                     error: function(xhr, status, error){
-                        Swal.close();
-                        Swal.fire({
+                        swal.close();
+                        swal({
                             title: "Error",
                             icon: "error",
                             text: "Network/Server error occured",
-                            showConfirmButton:true
-                        })
-                    }
-                })
-            })
-        })
-
-        // archive department
-        $(function(){
-            $('#archiveDepartmentForm').on('submit', function(e){
-                e.preventDefault();
-
-                newData = [
-                    {
-                        name: "departmentSubmit",
-                        value: "archiveDepartment"
-                    },
-                    {
-                        name: "newArchiveStatus",
-                        value: Number(newDeptStatus)
-                    }
-                ];
-                const postData = archiveForm.concat(newData);
-
-                
-                $.ajax({
-                    url: "<?php echo BASE_URL; ?>/registrar/actions/department_process.php",
-                    method: "POST",
-                    data: postData,
-                    dataType: "json",
-                    beforeSend: function(){
-                    },
-                    complete: function(){
-                    },
-                    success: function(data){
-                        if(data){
-                            if(data.code === 200 && data.msg_status === true){
-                                Swal.fire({
-                                    title: "Department Archived Successfully.",
-                                    icon: "success",
-                                    text: data.msg_response,
-                                    showConfirmButton:false,
-                                    timer:2000,
-                                }).then(function(){
-                                    $('#archiveDepartmentModal').modal('hide');
-                                    $('#archiveDepartmentForm')[0].reset();
-                                    departmentTable.setData();
-                                    archiveForm = [];
-                                    currDeptStatus = null;
-                                    newDeptStatus = null;
-                                })
-                            }
-                            if(data.code === 501 && data.msg_status === false){
-                                Swal.fire({
-                                    title: "Failed to archive department.",
-                                    icon: "error",
-                                    text: data.msg_response,
-                                    showConfirmButton:true,
-                                    timer:5000,
-                                })
-                            }
-                            if(data.code === 500 && data.msg_status === false){
-                                Swal.fire({
-                                    title: "Failed to archive department.",
-                                    icon: "error",
-                                    text: data.msg_response,
-                                    showConfirmButton:true,
-                                    timer:5000,
-                                })
-                            }
-                            if(data.code === 503 && data.msg_status === false){
-                                Swal.fire({
-                                    title: "Failed to archive department.",
-                                    icon: "error",
-                                    text: data.msg_response,
-                                    showConfirmButton:true,
-                                    timer:5000,
-                                })
-                            }
-                            if(data.code === 404 && data.msg_status === false){
-                                Swal.fire({
-                                    title: "Failed to archive department.",
-                                    icon: "error",
-                                    text: "Failed to execute action.",
-                                    showConfirmButton:true,
-                                    timer:5000,
-                                })
-                                console.error(data.msg_response);
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error){
-                        Swal.close();
-                        Swal.fire({
-                            title: "Error",
-                            icon: "error",
-                            text: "Network/Server error occured",
-                            showConfirmButton:true
+                            button:true
                         })
                     }
                 })
@@ -1038,11 +993,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 },
                 error: function(){
-                    Swal.fire({
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "Failed to load deans",
-                        showConfirmButton:true
+                        button:true
                     });
                 },
             })
@@ -1050,6 +1005,108 @@ document.addEventListener('DOMContentLoaded', function () {
 
         $('#departmentModal').on('show.bs.modal', function(){
             DeanData();
+        })
+
+        $('#editProgramModalForm').on('submit', function(e){
+            e.preventDefault();
+
+            const formData = jQuery('#editProgramModalForm').serializeArray();
+
+            const newData = [
+                {
+                    name: "submitProgram",
+                    value: "editProgram"
+                },
+                {
+                    name: "programId",
+                    value: program_id
+                },
+                {
+                    name: "newDepartment",
+                    value: department_id
+                },
+                {
+                    name: "oldMajor",
+                    value: oldMajor
+                }
+            ]
+
+            const postData = formData.concat(newData);
+
+            $.ajax({
+                url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+                method: "POST",
+                data: postData,
+                dataType: "json",
+                beforeSend: loadingAPIrequest(true),
+                complete: loadingAPIrequest(false),
+                success: function(data){
+                    if(data){
+                        swal.close();
+                        if(data.status === true && data.code === 200){
+                            swal({
+                                title: "Updated Successfully!",
+                                text: data.msg_response,
+                                icon: "success",
+                                timer: 3000,
+                                button: false,
+                            }).then(function(){
+                                $('#editProgramModalForm')[0].reset();
+                                $('#editProgramModal').modal('hide');
+                                departmentTable.setData();
+                            })
+                        }
+                        if(data.status === false && data.code === 501){
+                            swal({
+                                title: "Failed to update.",
+                                text: data.msg_response,
+                                icon: "error",
+                                button: true,
+                            })
+                        }
+                        if(data.status === false && data.code === 502){
+                            swal({
+                                title: "Failed to update.",
+                                text: data.msg_response,
+                                icon: "error",
+                                button: true,
+                            })
+                        }
+                        if(data.status === false && data.code === 503){
+                            swal({
+                                title: "Failed to update.",
+                                text: data.msg_response,
+                                icon: "error",
+                                button: true,
+                            })
+                        }
+                        if(data.status === false && data.code === 504){
+                            swal({
+                                title: "Failed to update.",
+                                text: data.msg_response,
+                                icon: "error",
+                                button: true,
+                            })
+                        }
+                        if(data.status === false && data.code === 500){
+                            swal({
+                                title: "An error occured.",
+                                text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
+                                icon: "error",
+                                button: true,
+                            })
+                        }
+                    }
+                },
+                error: function(xhr, status, error){
+                    swal({
+                        title: "Error",
+                        icon: "error",
+                        text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
+                        button: true
+                    });
+                }
+            })
         })
 });
 </script>

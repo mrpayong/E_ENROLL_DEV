@@ -112,358 +112,357 @@ if ($sem_query = call_mysql_query($query)) {
 
 </head>
 
-<body class="d-flex flex-column h-100">
-    <?php
-    include_once DOMAIN_PATH . '/global/header.php';
-    include_once DOMAIN_PATH . '/global/sidebar.php';
-    ?>
-<main id="main" class="main">
-    <section class="section">
-        <div class="row mb-3 mt-3">
-            <div class="d-flex flex-md-row flex-column align-items-center col-md-12">
-                <div class="input-group align-items-center">
-                    <label for="syDropdown" class="fw-semibold me-2">School Year / Semester</label>
-                    <select id="syDropdown" style="width:250px;">
-                    </select>
-                    <button id="generateBtn" style="height: 2.1rem; margin-bottom:0.35rem !important;" 
-                    class="bg-success text-white border-0 rounded-end">
-                        Generate</button>
+<body>
+    <div class="wrapper">
+        <?php include_once DOMAIN_PATH.'/global/sidebar.php'; ?>
+        <div class="main-panel">
+            <?php include_once DOMAIN_PATH . '/global/header.php'; ?>
+            <div class="container">
+                    <section class="section">
+                        <div class="row mx-2 mb-3 mt-3">
+                            <div class="d-flex flex-md-row flex-column align-items-center col-md-12">
+                                <div class="input-group align-items-center">
+                                    <label for="syDropdown" class="fw-semibold me-2">School Year / Semester</label>
+                                    <select id="syDropdown" style="width:250px;">
+                                    </select>
+                                    <button id="generateBtn" style="height: 2.1rem; margin-bottom:0.35rem !important;" 
+                                    class="bg-success text-white border-0 rounded-end">
+                                        Generate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center  mx-4 m-4">
+                            <section class="card shadow-sm  p-0" style="margin:auto;">
+                                <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
+                                    <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Schedule</h1>
+                                    <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
+                                    id="createButton" style="background:#173ea5;">
+                                        <i class="bi bi-plus-lg"></i> Create Schedule
+                                    </button>
+                                </header>
+                                <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                    <div class="table-bordered" id="tableSched"></div>
+                                    <div class="d-flex justify-content-start gap-2">
+                                        <button type="button" id="downloadCSV" class="btn btn-outline-success fw-semibold px-4 py-2 rounded-3">
+                                            <i class="bi bi-file-earmark-spreadsheet"></i> Download CSV
+                                        </button>
+                                        <button type="button" id="downloadXLSX" class="btn btn-outline-primary fw-semibold px-4 py-2 rounded-3">
+                                            <i class="bi bi-file-earmark-excel"></i> Download XLSX
+                                        </button>
+                                        <button type="button" id="printTable" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3">
+                                            <i class="bi bi-printer"></i> Print
+                                        </button>
+                                        <button type="button" id="showAllBtn"
+                                        class="btn btn-primary fw-semibold px-4 py-2 rounded-3">
+                                            Show all
+                                        </button>
+
+
+
+                                    </div>
+                                </div>
+
+                            </section>
+                        </div>
+
+
+                    </section>
+
+
+                <!-- create -->
+                <div class="modal fade" id="schedFormModal" tabindex="-1" aria-labelledby="createLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <form class="modal-content" id="schedForm" autocomplete="off">
+                            <div class="modal-header bg-primary text-white py-2">
+                                <h5 class="modal-title" id="createLabel">Create Schedule</h5>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="prof" class="form-label fw-bold"">Instructor<span class="required-field"></span></label>
+                                        <select id="prof" name="prof" required>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="schoolYear" class="form-label fw-bold"">Fiscal Year<span class="required-field"></span></label>
+                                        <select id="schoolYear" name="schoolYear" required>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="section" class="form-label fw-bold"">Section<span class="required-field"></span></label>
+                                        <select id="section" name="section" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="limit" class="form-label fw-bold"">Section Limit<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="limit" name="limit" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="year_level" class="form-label fw-bold"">Year Level<span class="required-field"></span></label>
+                                        <select id="year_level" name="year_level" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="program" class="form-label fw-bold"">Program<span class="required-field"></span></label>
+                                        <select id="program" name="program" required>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="courseCode" class="form-label fw-bold"">Course Code<span class="required-field"></span></label>
+                                        <select id="courseCode" name="courseCode" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="courseName" class="form-label fw-bold"">Course Title<span class="required-field"></span></label>
+                                        <input type="text" id="courseName" name="courseName" class="form-control" readonly required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="lec" class="form-label fw-bold"">Lecture<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="lec" name="lec" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="lab" class="form-label fw-bold"">Laboratory<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="lab" name="lab" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="unit" class="form-label fw-bold"">Unit<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="unit" name="unit" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="hours" class="form-label fw-bold"">Total Hours<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="hours" name="hours" requried>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-borderless" id="sched_time_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Day</th>
+                                                <th>From</th>
+                                                <th>To</th>
+                                                <th>Room</th>
+                                                <th>Component</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select name="schedDay" class="form-control select-day">
+                                                        <option value="" disabled selected>Select Day</option>
+                                                        <option value="Monday">Monday</option>
+                                                        <option value="Tuesday">Tuesday</option>
+                                                        <option value="Wednesday">Wednesday</option>
+                                                        <option value="Thursday">Thursday</option>
+                                                        <option value="Friday">Friday</option>
+                                                        <option value="Saturday">Saturday</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="time_from" name="time_from" class="form-control time-from" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="time_to" id="time_to" class="form-control time-to">
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="facility" class="form-control facility-class">
+                                                </td>
+                                                <td>
+                                                    <select name="component" class="form-control select-component">
+                                                        <option value="">Select Component</option>
+                                                        <option value="lec">Lecture</option>
+                                                        <option value="lab">Laboratory</option>
+                                                    </select>
+                                                </td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" id="add_sched_row" class="text-nowrap btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-plus-circle"></i> Add Schedule
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="rendered_sched_rows">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary fs-6">Create</button>
+                                <button type="button" class="btn btn-danger fs-6" id="cancelProgramModalBtn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
+
+                <!-- edit -->
+                <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <form class="modal-content" id="updateForm" autocomplete="off">
+                            <div class="modal-header bg-primary text-white py-2">
+                                <h5 class="modal-title" id="updateLabel"></h5>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="newProf" class="form-label fw-bold"">Instructor<span class="required-field"></span></label>
+                                        <select id="newProf" name="newProf" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="fiscalYear" class="form-label fw-bold"">Fiscal Year<span class="required-field"></span></label>
+                                        <input type="text" id="fiscalYear" name="fiscalYear" class="form-control" readonly required disabled>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="newSection" class="form-label fw-bold"">Section<span class="required-field"></span></label>
+                                        <select id="newSection" name="newSection" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="newLimit" class="form-label fw-bold"">Section Limit<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="newLimit" name="newLimit" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="newYear_level" class="form-label fw-bold"">Year Level<span class="required-field"></span></label>
+                                        <select id="newYear_level" name="newYear_level" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="newProgram" class="form-label fw-bold"">Program<span class="required-field"></span></label>
+                                        <select id="newProgram" name="newProgram" required>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="newCourseCode" class="form-label fw-bold"">Course Code<span class="required-field"></span></label>
+                                        <select id="newCourseCode" name="newCourseCode" required>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="newCourseName" class="form-label fw-bold"">Course Title<span class="required-field"></span></label>
+                                        <input type="text" id="newCourseName" name="newCourseName" class="form-control" readonly required>
+                                    </div>
+
+
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="newLec" class="form-label fw-bold"">Lecture<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" placeholder="# of units" id="newLec" name="newLec" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="newLab" class="form-label fw-bold"">Laboratory<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" placeholder="# of units" id="newLab" name="newLab" required>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="newUnit" class="form-label fw-bold"">Unit<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="newUnit" name="newUnit" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="newHours" class="form-label fw-bold"">Total Hours<span class="required-field"></span></label>
+                                        <input type="number" class="form-control" id="newHours" name="newHours" requried>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-bordered" id="udpate_schedTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Day<span class="required-field"></span></th>
+                                                <th>From<span class="required-field"></span></th>
+                                                <th>To<span class="required-field"></span></th>
+                                                <th>Room<span class="required-field"></span></th>
+                                                <th>Component<span class="required-field"></span></th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select name="newDay" class="form-control newDay">
+                                                        <option value="">Select Day</option>
+                                                        <option value="Monday">Monday</option>
+                                                        <option value="Tuesday">Tuesday</option>
+                                                        <option value="Wednesday">Wednesday</option>
+                                                        <option value="Thursday">Thursday</option>
+                                                        <option value="Friday">Friday</option>
+                                                        <option value="Saturday">Saturday</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="newTime_from" name="newTime_from" class="form-control newTime_from" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="newTime_to" id="newTime_to" class="form-control newTime_to">
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="newFacility" class="form-control newFacility">
+                                                </td>
+                                                <td>
+                                                    <select name="newComponent" class="form-control newComponent">
+                                                        <option value="">Select Component</option>
+                                                        <option value="lec">Lecture</option>
+                                                        <option value="lab">Laboratory</option>
+                                                    </select>
+                                                </td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" id="update_sched_row" class="btn btn-outline-success btn-sm">
+                                                        <i class="bi bi-plus-circle"></i> Add Schedule
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="update_sched_rows">
+                                    <input type="text" id="update_sched_selectize" />
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelProgramModalBtn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
             </div>
-        </div>
-        <div class="row justify-content-center">
-            <section class="card shadow-sm  p-0" style="margin:auto;">
-                <header class="d-flex bg-eclearance flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                    <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Schedule</h1>
-                    <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3" 
-                    id="createButton" style="background:#173ea5;">
-                        <i class="bi bi-plus-lg"></i> Create Schedule
-                    </button>
-                </header>
-                <div class="table-responsive px-3 pb-4 pt-1 mt-3">
-                    <div class="table-bordered" id="tableSched"></div>
-                    <div class="d-flex justify-content-start gap-2">
-                        <button type="button" id="downloadCSV" class="btn btn-outline-success fw-semibold px-4 py-2 rounded-3">
-                            <i class="bi bi-file-earmark-spreadsheet"></i> Download CSV
-                        </button>
-                        <button type="button" id="downloadXLSX" class="btn btn-outline-primary fw-semibold px-4 py-2 rounded-3">
-                            <i class="bi bi-file-earmark-excel"></i> Download XLSX
-                        </button>
-                        <button type="button" id="printTable" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3">
-                            <i class="bi bi-printer"></i> Print
-                        </button>
-                        <button type="button" id="showAllBtn"
-                        class="btn btn-primary fw-semibold px-4 py-2 rounded-3">
-                            Show all
-                        </button>
-
-
-
-                    </div>
-                </div>
-
-            </section>
-        </div>
-
-
-    </section>
-</main>
-
-
-    <!-- create -->
-    <div class="modal fade" id="schedFormModal" tabindex="-1" aria-labelledby="createLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <form class="modal-content" id="schedForm" autocomplete="off">
-                <div class="modal-header bg-eclearance text-white py-2">
-                    <h5 class="modal-title" id="createLabel">Create Schedule</h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-8">
-                            <label for="prof" class="form-label fw-bold"">Instructor<span class="required-field"></span></label>
-                            <select id="prof" name="prof" required>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="schoolYear" class="form-label fw-bold"">Fiscal Year<span class="required-field"></span></label>
-                            <select id="schoolYear" name="schoolYear" required>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="section" class="form-label fw-bold"">Section<span class="required-field"></span></label>
-                            <select id="section" name="section" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="limit" class="form-label fw-bold"">Section Limit<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="limit" name="limit" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="year_level" class="form-label fw-bold"">Year Level<span class="required-field"></span></label>
-                            <select id="year_level" name="year_level" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="program" class="form-label fw-bold"">Program<span class="required-field"></span></label>
-                            <select id="program" name="program" required>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="courseCode" class="form-label fw-bold"">Course Code<span class="required-field"></span></label>
-                            <select id="courseCode" name="courseCode" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="courseName" class="form-label fw-bold"">Course Title<span class="required-field"></span></label>
-                            <input type="text" id="courseName" name="courseName" class="form-control" readonly required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="lec" class="form-label fw-bold"">Lecture<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="lec" name="lec" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="lab" class="form-label fw-bold"">Laboratory<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="lab" name="lab" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="unit" class="form-label fw-bold"">Unit<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="unit" name="unit" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="hours" class="form-label fw-bold"">Total Hours<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="hours" name="hours" requried>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive mb-3">
-                        <table class="table table-bordered" id="sched_time_table">
-                            <thead>
-                                <tr>
-                                    <th>Day</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Room</th>
-                                    <th>Component</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <select name="schedDay" class="form-control select-day">
-                                            <option value="" disabled selected>Select Day</option>
-                                            <option value="Monday">Monday</option>
-                                            <option value="Tuesday">Tuesday</option>
-                                            <option value="Wednesday">Wednesday</option>
-                                            <option value="Thursday">Thursday</option>
-                                            <option value="Friday">Friday</option>
-                                            <option value="Saturday">Saturday</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" id="time_from" name="time_from" class="form-control time-from" />
-                                    </td>
-                                    <td>
-                                        <input type="text" name="time_to" id="time_to" class="form-control time-to">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="facility" class="form-control facility-class">
-                                    </td>
-                                    <td>
-                                        <select name="component" class="form-control select-component">
-                                            <option value="">Select Component</option>
-                                            <option value="lec">Lecture</option>
-                                            <option value="lab">Laboratory</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-center align-middle">
-                                        <button type="button" id="add_sched_row" class="btn btn-outline-success btn-sm">
-                                            <i class="bi bi-plus-circle"></i> Add Schedule
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="rendered_sched_rows">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create</button>
-                    <button type="button" class="btn btn-danger" id="cancelProgramModalBtn">Cancel</button>
-                </div>
-            </form>
+            <?php include_once FOOTER_PATH; ?>
         </div>
     </div>
-
-
-    <!-- edit -->
-    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <form class="modal-content" id="updateForm" autocomplete="off">
-                <div class="modal-header bg-eclearance text-white py-2">
-                    <h5 class="modal-title" id="updateLabel"></h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-8">
-                            <label for="newProf" class="form-label fw-bold"">Instructor<span class="required-field"></span></label>
-                            <select id="newProf" name="newProf" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="fiscalYear" class="form-label fw-bold"">Fiscal Year<span class="required-field"></span></label>
-                            <input type="text" id="fiscalYear" name="fiscalYear" class="form-control" readonly required disabled>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="newSection" class="form-label fw-bold"">Section<span class="required-field"></span></label>
-                            <select id="newSection" name="newSection" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="newLimit" class="form-label fw-bold"">Section Limit<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="newLimit" name="newLimit" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="newYear_level" class="form-label fw-bold"">Year Level<span class="required-field"></span></label>
-                            <select id="newYear_level" name="newYear_level" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="newProgram" class="form-label fw-bold"">Program<span class="required-field"></span></label>
-                            <select id="newProgram" name="newProgram" required>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="newCourseCode" class="form-label fw-bold"">Course Code<span class="required-field"></span></label>
-                            <select id="newCourseCode" name="newCourseCode" required>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="newCourseName" class="form-label fw-bold"">Course Title<span class="required-field"></span></label>
-                            <input type="text" id="newCourseName" name="newCourseName" class="form-control" readonly required>
-                        </div>
-
-
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="newLec" class="form-label fw-bold"">Lecture<span class="required-field"></span></label>
-                            <input type="number" class="form-control" placeholder="# of units" id="newLec" name="newLec" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="newLab" class="form-label fw-bold"">Laboratory<span class="required-field"></span></label>
-                            <input type="number" class="form-control" placeholder="# of units" id="newLab" name="newLab" required>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="newUnit" class="form-label fw-bold"">Unit<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="newUnit" name="newUnit" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="newHours" class="form-label fw-bold"">Total Hours<span class="required-field"></span></label>
-                            <input type="number" class="form-control" id="newHours" name="newHours" requried>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive mb-3">
-                        <table class="table table-bordered" id="udpate_schedTable">
-                            <thead>
-                                <tr>
-                                    <th>Day<span class="required-field"></span></th>
-                                    <th>From<span class="required-field"></span></th>
-                                    <th>To<span class="required-field"></span></th>
-                                    <th>Room<span class="required-field"></span></th>
-                                    <th>Component<span class="required-field"></span></th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <select name="newDay" class="form-control newDay">
-                                            <option value="">Select Day</option>
-                                            <option value="Monday">Monday</option>
-                                            <option value="Tuesday">Tuesday</option>
-                                            <option value="Wednesday">Wednesday</option>
-                                            <option value="Thursday">Thursday</option>
-                                            <option value="Friday">Friday</option>
-                                            <option value="Saturday">Saturday</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" id="newTime_from" name="newTime_from" class="form-control newTime_from" />
-                                    </td>
-                                    <td>
-                                        <input type="text" name="newTime_to" id="newTime_to" class="form-control newTime_to">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="newFacility" class="form-control newFacility">
-                                    </td>
-                                    <td>
-                                        <select name="newComponent" class="form-control newComponent">
-                                            <option value="">Select Component</option>
-                                            <option value="lec">Lecture</option>
-                                            <option value="lab">Laboratory</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-center align-middle">
-                                        <button type="button" id="update_sched_row" class="btn btn-outline-success btn-sm">
-                                            <i class="bi bi-plus-circle"></i> Add Schedule
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="update_sched_rows">
-                        <input type="text" id="update_sched_selectize" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelProgramModalBtn">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-
-<?php include_once FOOTER_PATH; ?>
-
-
 </body>
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -756,15 +755,14 @@ if ($sem_query = call_mysql_query($query)) {
 
         function loadingAPIrequest(status){
             if(status === true){
-                Swal.fire({
+                swal({
                     title: "Loading",
                     icon: 'info',
                     text: "Please wait"
                 });
-                Swal.showLoading();
             }
             if(status === false){
-                Swal.close();
+                swal.close();
             }
 
         }
@@ -774,7 +772,7 @@ if ($sem_query = call_mysql_query($query)) {
             const studentLimit = Number(rowData?.section_limit);
 
             let buttons = `
-                <button class="btn btn-sm btn-primary edit-sched" data-id="${rowData.teacher_class_id}">
+                <button class="btn btn-sm btn-primary edit-sched fs-6" data-id="${rowData.teacher_class_id}">
                     <i class="bi bi-pencil-square"></i> Update
                 </button>
             `;
@@ -800,6 +798,15 @@ if ($sem_query = call_mysql_query($query)) {
             paginationSize: 10,
             movableColumns: true,
             headerFilterPlaceholder: "Search",
+            ajaxResponse: function(url, params, response){
+                // Check if there is data
+                if(response && response.data && response.data.length > 0){
+                    this.setHeight("auto"); // Set height to auto if data exists
+                }else{
+                    this.setHeight("170px"); // Fixed height if no data
+                }
+                return response;
+            },
             initialSort:[
                 {column:"date_added", dir:"desc"},
             ],
@@ -1031,20 +1038,20 @@ if ($sem_query = call_mysql_query($query)) {
             var to24 = timeToSeconds(to);
             // class time duraiton validation (From-To)
             if(from24 >= to24) {
-                Swal.fire({
+                swal({
                     title: "Invalid class duration.",
                     icon: "warning",
-                    showConfirmButton: true
+                    button: true
                 });
                 return;
             }
             // Validate (optional)
             if(!day || !from || !to || !room || !component) {
-                Swal.fire({
+                swal({
                     title: "Incomplete Data",
                     icon: "warning",
                     text: "Please fill out all fields before adding.",
-                    showConfirmButton: true
+                    button: true
                 })
                 return;
             }
@@ -1118,11 +1125,11 @@ if ($sem_query = call_mysql_query($query)) {
                 success: function(data){
                     if(data){
                         if(data.code === 200 && data.msg_status === true){
-                            Swal.fire({
+                            swal({
                                 title: "Created Successfully.",
                                 icon: "success",
                                 text: data.msg_response,
-                                showConfirmButton:false,
+                                button:false,
                                 timer:3000,
                             }).then(function(){
                                 $('#schedFormModal').modal('hide');
@@ -1147,150 +1154,150 @@ if ($sem_query = call_mysql_query($query)) {
                             })
                         }
                         if(data.code === 404 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 401 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 501 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 501 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 502 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 503 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 504 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 505 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 506 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 507 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 508 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 509 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 510 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 511 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 512 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 513 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 500 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to create schedule.",
                                 icon: "error",
                                 text: "Failed to execute action.",
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                     }
                 },
                 error: function(xhr, status, error){
-                    Swal.close();
-                    Swal.fire({
+                    swal.close();
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "Network/Server error occured",
-                        showConfirmButton:true
+                        button:true
                     })
                 }
             })
@@ -1313,20 +1320,20 @@ if ($sem_query = call_mysql_query($query)) {
             var to24 = timeToSeconds(to);
             // class time duraiton validation (From-To)
             if(from24 >= to24) {
-                Swal.fire({
+                swal({
                     title: "Invalid class duration.",
                     icon: "warning",
-                    showConfirmButton: true
+                    button: true
                 });
                 return;
             }
             // Validate (optional)
             if(!day || !from || !to || !room || !component) {
-                Swal.fire({
+                swal({
                     title: "Incomplete Data",
                     icon: "warning",
                     text: "Please fill out all fields before adding.",
-                    showConfirmButton: true
+                    button: true
                 })
                 return;
             }
@@ -1470,11 +1477,11 @@ if ($sem_query = call_mysql_query($query)) {
                 success: function(data){
                     if(data){
                         if(data.code === 200 && data.msg_status === true){
-                            Swal.fire({
+                            swal({
                                 title: "Updated Successfully.",
                                 icon: "success",
                                 text: data.msg_response,
-                                showConfirmButton:false,
+                                button:false,
                                 timer:3000,
                             }).then(function(){
                                 $('#updateModal').modal('hide');
@@ -1483,150 +1490,150 @@ if ($sem_query = call_mysql_query($query)) {
                             })
                         }
                         if(data.code === 501 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true, 
+                                button:true, 
                             })
                         }
                         if(data.code === 502 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 503 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 504 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 505 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 506 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 507 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 508 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 509 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 510 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 511 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 512 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 513 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 514 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 500 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 401 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                         if(data.code === 404 && data.msg_status === false){
-                            Swal.fire({
+                            swal({
                                 title: "Failed to update schedule.",
                                 icon: "error",
                                 text: data.msg_response,
-                                showConfirmButton:true,
+                                button:true,
                             })
                         }
                     }
                 },
                 error: function(xhr, status, error){
-                    Swal.close();
-                    Swal.fire({
+                    swal.close();
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "Network/Server error occured",
-                        showConfirmButton:true
+                        button:true
                     })
                 }
             })

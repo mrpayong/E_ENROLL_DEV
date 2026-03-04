@@ -310,6 +310,13 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
+                    <li class="nav-item <?php echo navigation_active("course"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/course.php">
+                            <i class="fas fa-book-reader"></i>
+                            <span>Course</span>
+                        </a>
+                    </li>
+
 
                 <?php } ?>
             </ul>

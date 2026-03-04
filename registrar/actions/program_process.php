@@ -66,11 +66,11 @@ try {
     }
 
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitProgram']) && $_POST['submitProgram'] === "editProgram"){
-        $program = isset($_POST['newProgramName']) ? trim($_POST['newProgramName']) : "";
+        $program = isset($_POST['newProgram']) ? trim($_POST['newProgram']) : "";
         $department_id = isset($_POST['newDepartment']) ? trim($_POST['newDepartment']) : '';
-        $major = isset($_POST['newMajor']) ? trim($_POST['newMajor']) : '';
-        $duration = isset($_POST['newDuration']) ? trim($_POST['newDuration']) : "";
-        $program_code = isset($_POST['newProgramCode']) ? trim($_POST['newProgramCode']) : "";
+        $major = isset($_POST['newMajor']) ? strtoupper(trim($_POST['newMajor'])) : '';
+        $oldMajor = isset($_POST['oldMajor']) ? (trim($_POST['oldMajor'])) : '';
+        $program_code = isset($_POST['newCode']) ? trim($_POST['newCode']) : "";
         $program_id = isset($_POST['programId']) ? trim($_POST['programId']) : "";
         $output = array(
             'code' => 0,
@@ -78,8 +78,14 @@ try {
             'msg_response' => 'Request error, please try again.',
             'msg_span' => '_system',
         );
+        $majorArr = array();
+        $oldMajorArr = array();
+        // echo "program: $program, department_id: $department_id, major: $major, program_code: $program_code, program_id: $program_id";
 
-        if(empty($program) || empty($department_id) || empty($duration) || empty($program_code)){
+        function dataEmptyCheck($val){
+            return ($val === null || $val === '');
+        }
+        if(empty($program) || empty($department_id) || empty($program_code) || empty($major) || empty($program_code) || dataEmptyCheck($department_id)){
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
             echo json_encode($output);
@@ -87,13 +93,15 @@ try {
         }
 
         $old_data = "";
-        $new_data = sha1($program_id . $program . $program_code . $department_id . $major . $duration);
-        $program_exist = "SELECT program_id, program, short_name, department_id, major, duration FROM programs WHERE 
+        $new_data = sha1($program_id . $program . $program_code . $department_id);
+        $program_exist = "SELECT program_id, program, short_name, department_id, major FROM programs WHERE 
         program_id = '".    escape($db_connect, $program_id).   "' ";
 
         if ($query = call_mysql_query($program_exist)){
             if($data = call_mysql_fetch_array($query)){
-                $old_data = sha1($data['program_id'] . $data['program'] . $data['short_name'] . $data['department_id'] . $data['major'] . $data['duration']);
+                $oldMajorArr = json_decode(html_entity_decode($data['major']), true);
+                $old_data = sha1($data['program_id'] . $data['program'] . $data['short_name'] . $data['department_id']);
+
             } else {
                 $output['code'] = 503;
                 $output['msg_response'] = "Connection failed";
@@ -107,20 +115,31 @@ try {
             exit();
         }
 
-        if($new_data === $old_data){
+        if($new_data === $old_data && in_array($major, $oldMajorArr)){
             $output['code'] = 504;
             $output['msg_response'] = "You did not make any changes.";
             echo json_encode($output);
             exit();
         }
 
+        if($oldMajor !== $major){
+            if(in_array($oldMajor, $oldMajorArr)){
+                $index = array_search($oldMajor, $oldMajorArr);
+                if(isset($index)){
+                    $oldMajorArr[$index] = $major;
+                }
+            }
+        }
+
+
+
         $db_connect->begin_transaction();
+        $encodedMajor = json_encode($oldMajorArr);
 
         $sql = "UPDATE programs SET 
         program =   '".     escape($db_connect, $program).      "',
         department_id =   '".     escape($db_connect, $department_id).      "',
-        major =   '".     escape($db_connect, $major).      "',
-        duration =   '".     escape($db_connect, $duration).      "',
+        major =   '".     escape($db_connect, $encodedMajor).      "',
         short_name =   '".     escape($db_connect, $program_code).      "'
         WHERE program_id = '".      escape($db_connect, $program_id)        ."'
         ";
@@ -130,7 +149,7 @@ try {
 
         $output['code'] = 200;
         $output['status'] = true;
-        $output['msg_response'] = 'Program updated successfully.';
+        $output['msg_response'] = 'Major updated successfully.';
         $output['msg_span'] = '';
         echo json_encode($output);
         exit();
@@ -167,7 +186,7 @@ try {
                 }
                 if(!empty($data['major'])){
                     $exist_major_array = json_decode(html_entity_decode($data['major']));
-
+                    var_dump(json_decode($data['major']));
                     if(in_array(strtoupper($major), $exist_major_array)){
                         $output['code'] = 505;
                         $output['msg_response'] = "This major already exists for this program.";

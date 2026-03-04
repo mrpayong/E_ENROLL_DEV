@@ -31,7 +31,7 @@ $dbfield = [
 ];
 $dborig = [
     'class_id',
-    'class',
+    'class_name',
     'sem_limit',
     'short_name',
     'date_modified'
@@ -64,7 +64,7 @@ if (!empty($sql_where_array)) {
 }
 
 // --- Sorting ---
-$orderby = "cs.class_name ASC";
+$orderby = "cs.date_modified DESC";
 if (isset($_GET['sorters'])) {
     $sorters = $_GET['sorters'];
     $tag = ['asc', 'desc'];
@@ -115,6 +115,7 @@ if ($query = call_mysql_query($data_query)) {
             $data['class_id'] = intVal($data['class_id']);
             $data['short_name'] = isset($data['short_name']) ? $data['short_name'] : null;
             $data['program_id'] = isset($data['program_id']) ? intVal($data['program_id']) : null;
+            $data['date_modified'] = isset($data['date_modified']) ? formatterDateLong($data['date_modified']) : null;
 
             $sem_limits = json_decode(html_entity_decode($data['sem_limit']),true);
 

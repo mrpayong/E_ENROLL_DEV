@@ -177,7 +177,7 @@ if($_SERVER['REQUEST_METHOD'] = "POST" && isset($_POST['departmentSubmit']) && $
 
 $output = array(
     "code" => 500,
-    "msg_status" =>  false,
+    "msg_status" => false,
     "msg_span" => "_system",
     'msg_response' => "Invalid request method."
 );

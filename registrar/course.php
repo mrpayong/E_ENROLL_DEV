@@ -53,138 +53,137 @@ if ($query = call_mysql_query($select)) {
 
 </head>
 
-<body class="d-flex flex-column h-100">
+<body>
+    <div class="wrapper">
+        <?php include_once DOMAIN_PATH . '/global/sidebar.php';?>
+        <div class="main-panel">
+            <?php include_once DOMAIN_PATH . '/global/header.php';?>
+            <div class="container">
 
-    <?php
-    include_once DOMAIN_PATH . '/global/header.php';
-    include_once DOMAIN_PATH . '/global/sidebar.php';
-    ?>
 
-
-<main id="main" class="main">
-    <section class="section">
-        
-            <div class="row justify-content-center">
-                
-                    <section class="card shadow-sm  p-0" style="margin:auto;">
-                        <header class="d-flex bg-eclearance flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                            <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Course</h1>
-                            <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3" id="createCourseBtn" style="background:#173ea5;">
-                                <i class="bi bi-plus-lg"></i> Create course
-                            </button>
-                        </header>
-                        <div class="table-responsive px-3 pb-4 pt-1 mt-3">
-                            <div class="table-bordered" id="courseTable"></div>
+                    <section class="section">
                         
-                            <!-- <div id="footer-total" style="text-align:right; padding: 10px; font-weight:bold;"></div> -->
-                            <div>
-                                <button type="button" class="btn btn-blue btn-sm" id="course-download-csv">Download as CSV</button>
-                                <button type="button" class="btn btn-blue btn-sm" id="course-download-xlsx">Download as XLSX</button>
-                                <button type="button" class="btn btn-blue btn-sm" id="user-print-table">Print</button>
+                            <div class="row justify-content-center mx-4 m-4">
+                                
+                                    <section class="card shadow-sm  p-0" style="margin:auto;">
+                                        <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
+                                            <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Course</h1>
+                                            <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createCourseBtn" style="background:#173ea5;">
+                                                <i class="bi bi-plus-lg"></i> Create course
+                                            </button>
+                                        </header>
+                                        <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                            <div class="table-bordered" id="courseTable"></div>
+                                        
+                                            <!-- <div id="footer-total" style="text-align:right; padding: 10px; font-weight:bold;"></div> -->
+                                            <div>
+                                                <button type="button" class="btn btn-primary btn-sm fs-6" id="course-download-csv">Download as CSV</button>
+                                                <button type="button" class="btn btn-primary btn-sm fs-6" id="course-download-xlsx">Download as XLSX</button>
+                                                <button type="button" class="btn btn-primary btn-sm fs-6" id="user-print-table">Print</button>
+                                            </div>
+                                        </div>
+                                    </section>
+                                
+
                             </div>
-                        </div>
+                        
                     </section>
                 
 
+                <!-- create course -->
+                <div class="modal fade" id="courseFormModal" tabindex="-1" aria-labelledby="courseFormLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form class="modal-content" id="courseForm" autocomplete="off">
+                            <div class="modal-header bg-primary text-white py-2">
+                                <h5 class="modal-title" id="courseFormLabel">Create course</h5>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div>
+                                        <label for="courseCode" class="form-label">Course Code</label>
+                                        <input type="text" class="form-control" id="courseCode" name="courseCode" required>
+                                    </div>
+                                    <div>
+                                        <label for="manual" class="form-label">Set as Manual Enroll</label>
+                                        <input type="checkbox" class="form-check-input" id="manual" name="manual">
+                                    </div>                        
+                                </div>
+
+                                <div class="mb-3" id="courseNameContainer">
+                                    <label for="courseName" class="form-label">Course title</label>
+                                    <input type="text" class="form-control" id="courseName" name="courseName[]" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="lec_units" class="form-label">Lecture</label>
+                                        <input type="number" class="form-control" id="lec_units" placeholder="No. of units" name="lec_units" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lab_units" class="form-label">Laboratory</label>
+                                        <input type="number" class="form-control" id="lab_units" placeholder="No. of units" name="lab_units" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="unit" class="form-label">Unit</label>
+                                    <input type="number" class="form-control" id="unit" name="unit" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Create</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- update course -->
+                <div class="modal fade" id="editCourseFormModal" tabindex="-1" aria-labelledby="editCourseFormLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form class="modal-content" id="editCourseForm" autocomplete="off">
+                            <div class="modal-header bg-primary text-white py-2">
+                                <h5 class="modal-title" id="editCourseFormLabel"></h5>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="newCourseCode" class="form-label">Course Code</label>
+                                    <input type="text" class="form-control" id="newCourseCode" name="newCourseCode" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newCourseName" class="form-label">Course Name</label>
+                                    <input type="text" class="form-control" id="newCourseName" name="newCourseName" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="newLec_units" class="form-label">Lecture</label>
+                                        <input type="number" class="form-control" id="newLec_units" name="newLec_units" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="newLab_units" class="form-label">Laboratory</label>
+                                        <input type="number" class="form-control" id="newLab_units" name="newLab_units" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="newUnit" class="form-label">Unit</label>
+                                    <input type="number" class="form-control" id="newUnit" name="newUnit" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn-confirm btn btn-primary">Save</button>
+                                <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
-        
-    </section>
-</main>
-
-    <!-- create course -->
-    <div class="modal fade" id="courseFormModal" tabindex="-1" aria-labelledby="courseFormLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <form class="modal-content" id="courseForm" autocomplete="off">
-                <div class="modal-header bg-eclearance text-white py-2">
-                    <h5 class="modal-title" id="courseFormLabel">Create course</h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div>
-                            <label for="courseCode" class="form-label">Course Code</label>
-                            <input type="text" class="form-control" id="courseCode" name="courseCode" required>
-                        </div>
-                        <div>
-                            <label for="manual" class="form-label">Set as Manual Enroll</label>
-                            <input type="checkbox" class="form-check-input" id="manual" name="manual">
-                        </div>                        
-                    </div>
-
-                    <div class="mb-3" id="courseNameContainer">
-                        <label for="courseName" class="form-label">Course title</label>
-                        <input type="text" class="form-control" id="courseName" name="courseName[]" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="lec_units" class="form-label">Lecture</label>
-                            <input type="number" class="form-control" id="lec_units" placeholder="No. of units" name="lec_units" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="lab_units" class="form-label">Laboratory</label>
-                            <input type="number" class="form-control" id="lab_units" placeholder="No. of units" name="lab_units" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="unit" class="form-label">Unit</label>
-                        <input type="number" class="form-control" id="unit" name="unit" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+            <?php include_once FOOTER_PATH; ?>
         </div>
     </div>
-
-    <!-- update course -->
-    <div class="modal fade" id="editCourseFormModal" tabindex="-1" aria-labelledby="editCourseFormLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <form class="modal-content" id="editCourseForm" autocomplete="off">
-                <div class="modal-header bg-eclearance text-white py-2">
-                    <h5 class="modal-title" id="editCourseFormLabel"></h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="newCourseCode" class="form-label">Course Code</label>
-                        <input type="text" class="form-control" id="newCourseCode" name="newCourseCode" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newCourseName" class="form-label">Course Name</label>
-                        <input type="text" class="form-control" id="newCourseName" name="newCourseName" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="newLec_units" class="form-label">Lecture</label>
-                            <input type="number" class="form-control" id="newLec_units" name="newLec_units" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="newLab_units" class="form-label">Laboratory</label>
-                            <input type="number" class="form-control" id="newLab_units" name="newLab_units" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="newUnit" class="form-label">Unit</label>
-                        <input type="number" class="form-control" id="newUnit" name="newUnit" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn-confirm btn btn-primary">Save</button>
-                    <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-<?php include_once FOOTER_PATH; ?>
-
-
 </body>
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const openModalBtn = document.getElementById('createCourseBtn');
@@ -197,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = cell.getRow().getData();
 
         return `
-            <button data-id="${row.subject_id}" class="btn btn-sm btn-primary me-2 edit-section-btn" title="Edit"><i class="bi bi-pencil"></i> Update</button>
+            <button data-id="${row.subject_id}" class="btn btn-sm btn-primary me-2 edit-section-btn fs-6" title="Edit"><i class="bi bi-pencil"></i> Update</button>
         `;
     }
 
@@ -234,6 +233,8 @@ document.addEventListener('DOMContentLoaded', function() {
         paginationSize: 10,
         rowHeight:80,
         movableColumns: true,
+        ajaxFiltering: true,
+        ajaxSorting: true,
         headerFilterPlaceholder: "Search",
         placeholder: "No Data Found",
         ajaxResponse: function(url, params, response){
@@ -329,15 +330,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadingAPIrequest(status){
         if(status === true){
-            Swal.fire({
+            swal({
                 title: "Loading",
                 icon: 'info',
-                text: "Please wait"
+                text: "Please wait",
+                button:false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
-            Swal.showLoading();
         }
         if(status === false){
-            Swal.close();
+            swal.close();
         }
     }
 
@@ -352,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             subjectCodeDataList = response.data;
         } catch (error) {
-            Swal.fire({
+            swal({
                 icon: "error",
                 title: "Error",
                 text: "Code detection and Auto-fill will not commence.",
@@ -527,12 +530,12 @@ document.addEventListener('DOMContentLoaded', function() {
             success: function(data){
                 if(data){
                     if(data.status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             icon: "success",
                             title: "Course created!",
                             text: "Course has been created.",
                             timer: 3000,
-                            showConfirmButton: false
+                            button:false,
                         }).then(function(){
                             $('#courseFormModal').modal('hide');
                             $('#courseForm')[0].reset();
@@ -542,37 +545,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                     }
                     if(data.status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to create section.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                 }
             },
             error: function(){
-                Swal.fire({
+                swal({
                     icon: "error",
                     title: "Error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })
@@ -654,12 +657,12 @@ document.addEventListener('DOMContentLoaded', function() {
             success: function(data){
                 if(data){
                     if(data.msg_status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             icon: "success",
                             title: "Course updated!",
                             text: "Course has been updated.",
                             timer: 3000,
-                            showConfirmButton: false
+                            button: false
                         }).then(function(){
                             $('#editCourseFormModal').modal('hide');
                             $('#editCourseForm')[0].reset();
@@ -668,53 +671,53 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                     }
                     if(data.msg_status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update course.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 504){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update course.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update course.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 505){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update course.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                     if(data.msg_status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             icon: "error",
                             title: "Failed to update course.",
                             text: data.msg_response,
-                            showConfirmButton: true
+                            button: true
                         })
                     }
                 }
             },
             error: function(){
-                Swal.fire({
+                swal({
                     icon: "error",
                     title: "Error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })

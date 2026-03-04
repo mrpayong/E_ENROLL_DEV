@@ -169,7 +169,7 @@ if ($query = call_mysql_query($data_query)) {
 echo json_encode([
     "last_page" => $pages,
     "data" => $finalSubjects,
-    "total_record" => $total_query
+    "total_record" => $total_query,
 ]);
 exit();
 ?>
