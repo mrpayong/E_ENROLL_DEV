@@ -12,7 +12,6 @@ try {
         $program = isset($_POST['programName']) ? trim($_POST['programName']) : '';
         $department_id = isset($_POST['department_id']) ? trim($_POST['department_id']) : '';
         $major = isset($_POST['major']) ? trim($_POST['major']) : '';
-        $duration = isset($_POST['duration']) ? trim($_POST['duration']) : '';
         $program_code = isset($_POST['programCode']) ? trim($_POST['programCode']) : '';
         $output = array(
             'code' => 0,
@@ -22,7 +21,7 @@ try {
         );
 
        
-        if(empty($program) || empty($department_id) || empty($duration) || empty($program_code)){
+        if(empty($program) || empty($department_id) || empty($program_code)){
             $output['code'] = 501;
             $output['msg_response'] = "You did not fill a required field.";
             echo json_encode($output);
@@ -46,11 +45,10 @@ try {
         }
 
         $db_connect->begin_transaction();
-        $new_program = "INSERT INTO programs (program, department_id, major, duration, short_name) VALUES (
+        $new_program = "INSERT INTO programs (program, department_id, major, short_name) VALUES (
             '".escape($db_connect, $program)."',
             '".escape($db_connect, $department_id)."',
             '".escape($db_connect, $major)."',
-            '".escape($db_connect, $duration)."',
             '".escape($db_connect, $program_code)."'
         )";
 
@@ -186,7 +184,6 @@ try {
                 }
                 if(!empty($data['major'])){
                     $exist_major_array = json_decode(html_entity_decode($data['major']));
-                    var_dump(json_decode($data['major']));
                     if(in_array(strtoupper($major), $exist_major_array)){
                         $output['code'] = 505;
                         $output['msg_response'] = "This major already exists for this program.";

@@ -53,13 +53,13 @@ if ($query = call_mysql_query($select)) {
                 <section class="section">
                         <div class="row justify-content-center mx-4 m-4">
                             <section class="card shadow-sm p-0" style="margin:auto;">
-                                <header class="d-flex bg-eclearance flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
+                                <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                     <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Curriculum</h1>
-                                    <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3" style="background:#173ea5;" data-bs-toggle="modal" data-bs-target="#createModal">
+                                    <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" style="background:#173ea5;" data-bs-toggle="modal" data-bs-target="#createModal">
                                         <i class="bi bi-plus-lg text-white"></i> Create Curriculum
                                     </button>
                                 </header>
-                                <div class="p-3">
+                                <div class="p-3" style="min-height: 40rem;">
                                     <div id="curriculum-table"></div>
                                 </div>
                             </section>
@@ -70,45 +70,33 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
               <div class="modal-dialog">
                 <form class="modal-content" id="createForm">
-                  <div class="modal-header bg-eclearance text-white">
+                  <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="createModalLabel">Create Curriculum</h5>
                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
 
                     <div class="mb-3">
-                      <label for="sem" class="form-label">Semester</label>
-                      <select class="form-select" id="sem" name="sem" required>
-                        <option value="">Select sem</option>
-                      </select>
+                      <label for="currTitle" class="form-label">Curriculum Title</label>
+                      <input type="text" class="form-control" id="currTitle" name="currTitle" required/>
                     </div>
 
                     <div class="mb-3">
-                      <label for="department" class="form-label">Department</label>
-                      <select class="form-select" id="department" name="department" required>
-                        <option value="">Select Department</option>
-                        <option value="1">DBA</option>
-                        <option value="2">DCI</option>
-                      </select>
+                      <label for="currCode" class="form-label">Curriculum Code</label>
+                      <input type="text" class="form-control" id="currCode" name="currCode" required/>
                     </div>
 
                     <div class="mb-3">
                       <label for="program" class="form-label">Program</label>
                       <select class="form-select" id="program" name="program" required>
-                        <option value="">Select Program</option>
                       </select>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="curriculumName" class="form-label">Curriculum Title</label>
-                      <input  type="text" class="form-control" id="curriculumName" name="curriculumName" required/>
                     </div>
                   </div>
 
 
                   <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="fs-6 btn btn-primary">Create</button>
+                    <button type="button" class="fs-6 btn btn-danger" data-bs-dismiss="modal">Cancel</button>
                   </div>
 
                 </form>
@@ -119,38 +107,26 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
               <div class="modal-dialog">
                 <form class="modal-content" id="updateForm">
-                  <div class="modal-header bg-eclearance text-white">
+                  <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="updateModalLabel"></h5>
                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
 
                     <div class="mb-3">
-                      <label for="newSem" class="form-label">Semester</label>
-                      <select class="form-select" id="newSem" name="newSem" required>
-                        <option value="">Select sem</option>
-                      </select>
+                      <label for="newCurrTitle" class="form-label">Curriculum Title</label>
+                      <input  type="text" class="form-control" id="newCurrTitle" name="newCurrTitle" required/>
                     </div>
 
                     <div class="mb-3">
-                      <label for="newDepartment" class="form-label">Department</label>
-                      <select class="form-select" id="newDepartment" name="newDepartment" required>
-                        <option value="">Select Department</option>
-                        <option value="1">DBA</option>
-                        <option value="2">DCI</option>
-                      </select>
+                      <label for="newCurrCode" class="form-label">Curriculum Code</label>
+                      <input  type="text" class="form-control" id="newCurrCode" name="newCurrCode" required/>
                     </div>
 
                     <div class="mb-3">
                       <label for="newProgram" class="form-label">Program</label>
                       <select class="form-select" id="newProgram" name="newProgram" required>
-                        <option value="">Select Program</option>
                       </select>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="newCurriculumName" class="form-label">Curriculum Title</label>
-                      <input  type="text" class="form-control" id="newCurriculumName" name="newCurriculumName" required/>
                     </div>
                   </div>
 
@@ -164,29 +140,28 @@ if ($query = call_mysql_query($select)) {
               </div>
             </div>
 
-            <div class="modal fade" id="archiveModal" tabindex="-1" aria-labelledby="archiveModalLabel" aria-hidden="true">
+            <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
               <div class="modal-dialog">
-                <form class="modal-content" id="archiveForm">
-                  <div class="modal-header bg-eclearance text-white">
-                    <h5 class="modal-title" id="archiveModalLabel"></h5>
+                <form class="modal-content" id="statusForm">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="statusModalLabel"></h5>
                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
-
-                    <div class="mb-3">
-                      <p  class="form-text text-dark fw-semibold" id="archiveDesc" name="archiveDesc">
-                    </div>
+                    <p id="statusDesc"></p>
                   </div>
 
 
                   <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary confirm-btn">Archive</button>
-                    <button type="button" class="btn btn-danger cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-confirm">Confirm</button>
+                    <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Cancel</button>
                   </div>
 
                 </form>
               </div>
             </div>
+
+            
       </div>
   </div>
 </div>
@@ -197,25 +172,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadingAPIrequest(status){
         if(status === true){
-            Swal.fire({
+            swal({
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait"
             });
-            Swal.showLoading();
         }
         if(status === false){
-            Swal.close();
+            swal.close();
         }
     }
 
     function actionsFormatter(cell) {
         const row = cell.getRow().getData();
+        const statusAllowable = Number(row.status_allowable);
 
-        return `
-            <button data-id="${row.curriculum_id}" class="btn btn-sm btn-primary me-2 edit-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-            <button data-id="${row.curriculum_id}" class="btn btn-sm btn-danger archive-btn" title="Archive"><i class="bi bi-archive"></i></button>
-        `;
+        let action = ``;
+
+        if(statusAllowable === 1){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-success me-2 disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2" title="Edit"><i class="fas fa-eye"></i> View (!functional)</button>`;
+        }
+        if(statusAllowable === 0){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-primary me-2 allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2" title="Edit"><i class="fas fa-eye"></i> View (!functional)</button>`;
+        }
+        return action;
     }
 
   const curriculumTable = new Tabulator("#curriculum-table", {
@@ -228,26 +212,27 @@ document.addEventListener('DOMContentLoaded', function() {
     movableColumns: true,
     headerFilterPlaceholder: "Search",
     placeholder: "No Data Found",
+    ajaxResponse: function(url, params, response){
+        // Check if there is data
+        if(response && response.data && response.data.length > 0){
+            this.setHeight("auto"); // Set height to auto if data exists
+        }else{
+            this.setHeight("170px"); // Fixed height if no data
+        }
+        return response;
+    },
     columns: [
         {
-            title: "Curriculum",
-            field: "curriculum_title",
+            title: "Curriculum Title",
+            field: "header",
             headerFilterLiveFilter: true,
             headerFilter: "input",
             hozAlign: "center",
             headerHozAlign: "center"
         },
         {
-            title: "Department",
-            field: "department_name",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center"
-        },
-        {
-            title: "Semester",
-            field: "sem_name",
+            title: "Curriculum Code",
+            field: "curriculum_code",
             headerFilterLiveFilter: true,
             headerFilter: "input",
             hozAlign: "center",
@@ -263,11 +248,28 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             title: "Created On",
-            field: "createdAt",
+            field: "date_created",
             headerFilterLiveFilter: true,
             headerFilter: "input",
             hozAlign: "center",
             headerHozAlign: "center"
+        },
+        {
+          title: "Assign Status",
+          field: "status_allowable",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          formatter: function(cell) {
+              const value = cell.getValue();
+              if (value == 1) {
+                  return `<span class="badge bg-danger">Not Allowed</span>`;
+              } 
+              if (value == 0) {
+                  return `<span class="badge bg-success">Allowed</span>`;
+              }
+          }
         },
         {
             title: "Actions",
@@ -279,132 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ]
   })
 
-  function populateDepartmentDropdown(selected, selectedId = null) {
-      $.ajax({
-          url: "<?php echo BASE_URL; ?>/registrar/actions/fetchDeptForProgram.php",
-          method: "GET",
-          dataType: "json",
-          success: function(data) {
-              if(data.status === false && data.code === 400){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      showConfirmButton: true,
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 401){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      showConfirmButton: true,
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 500){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Something went wrong.",
-                      showConfirmButton: true,
-                  });
-                  return;
-              }
-              if(data.status === true && data.code === 200){
-                  var $programSelect = $(selected);
-                  $programSelect.empty();
-                  $programSelect.append('<option value="" disabled selected>Select Department</option>');
-                  data.data.forEach(function(departments) {
-                      $programSelect.append(
-                          $('<option>', {
-                              value: departments.department_id,
-                              text: departments.department,
-                              selected: departments.department_id == selectedId
-                          })
-                      );
-                  });
-                  if(selectedId){
-                      $programSelect.val(selectedId)
-                  }
-              }
-          },
-          error: function() {
-              Swal.fire({
-                  title: "Error",
-                  icon: "error",
-                  text: "Failed to load departments.",
-                  showConfirmButton: true
-              });
-          }
-      });
-  }
-
-  function populateSemDropdown(selected, selectedId = null) {
-      $.ajax({
-          url: "<?php echo BASE_URL; ?>/registrar/actions/fetchSemesterForForm.php",
-          method: "GET",
-          dataType: "json",
-          success: function(data) {
-              if(data.status === false && data.code === 400){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      showConfirmButton: true,
-                      timer: 5000
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 401){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      showConfirmButton: true,
-                      timer: 5000
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 500){
-                  Swal.fire({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Something went wrong.",
-                      showConfirmButton: true,
-                      timer: 5000
-                  });
-                  return;
-              }
-              if(data.status === true && data.code === 200){
-                  var $programSelect = $(selected);
-                  $programSelect.empty();
-                  $programSelect.append('<option value="" disabled selected>Select Department</option>');
-                  data.data.forEach(function(departments) {
-                      $programSelect.append(
-                          $('<option>', {
-                              value: departments.school_year_id,
-                              text: departments.sem,
-                              selected: departments.school_year_id == selectedId
-                          })
-                      );
-                  });
-                  if(selectedId){
-                      $programSelect.val(selectedId)
-                  }
-              }
-          },
-          error: function() {
-              Swal.fire({
-                  title: "Error",
-                  icon: "error",
-                  text: "Failed to load Semester.",
-                  showConfirmButton: true
-              });
-          }
-      });
-  }
 
   function populateProgramDropdown(selected, selectedId = null) {
       $.ajax({
@@ -413,29 +289,29 @@ document.addEventListener('DOMContentLoaded', function() {
           dataType: "json",
           success: function(data) {
               if(data.status === false && data.code === 400){
-                  Swal.fire({
+                  swal({
                       title: "Error!",
                       icon: "error",
                       text: "Unavailable.",
-                      showConfirmButton: true,
+                      button: true,
                   });
                   return;
               }
               if(data.status === false && data.code === 401){
-                  Swal.fire({
+                  swal({
                       title: "Error!",
                       icon: "error",
                       text: "Unavailable.",
-                      showConfirmButton: true,
+                      button: true,
                   });
                   return;
               }
               if(data.status === false && data.code === 500){
-                  Swal.fire({
+                  swal({
                       title: "Error!",
                       icon: "error",
                       text: "Something went wrong.",
-                      showConfirmButton: true,
+                      button: true,
                   });
                   return;
               }
@@ -458,11 +334,11 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           },
           error: function() {
-              Swal.fire({
+              swal({
                   title: "Error",
                   icon: "error",
                   text: "Failed to load programs.",
-                  showConfirmButton: true
+                  button: true
               });
           }
       });
@@ -475,7 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#curriculum-table').addEventListener('click', function(e){
     e.preventDefault();
     const editBtn = e.target.closest('.edit-btn');
-    const archiveBtn = e.target.closest('.archive-btn');
+    const allow = e.target.closest('.allow-btn');
+    const disallow = e.target.closest('.disallow-btn');
 
     if(editBtn){
         const curriculumId = editBtn.getAttribute('data-id');
@@ -483,47 +360,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const rowData = row.getData();
 
         editId = rowData.curriculum_id;
-        document.getElementById('newCurriculumName').value = rowData.curriculum_title;
-        populateDepartmentDropdown('#newDepartment', Number(rowData.department_id));
-        populateSemDropdown('#newSem', Number(rowData.school_year_id));
+        console.log("rowData", rowData);
+        document.getElementById('newCurrTitle').value = rowData.header;
+        document.getElementById('newCurrCode').value = rowData.curriculum_code;
         populateProgramDropdown('#newProgram', Number(rowData.program_id));
-        document.getElementById('updateModalLabel').textContent = `Update ${rowData.curriculum_title}`;
+        document.getElementById('updateModalLabel').textContent = `Update ${rowData.header}`;
         $('#updateModal').modal('show');
     }
-    if(archiveBtn){
-        const curriculumId = archiveBtn.getAttribute('data-id');
+    if(allow || disallow){
+        const curriculumId = allow ? allow.getAttribute('data-id') : disallow.getAttribute('data-id');
         const row = curriculumTable.getRows().find(r => r.getData().curriculum_id == curriculumId);
         const rowData = row.getData();
 
         editId = rowData.curriculum_id;
-        currStatus = rowData.status;
-        document.getElementById('archiveModalLabel').textContent = `Archive ${rowData.curriculum_title}`;
-        document.getElementById('archiveDesc').textContent = `Are you sure you want to archive ${rowData.curriculum_title}?`;
-        $('#archiveModal').modal('show');
+        currStatus = rowData.status_allowable;
+        document.getElementById('statusModalLabel').textContent = `${currStatus === 1 ? 'Allow' : 'Disallow'} ${rowData.header}`;
+        document.getElementById('statusDesc').textContent = `Are you sure you want to ${currStatus === 1 ? 'allow' : 'disallow'} ${rowData.header}?`;
+        $('#statusModal').modal('show');
     }
   })
 
-    document.querySelector('#archiveForm').addEventListener('click', function(e){
-        const confirmBtn = e.target.closest('.confirm-btn');
-        const cancelBtn = e.target.closest('.cancel-btn')
-
-        if(confirmBtn){
-            if(currStatus === 0){
-                return newStatus = 1;
-            }
-        }
-        if(cancelBtn){
-            document.getElementById('archiveModalLabel').textContent = ``; //modal title
-            document.getElementById('archiveDesc').textContent = ``; //modal description
-            currStatus = null;
-            newStatus = null;
-            if (document.activeElement) document.activeElement.blur();
-            return;
-        }
-    })
-
-  populateDepartmentDropdown('#department');
-  populateSemDropdown('#sem');
   populateProgramDropdown('#program');
 
   $('#createForm').on('submit', function(e){
@@ -535,7 +391,8 @@ document.addEventListener('DOMContentLoaded', function() {
       value: "createCurriculum"
     }];
 
-    console.log("postdata", postData)
+    const postData = formData.concat(newData);
+
     $.ajax({
       url: "<?php echo BASE_URL; ?>/registrar/actions/curriculum_process.php",
       method: "POST",
@@ -544,14 +401,13 @@ document.addEventListener('DOMContentLoaded', function() {
       beforeSend: loadingAPIrequest(true),
       complete: loadingAPIrequest(false),
       success: function(data){
-        console.log("response", data);
         if(data){
           if(data.msg_status === true && data.code === 200){
-            Swal.fire({
+            swal({
                 title: "Successfully created!",
                 text: data.msg_response,
                 icon: 'success',
-                showConfirmButton: false,
+                button: false,
                 timer: 3000
             }).then(function(){
               $('#createModal').modal('hide');
@@ -560,56 +416,45 @@ document.addEventListener('DOMContentLoaded', function() {
             });
           } 
           if(data.msg_status === false && data.code === 501){
-            Swal.fire({
+            swal({
                 title: "Failed to create.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           }
           if(data.msg_status === false && data.code === 502){
-            Swal.fire({
+            swal({
                 title: "Failed to create.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
-            })
-          } 
-          if(data.msg_status === false && data.code === 503){
-            Swal.fire({
-                title: "Failed to create.",
-                text: data.msg_response,
-                icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           }
           if(data.msg_status === false && data.code === 504){
-            Swal.fire({
+            swal({
                 title: "Failed to create.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
           if(data.msg_status === false && data.code === 500){
-            Swal.fire({
+            swal({
                 title: "Failed to create.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
         }
       },
       error: function(error, xhr, status){
-        console.log("error", error);
-        console.log("xhr", xhr);
-        console.log("status", status);
-        Swal.fire({
+        swal({
             title: "Error!",
             text: "Something went wrong, please try again later.",
             icon: 'error',
-            showConfirmButton: true,
+            button: true,
         })
       }
     })    
@@ -631,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     const postData = formData.concat(newData);
+
     $.ajax({
       url: "<?php echo BASE_URL; ?>/registrar/actions/curriculum_process.php",
       method: "POST",
@@ -642,11 +488,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("response", data);
         if(data){
           if(data.msg_status === true && data.code === 200){
-            Swal.fire({
+            swal({
                 title: "Successfully update!",
                 text: data.msg_response,
                 icon: 'success',
-                showConfirmButton: false,
+                button: false,
                 timer: 3000
             }).then(function(){
               $('#updateModal').modal('hide');
@@ -655,151 +501,158 @@ document.addEventListener('DOMContentLoaded', function() {
             });
           } 
           if(data.msg_status === false && data.code === 501){
-            Swal.fire({
+            swal({
                 title: "Failed to update.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           }
           if(data.msg_status === false && data.code === 502){
-            Swal.fire({
+            swal({
                 title: "Failed to update.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
           if(data.msg_status === false && data.code === 503){
-            Swal.fire({
+            swal({
                 title: "Failed to update.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           }
           if(data.msg_status === false && data.code === 504){
-            Swal.fire({
+            swal({
                 title: "Failed to update.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
           if(data.msg_status === false && data.code === 500){
-            Swal.fire({
+            swal({
                 title: "Failed to update.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
         }
       },
       error: function(error, xhr, status){
-        console.log("error", error);
-        console.log("xhr", xhr);
-        console.log("status", status);
-        Swal.fire({
+        swal({
             title: "Error!",
             text: "Something went wrong, please try again later.",
             icon: 'error',
-            showConfirmButton: true,
+            button: true,
         })
       }
     })    
   })
 
-  $('#archiveForm').on('submit', function(e){
-    e.preventDefault();
+  document.querySelector('#statusForm').addEventListener('click', function(e){
+      const confirmBtn = e.target.closest('.btn-confirm');
+      const cancelBtn = e.target.closest('.btn-cancel');
 
+      if(confirmBtn){
+          if(currStatus === 0){
+              newStatus = 1;
+          } 
+          if(currStatus === 1){
+              newStatus = 0;
+          }
+      }
+
+      if(cancelBtn){
+          $('#statusModal').modal('hide');
+          editId = '';
+          currStatus = '';
+          newStatus = '';
+          document.getElementById('statusModalLabel').textContent = ``;
+          document.getElementById('statusDesc').textContent = ``;
+          return;
+      }
+  })
+
+  $('#statusForm').on('submit', function(e){
+    e.preventDefault();
     const postData = [
-        {
-            name: 'submitCurriculum',
-            value: "archiveCurriculum"
-        },
-        {
-            name: 'editId',
-            value: editId
-        },
-        {
-            name: 'newStatus',
-            value: newStatus
-        }
+      {
+        name: "submitCurriculum",
+        value: "updateStatus"
+      },
+      {
+        name: "editId",
+        value: editId
+      },
+      {
+        name: "newStatus",
+        value: newStatus
+      }
     ];
 
-    console.log('post: ', postData)
-
     $.ajax({
-      url: "<?php echo BASE_URL; ?>/registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",
       beforeSend: loadingAPIrequest(true),
       complete: loadingAPIrequest(false),
       success: function(data){
-        console.log("response", data);
         if(data){
           if(data.msg_status === true && data.code === 200){
-            Swal.fire({
-                title: "Successfully archived!",
+            swal({
+                title: "Successfully updated status!",
                 text: data.msg_response,
                 icon: 'success',
-                showConfirmButton: false,
+                button: false,
                 timer: 3000
             }).then(function(){
-              $('#archiveModal').modal('hide');
-              $('#archiveForm')[0].reset();
+              $('#statusModal').modal('hide');
               curriculumTable.setData();
             });
           } 
           if(data.msg_status === false && data.code === 501){
-            Swal.fire({
-                title: "Failed to create.",
+            swal({
+                title: "Failed to update status.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           }
           if(data.msg_status === false && data.code === 502){
-            Swal.fire({
-                title: "Failed to create.",
+            swal({
+                title: "Failed to update status.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
-          } 
-          if(data.msg_status === false && data.code === 504){
-            Swal.fire({
-                title: "Failed to create.",
-                text: data.msg_response,
-                icon: 'error',
-                showConfirmButton: true,
-            })
-          } 
+          }
           if(data.msg_status === false && data.code === 500){
-            Swal.fire({
-                title: "Failed to create.",
+            swal({
+                title: "Failed to update status.",
                 text: data.msg_response,
                 icon: 'error',
-                showConfirmButton: true,
+                button: true,
             })
           } 
         }
       },
       error: function(error, xhr, status){
-        console.log("error", error);
-        console.log("xhr", xhr);
-        console.log("status", status);
-        Swal.fire({
+        swal({
             title: "Error!",
             text: "Something went wrong, please try again later.",
             icon: 'error',
-            showConfirmButton: true,
+            button: true,
         })
       }
-    })    
+    })
   })
+
+
 });
 </script>
 </html>

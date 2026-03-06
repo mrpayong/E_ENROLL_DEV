@@ -10746,3 +10746,81 @@ body[data-background-color=dark] .jvm-zoom-btn {
       font-size: 18px !important
    }
 }
+
+
+/* --------------- ADDED BY TRISTAN ------------------- */
+
+.prospectus-block-empty {
+    border: 2px dashed #98a9c2;
+    border-radius: 12px;
+    background: #f7fbff;
+    color: #5d6f88;
+    text-align: center;
+    padding: 2rem 1rem;
+    cursor: pointer;
+    transition: .2s ease;
+}
+.prospectus-block-empty:hover {
+    border-color: #1f6fd5;
+    background: #edf5ff;
+}
+.prospectus-block-card {
+    border: 1px solid #d7dfec;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+.prospectus-block-header {
+    background: #f0f6ff;
+    border-bottom: 1px solid #d7dfec;
+}
+.semester-title {
+    background: #216fd4;
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    padding: .55rem .8rem;
+    font-size: .9rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: .3px;
+}
+.semester-table {
+    border: 1px solid #dce5f2;
+    border-top: 0;
+}
+.semester-table thead th {
+    background: #ecf3fb;
+    color: #374a63;
+    font-size: .84rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.semester-table tfoot th {
+    background: #f8fafc;
+}
+.summary-box {
+    border: 1px solid #dce5f2;
+    border-radius: 10px;
+    background: #f8fbff;
+    padding: .8rem 1rem;
+}
+.units-input {
+    max-width: 110px;
+}
+/* 
+.semester-table th.col-lec,
+.semester-table td.col-lec,
+.semester-table th.col-lab,
+.semester-table td.col-lab,
+.semester-table th.col-units,
+.semester-table td.col-units {
+    min-width: 90px;
+    width: 90px;
+}
+
+.semester-table .entry-lec,
+.semester-table .entry-lab,
+.semester-table .entry-units {
+    min-width: 74px;
+    text-align: center;
+} */

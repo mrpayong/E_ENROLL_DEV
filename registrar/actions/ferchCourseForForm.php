@@ -28,7 +28,7 @@ if($g_user_role !== "REGISTRAR"){
 }
 
 $subject = [];
-$query = "SELECT subject_id, subject_code, subject_title FROM subject";
+$query = "SELECT subject_id, subject_code, subject_title, lec_lab, unit FROM subject";
 $result = call_mysql_query($query);
 
 if($result){

@@ -140,7 +140,7 @@ if ($sem_query = call_mysql_query($query)) {
                                         <i class="bi bi-plus-lg"></i> Create Schedule
                                     </button>
                                 </header>
-                                <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                <div class="table-responsive px-3 pb-4 pt-1 mt-3 d-flex flex-column justify-content-between" style="min-height: 40rem;">
                                     <div class="table-bordered" id="tableSched"></div>
                                     <div class="d-flex justify-content-start gap-2">
                                         <button type="button" id="downloadCSV" class="btn btn-outline-success fw-semibold px-4 py-2 rounded-3">

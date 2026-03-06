@@ -64,7 +64,7 @@ if ($query = call_mysql_query($select)) {
             <main id="main" class="main">
                 <section class="section">
                     <div class="row justify-content-center mx-4 m-4">
-                        <section class="card shadow-sm  p-0" style="max-width:1100px;margin:auto;">
+                        <section class="card shadow-sm  p-0">
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                 <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Fiscal Year Management</h1>
                                 <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createFiscalYearBtn" style="background:#173ea5;">
@@ -72,7 +72,7 @@ if ($query = call_mysql_query($select)) {
                                 </button>
                             </header>
                             <div class="table-responsive px-3 pb-4 pt-1 mt-3">
-                                <div class="rounded-3" style="background: #e8e8e85b; border:1px solid #c1c1c147 !important;">
+                                <div class="rounded-3" style="min-height: 40rem;">
 
                                     <div id="fiscal-year-table" class="table-bordered  rounded"></div>
                                 </div>
@@ -86,7 +86,7 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="fiscalYearModal" tabindex="-1" aria-labelledby="fiscalYearModalLabel" aria-modal="true" role="dialog">
                 <div class="modal-dialog" role="document">
                     <form class="modal-content" id="fiscalYearForm" autocomplete="off">
-                    <header class="modal-header bg-eclearance py-2">
+                    <header class="modal-header bg-primary py-2">
                         <h2 class="modal-title fs-5 text-light" id="fiscalYearModalLabel">Create Fiscal Year</h2>
                         <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </header>
@@ -124,8 +124,8 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="EditFiscalYearModal" tabindex="-1" aria-labelledby="EditFiscalYearModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <form class="modal-content" id="EditFiscalYearForm" autocomplete="off">
-                        <header class="modal-header bg-eclearance py-2">
-                        <h2 class="modal-title bg-eclearance fs-5 text-light" id="editModalTitle"></h2>
+                        <header class="modal-header bg-primary py-2">
+                        <h2 class="modal-title bg-primary fs-5 text-light" id="editModalTitle"></h2>
                         <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </header>
                     <section class="modal-body">
@@ -162,8 +162,8 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="LockUnlockFiscalYearModal" tabindex="-1" aria-labelledby="LockUnlockFiscalYearModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <form class="modal-content" id="LockUnlockFiscalYear" autocomplete="off">
-                        <header class="modal-header bg-eclearance py-2">
-                        <h2 class="modal-title bg-eclearance fs-5 text-light" id="fyFlagLabel"></h2>
+                        <header class="modal-header bg-primary py-2">
+                        <h2 class="modal-title bg-primary fs-5 text-light" id="fyFlagLabel"></h2>
                         <button type="button" class="btn-close text-white cancelAction" data-bs-dismiss="modal" aria-label="Close"></button>
                         </header>
                     <section class="modal-body">
@@ -185,8 +185,8 @@ if ($query = call_mysql_query($select)) {
             <div class="modal fade" id="defaultFiscalyear" tabindex="-1" aria-labelledby="defaulFiscalyearLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <form class="modal-content" id="defaultFY" autocomplete="off">
-                        <header class="modal-header bg-eclearance py-2">
-                        <h2 class="modal-title bg-eclearance fs-5 text-light" id="defaultFyLabel"></h2>
+                        <header class="modal-header bg-primary py-2">
+                        <h2 class="modal-title bg-primary fs-5 text-light" id="defaultFyLabel"></h2>
                         <button type="button" class="btn-close text-white closeDef" data-bs-dismiss="modal" aria-label="Close"></button>
                         </header>
                     <section class="modal-body">
@@ -240,6 +240,27 @@ if ($query = call_mysql_query($select)) {
             return value;
         }
 
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', function() {
+            endDateInput.value = ""; // Clear previous end date
+            endDateInput.min = startDateInput.value; // Set min to selected start date
+        });
+    }
+
+    // For Edit Fiscal Year Modal
+    const editStartDateInput = document.getElementById('editStartDate');
+    const editEndDateInput = document.getElementById('editEndDate');
+
+    if (editStartDateInput && editEndDateInput) {
+        editStartDateInput.addEventListener('change', function() {
+            editEndDateInput.value = ""; // Clear previous end date
+            editEndDateInput.min = editStartDateInput.value; // Set min to selected start date
+        });
+    }
+
         function formatDate(dateCreated){
             if (!dateCreated) return "";
             // Parse the date string
@@ -261,8 +282,8 @@ if ($query = call_mysql_query($select)) {
             if (row.flag_used === "Locked") {
                 actions += `
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <button data-id="${row.school_year_id}" class="unlockFiscalYear border border-dark btn btn-sm btn-secondary" style="color:black;">
-                            <i class="pe-1 bi bi-lock"></i>Unock
+                        <button data-id="${row.school_year_id}" class="unlockFiscalYear border border-dark btn btn-sm fs-6" style="color:black; background:#88857D;">
+                            <i class="fas fa-lock"></i> Unock
                         </button>
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input fiscal-year-default-switch" type="checkbox" role="switch"
@@ -274,11 +295,11 @@ if ($query = call_mysql_query($select)) {
             if (row.flag_used === "Active") {
                 actions += `
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <button class="border border-dark btn btn-sm btn-warning edit-fiscal-year-btn" data-id="${row.school_year_id}" style="color:black;">
-                            <i class="pe-1 bi bi-pencil"></i>Edit
+                        <button class="border border-dark fs-6 btn btn-sm btn-warning edit-fiscal-year-btn" data-id="${row.school_year_id}" style="color:black;">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button data-id="${row.school_year_id}" class="lockFiscalYear border border-dark btn btn-sm btn-success" style="color:black;">
-                            <i class="pe-1 bi bi-unlock"></i>Lock
+                        <button data-id="${row.school_year_id}" class="lockFiscalYear border border-dark fs-6 btn btn-sm btn-primary" style="color:black;">
+                            <i class="fas fa-lock-open"></i> Lock
                         </button>
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input fiscal-year-default-switch" type="checkbox" role="switch"
@@ -494,11 +515,11 @@ if ($query = call_mysql_query($select)) {
                 });
 
                 if (hasOtherDefault === false) {
-                    Swal.fire({
+                    swal({
                         title: "Error",
                         icon: "error",
                         text: "There must be a default Fiscal Year.",
-                        showConfirmButton: true
+                        button: true
                     });
                     fiscalYearTable.setData();
                     return;
@@ -537,7 +558,7 @@ if ($query = call_mysql_query($select)) {
                         title: 'Error',
                         text: "Error identifying fiscal year flag status. Try again.",
                         icon: 'error',
-                        showConfirmButton: true,
+                        button: true,
                     });
                 }
             }
@@ -592,15 +613,14 @@ if ($query = call_mysql_query($select)) {
 
         function loadingAPIrequest(status){
             if(status === true){
-                Swal.fire({
+                swal({
                     title: "Loading",
                     icon: 'info',
                     text: "Please wait"
                 });
-                Swal.showLoading();
             }
             if(status === false){
-                Swal.close();
+                swal.close();
             }
         }
         // create fiscal year error and success handling
@@ -620,6 +640,7 @@ if ($query = call_mysql_query($select)) {
                 }];
                 let postData = formData.concat(newData);
                 console.log("post data: ", postData)
+                return;
 
                 $.ajax({
                     url: "<?php echo BASE_URL; ?>/registrar/actions/fiscalYear_process.php",
@@ -639,11 +660,11 @@ if ($query = call_mysql_query($select)) {
                     success: function(data) {
                         if (data.msg_status !== null) {
                             if(data.code === 200 && data.msg_status === true){
-                                Swal.fire({
+                                swal({
                                     title: "Fiscal Year created.",
                                     icon: 'success',
                                     text: data.msg_response,
-                                    showConfirmButton: false,
+                                    button: false,
                                     timer: 2000
                                 }).then(function() {
                                     // Optionally reload Tabulator data here
@@ -653,44 +674,44 @@ if ($query = call_mysql_query($select)) {
                                 });
                             }
                             if (data.code === 400 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed to create fiscal year.",
                                     icon: 'error',
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                 })
                             }
                             if(data.code === 405 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed to create fiscal year.",
                                     icon: 'error',
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                 })
                             }
                             if (data.code === 500 && data.msg_status === false){
-                                Swal.fire({
+                                swal({
                                     title: "Failed to create fiscal year.",
                                     icon: 'error',
                                     text: data.msg_response,
-                                    showConfirmButton: true,
+                                    button: true,
                                 })
                             }
                         } else {
-                            Swal.fire({
+                            swal({
                                 title: 'Error',
                                 text: "Error identifying server response." + data.code,
                                 icon: 'error',
-                                showConfirmButton: true,
+                                button: true,
                             });
                         }
                     },
                     error: function(xhr, status, error) {
-                        Swal.fire({
+                        swal({
                             title: 'Error',
                             html: "Error creating fiscal year",
                             icon: 'error',
-                            showConfirmButton: true,
+                            button: true,
                         });
                     },
                     async: false
@@ -731,10 +752,10 @@ if ($query = call_mysql_query($select)) {
                     success: function(data) {
                         console.log("response data: ", data);
                             if (data.code === 200 && data.msg_status === true) {
-                                Swal.fire({
+                                swal({
                                     title: "Success updating!",
                                     icon: 'success',
-                                    showConfirmButton: false,
+                                    button: false,
                                     timer: 2000,
                                     text: data.msg_response
                                 }).then(function() {
@@ -745,16 +766,16 @@ if ($query = call_mysql_query($select)) {
                                 });
                             }
                             if (data.code !== 200 && data.msg_status === false) {
-                                Swal.fire({
+                                swal({
                                     title: "Error!",
                                     icon: 'error',
-                                    showConfirmButton: true,
+                                    button: true,
                                     text: data.msg_response
                                 })
                             }
                     },
                     error: function(xhr, status, error) {
-                        Swal.fire({
+                        swal({
                             title: 'Error',
                             html: "Error updating fiscal year.",
                             icon: 'error'
@@ -828,11 +849,11 @@ if ($query = call_mysql_query($select)) {
                     },
                     success: function(data) {
                         if (data.msg_status === true && data.code === 200) {
-                            Swal.fire({
+                            swal({
                                 title: "Success!",
                                 icon: 'success',
                                 text: data.msg_response,
-                                showConfirmButton: false,
+                                button: false,
                                 timer: 2000
                             }).then(function() {
                                 $('#LockUnlockFiscalYearModal').modal('hide');
@@ -840,11 +861,11 @@ if ($query = call_mysql_query($select)) {
                                 fiscalYearTable.setData();
                             });
                         } else {
-                            Swal.fire({
+                            swal({
                                 title: "Failed!",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             });
                         }
                     },
@@ -852,11 +873,11 @@ if ($query = call_mysql_query($select)) {
                         console.log("error xhr: ", xhr);
                         console.log("error status: ", status);
                         console.log("error error: ", error);
-                        Swal.fire({
+                        swal({
                             title: 'Error',
                             text: "Error locking/unlocking fiscal year.",
                             icon: 'error',
-                            showConfirmButton: true
+                            button: true
                         });
                     }
                 });
@@ -896,11 +917,11 @@ if ($query = call_mysql_query($select)) {
                     complete: loadingAPIrequest(false),
                     success: function(data) {
                         if (data.msg_status === true && data.code === 200) {
-                            Swal.fire({
+                            swal({
                                 title: "Success!",
                                 icon: 'success',
                                 text: data.msg_response,
-                                showConfirmButton: false,
+                                button: false,
                                 timer: 3000
                             }).then(function() {
                                 $('#defaultFiscalyear').modal('hide');
@@ -909,43 +930,43 @@ if ($query = call_mysql_query($select)) {
                             });
                         } 
                         if (data.msg_status === false && data.code === 501) {
-                            Swal.fire({
+                            swal({
                                 title: "Failed to set",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             })
                         } 
                         if (data.msg_status === false && data.code === 502) {
-                            Swal.fire({
+                            swal({
                                 title: "Failed to set",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             })
                         } 
                         if (data.msg_status === false && data.code === 503) {
-                            Swal.fire({
+                            swal({
                                 title: "Failed to set",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             })
                         }
                         if (data.msg_status === false && data.code === 404) {
-                            Swal.fire({
+                            swal({
                                 title: "Failed to set",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             })
                         } 
                         if (data.msg_status === false && data.code === 500) {
-                            Swal.fire({
+                            swal({
                                 title: "Failed to set",
                                 icon: 'error',
                                 text: data.msg_response,
-                                showConfirmButton: true
+                                button: true
                             })
                         } 
                     },
@@ -953,11 +974,11 @@ if ($query = call_mysql_query($select)) {
                         console.log("error xhr: ", xhr);
                         console.log("error status: ", status);
                         console.log("error error: ", error);
-                        Swal.fire({
+                        swal({
                             title: 'Error',
                             text: "Error locking/unlocking fiscal year.",
                             icon: 'error',
-                            showConfirmButton: true
+                            button: true
                         });
                     }
                 });

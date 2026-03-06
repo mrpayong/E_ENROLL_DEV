@@ -72,7 +72,7 @@ if ($query = call_mysql_query($select)) {
                                                 <i class="bi bi-plus-lg"></i> Create course
                                             </button>
                                         </header>
-                                        <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                        <div class="table-responsive px-3 pb-4 pt-1 mt-3 d-flex flex-column justify-content-between" style="min-height: 40rem;">
                                             <div class="table-bordered" id="courseTable"></div>
                                         
                                             <!-- <div id="footer-total" style="text-align:right; padding: 10px; font-weight:bold;"></div> -->

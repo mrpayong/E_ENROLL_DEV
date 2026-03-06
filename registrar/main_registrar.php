@@ -11,54 +11,8 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
-## table
-$table_array = array();
-$select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked FROM users ORDER BY user_id DESC";
-if ($query = call_mysql_query($select)) {
-    if ($num = mysqli_num_rows($query)) {
-        while ($data = call_mysql_fetch_array($query)) {
-            $data['name'] = get_full_name($data['f_name'],$data['m_name'],$data['l_name'],$data['suffix']);
-
-            $user_roles = [];
-            foreach (json_decode($data['roles']) as $role) {
-                if (isset(SYSTEM_ACCESS['E-ENROLL']['role'][$role])) {
-                    $user_roles[] = SYSTEM_ACCESS['E-ENROLL']['role'][$role];
-                }
-            }
-            $data['user_role'] = !empty($user_roles) ? implode(', ', $user_roles) : '';
-
-            if ($data['status'] == 1) {
-                $data['account_status'] = 'Deactivated';
-            } elseif ($data['locked'] == 1) {
-                $data['account_status'] = 'Locked';
-            } elseif ($data['status'] == 0 && $data['locked'] == 0) {
-                $data['account_status'] = 'Active';
-            }
-            array_push($table_array, $data);
-        }
-    }
-}
-
-$approval_list = [
-    [
-        "course_code" => "CSC-101",
-        "course_name" => "Introduction to Computer Science",
-        "status" => "Approved"
-    ],
-    [
-        "course_code" => "MATH-201",
-        "course_name" => "Calculus I",
-        "status" => "Pending"
-    ],
-    [
-        "course_code" => "ENG-102",
-        "course_name" => "English Composition",
-        "status" => "Disapproved"
-    ]
-];
 
 
-$json_approval_list = json_encode($approval_list);
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -80,8 +34,8 @@ $json_approval_list = json_encode($approval_list);
 
             <div id="main" class="container">
                 <div class="row mx-4 m-4 flex justify-content-center card">
-                    <header class="card-header bg-eclearance border-bottom-0 pb-0">
-                        <h2 class=" text-black fw-semibold fs-5">Recent Enrollments</h2>
+                    <header class="card-header bg-primary border-bottom-0 pb-0">
+                        <h2 class=" text-black fw-semibold fs-5">Annual Enrolled Students(still dummy)</h2>
                     </header>
                     <div class="pt-2">
                         <canvas id="enrollmentAreaChart"></canvas>
