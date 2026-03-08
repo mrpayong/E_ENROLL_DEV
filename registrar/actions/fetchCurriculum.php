@@ -19,40 +19,36 @@ if ($g_user_role !== "REGISTRAR") {
 }
 
 $query_limit = QUERY_LIMIT;
-$table_name = "curriculum AS c";
+$table_name = "curriculum_master AS c";
 $left_join = "
     LEFT JOIN programs AS p ON c.program_id = p.program_id
-    LEFT JOIN school_year AS sy ON c.school_year_id = sy.school_year_id
-    LEFT JOIN departments AS d ON c.department_id = d.department_id
 ";
 
 $dbfield = [
     'c.curriculum_id',
-    'c.curriculum_title',
-    'c.status',
-    'c.createdAt',
-    'c.updatedAt',
-    'p.program AS program_name',
-    'p.program_id',
-    'sy.sem AS sem_name',
-    'sy.school_year_id',
-    'd.department AS department_name',
-    'd.department_id'
+    'c.curriculum_code',
+    'c.program_id',
+    'c.header',
+    'c.units',
+    'c.status_allowable',
+    'c.date_created',
+    'p.program AS program_name'
 ];
 
 $dborig = [
     'curriculum_id',
-    'curriculum_title',
-    'status',
-    'createdAt',
-    'updatedAt',
-    'program_name',
-    'sem_name',
-    'department_name'
+    'curriculum_code',
+    'program_id',
+    'header',
+    'units',
+    'status_allowable',
+    'date_created',
+    'program_name'
 ];
 
 // Filtering
-$sql_where_array[] = "c.status = 0";
+$sql_where_array = [];
+$sql_where_array[] = "1=1"; // Always true, so you can safely append ANDs
 if (isset($_GET['filters'])) {
     $filters = $_GET['filters'];
     $sort_filters = [];
@@ -67,11 +63,7 @@ if (isset($_GET['filters'])) {
             $value = escape($db_connect, $sort_filters[$id]);
             if ($id == 'program_name') {
                 $sql_where_array[] = "p.program LIKE '%$value%'";
-            } elseif ($id == 'sem_name') {
-                $sql_where_array[] = "sy.sem LIKE '%$value%'";
-            } elseif ($id == 'department_name') {
-                $sql_where_array[] = "d.department LIKE '%$value%'";
-            } elseif (in_array($id, ['curriculum_id', 'status'])) {
+            } elseif (in_array($id, ['curriculum_id', 'program_id', 'units', 'status_allowable'])) {
                 $sql_where_array[] = "c.$id = '$value'";
             } else {
                 $sql_where_array[] = "c.$id LIKE '%$value%'";
@@ -85,7 +77,7 @@ if (!empty($sql_where_array)) {
 }
 
 // Sorting
-$orderby = "c.createdAt DESC";
+$orderby = "c.date_created DESC";
 if (isset($_GET['sorters'])) {
     $sorters = $_GET['sorters'];
     $tag = ['asc', 'desc'];
@@ -94,10 +86,6 @@ if (isset($_GET['sorters'])) {
     if (in_array($sort_field, $dborig) && in_array($sort_dir, $tag)) {
         if ($sort_field == 'program_name') {
             $orderby = "p.program $sort_dir";
-        } elseif ($sort_field == 'sem_name') {
-            $orderby = "sy.sem $sort_dir";
-        } elseif ($sort_field == 'department_name') {
-            $orderby = "d.department $sort_dir";
         } else {
             $orderby = "c.$sort_field $sort_dir";
         }
@@ -116,11 +104,7 @@ $start_no = $page_no * $query_limit;
 
 // Count total records
 $field_query = 'COUNT(*) as count';
-if (empty($sql_where)) {
-    $sql_conds = "";
-} else {
-    $sql_conds = "WHERE $sql_where";
-}
+$sql_conds = empty($sql_where) ? "" : "WHERE $sql_where";
 $count_query = "SELECT $field_query FROM $table_name $left_join $sql_conds";
 $total_query = 0;
 if ($query = call_mysql_query($count_query)) {
@@ -133,11 +117,7 @@ $pages = ($total_query === 0) ? 1 : ceil($total_query / $query_limit);
 
 // Fetch data
 $field_query = implode(',', $dbfield);
-if (empty($sql_where)) {
-    $sql_conds = "";
-} else {
-    $sql_conds = "WHERE $sql_where";
-}
+$sql_conds = empty($sql_where) ? "" : "WHERE $sql_where";
 $data_query = "SELECT $field_query FROM $table_name $left_join $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
 
 $to_encode = [];
@@ -146,9 +126,10 @@ if ($query = call_mysql_query($data_query)) {
         while ($data = call_mysql_fetch_array($query)) {
             $data = array_html($data);
             $data['curriculum_id'] = (int)$data['curriculum_id'];
-            $data['status'] = (int)$data['status'];
-            $data['createdAt'] = isset($data['createdAt']) ? formatterDateLong($data['createdAt']) : "";
-            $data['updatedAt'] = isset($data['updatedAt']) ? formatterDateLong($data['updatedAt']) : "";
+            $data['program_id'] = (int)$data['program_id'];
+            $data['units'] = (int)$data['units'];
+            $data['status_allowable'] = (int)$data['status_allowable'];
+            $data['date_created'] = isset($data['date_created']) ? formatterDateLong($data['date_created']) : "";
             $to_encode[] = $data;
         }
     }
@@ -160,4 +141,3 @@ echo json_encode([
     "total_record" => $total_query
 ]);
 exit();
-?>

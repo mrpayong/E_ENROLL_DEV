@@ -87,7 +87,7 @@ $encoded_departments = json_encode($departments);
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                 <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Student Information</h1>
                             </header>
-                            <div class="p-3">
+                            <div class="p-3" style="min-height: 40rem;">
                                 <div id="student-table"></div>
                             </div>
                         </section>

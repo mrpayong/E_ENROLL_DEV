@@ -59,7 +59,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
                                         <i class="bi bi-building-add me-2"></i> Add Department
                                     </button>
                                 </header>
-                                <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                <div class="table-responsive px-3 pb-4 pt-1 mt-3" style="min-height: 40rem;">
                                     <div id="department-table" class="table-bordered border rounded"></div>
                                 </div>
 
@@ -139,7 +139,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
                 <!-- add program  -->
                 <section>
                     <div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="programForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
                                     <h5 class="modal-title" id="programModalLabel">Add Program</h5>
@@ -167,11 +167,6 @@ if($sql_depts = call_mysql_query($sql_depts)){
                                     <div class="mb-3">
                                         <label for="major" class="form-label">Major</label>
                                         <input type="text" class="form-control" id="major" name="major">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="duration" class="form-label">Duration</label>
-                                        <input type="number" class="form-control" id="duration" name="duration" placeholder="0" required>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -224,7 +219,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
                 <!-- update program -->
                 <section>
                     <div class="modal fade" id="editProgramModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-md">
+                        <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="editProgramModalForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
                                     <h5 class="modal-title" id="editProgramModalLabel"></h5>
@@ -331,6 +326,8 @@ document.addEventListener('DOMContentLoaded', function () {
             ajaxConfig: "GET",            
             layout: "fitDataStretch",
             movableColumns: true,
+            ajaxFiltering: true,
+            ajaxSorting: true,
             headerFilterPlaceholder: "Search",
             placeholder: "No Data Found",
             pagination: "remote",
@@ -563,7 +560,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
 
             const postData = formData.concat(newData);
-            console.log('postData: ', postData);
 
             $.ajax({
                 url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
