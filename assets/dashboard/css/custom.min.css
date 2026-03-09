@@ -10824,3 +10824,11 @@ body[data-background-color=dark] .jvm-zoom-btn {
     min-width: 74px;
     text-align: center;
 } */
+
+#prospectusBlocksViewport {
+    max-height: calc(100vh - 320px); /* adjust to your header height */
+    min-height: 380px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
