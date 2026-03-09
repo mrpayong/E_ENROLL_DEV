@@ -274,6 +274,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'));
         var cancelBtn = document.getElementById('cancelDepartmentBtn');
         var form = document.getElementById('departmentForm');
+        let swalOpenLock = false;
+        let submitLock = false;
 
         if(cancelBtn) cancelBtn.addEventListener('click', function () {
             departmentModal.hide();
@@ -1003,8 +1005,18 @@ document.addEventListener('DOMContentLoaded', function () {
             DeanData();
         })
 
+        document.addEventListener('keydown', function (e) {
+            const swalVisible = document.querySelector('.swal-overlay--show-modal');
+            if (e.key === 'Enter' && (swalOpenLock || swalVisible)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+
         $('#editProgramModalForm').on('submit', function(e){
             e.preventDefault();
+            if (submitLock) return;
+            submitLock = true;
 
             const formData = jQuery('#editProgramModalForm').serializeArray();
 
@@ -1035,24 +1047,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 data: postData,
                 dataType: "json",
                 beforeSend: loadingAPIrequest(true),
-                complete: loadingAPIrequest(false),
+                complete: function() {loadingAPIrequest(false); submitLock = false;},
                 success: function(data){
                     if(data){
                         swal.close();
-                        if(data.status === true && data.code === 200){
+                        if(data.msg_status === true && data.code === 200){
+                            swalOpenLock = true;
+                            if (document.activeElement) document.activeElement.blur();
                             swal({
                                 title: "Updated Successfully!",
                                 text: data.msg_response,
                                 icon: "success",
                                 timer: 3000,
                                 button: false,
+                                closeOnEsc: false,
                             }).then(function(){
+                                swalOpenLock = false;
                                 $('#editProgramModalForm')[0].reset();
                                 $('#editProgramModal').modal('hide');
                                 departmentTable.setData();
                             })
                         }
-                        if(data.status === false && data.code === 501){
+                        if(data.msg_status === false && data.code === 501){
                             swal({
                                 title: "Failed to update.",
                                 text: data.msg_response,
@@ -1060,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button: true,
                             })
                         }
-                        if(data.status === false && data.code === 502){
+                        if(data.msg_status === false && data.code === 502){
                             swal({
                                 title: "Failed to update.",
                                 text: data.msg_response,
@@ -1068,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button: true,
                             })
                         }
-                        if(data.status === false && data.code === 503){
+                        if(data.msg_status === false && data.code === 503){
                             swal({
                                 title: "Failed to update.",
                                 text: data.msg_response,
@@ -1076,7 +1092,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button: true,
                             })
                         }
-                        if(data.status === false && data.code === 504){
+                        if(data.msg_status === false && data.code === 504){
                             swal({
                                 title: "Failed to update.",
                                 text: data.msg_response,
@@ -1084,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button: true,
                             })
                         }
-                        if(data.status === false && data.code === 500){
+                        if(data.msg_status === false && data.code === 500){
                             swal({
                                 title: "An error occured.",
                                 text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
