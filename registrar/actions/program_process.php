@@ -43,7 +43,7 @@ try {
             echo json_encode($output);
             exit();
         }
-
+ 
         $db_connect->begin_transaction();
         $new_program = "INSERT INTO programs (program, department_id, major, short_name) VALUES (
             '".escape($db_connect, $program)."',
