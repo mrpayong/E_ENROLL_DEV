@@ -12,13 +12,14 @@ try {
         $program = isset($_POST['programName']) ? trim($_POST['programName']) : '';
         $department_id = isset($_POST['department_id']) ? trim($_POST['department_id']) : '';
         $major = isset($_POST['major']) ? trim($_POST['major']) : '';
-        $program_code = isset($_POST['programCode']) ? trim($_POST['programCode']) : '';
+        $program_code = isset($_POST['programCode']) ? strtoupper(trim($_POST['programCode'])) : '';
         $output = array(
             'code' => 0,
             'status' => false,
             'msg_response' => 'Request error, please try again.',
             'msg_span' => '_system'
         );
+        $majorArr = array();
 
        
         if(empty($program) || empty($department_id) || empty($program_code)){
@@ -34,21 +35,28 @@ try {
         WHERE program = '".escape($db_connect, $program)."' OR
         short_name = '".escape($db_connect, $program_code)."'
         ";
-        $query_table = call_mysql_query($fetch_program);
-        $existing_program = call_mysql_fetch_array($query_table);
+        if($query_table = call_mysql_query($fetch_program)){
+            while($existing_program = call_mysql_fetch_array($query_table)){
+                if($existing_program !== null){
+                    $output['code'] = 502;
+                    $output['msg_response'] = "Program name or code already exist.";
+                    echo json_encode($output);
+                    exit();
+                }
+            }
 
-        if($existing_program !== null){
-            $output['code'] = 502;
-            $output['msg_response'] = "Program name or code already exist.";
-            echo json_encode($output);
-            exit();
         }
- 
+        
+        if(!empty($major)){
+            array_push($majorArr, strtoupper($major));
+        }
+
+        $encodedMajor = json_encode($majorArr);
         $db_connect->begin_transaction();
         $new_program = "INSERT INTO programs (program, department_id, major, short_name) VALUES (
             '".escape($db_connect, $program)."',
             '".escape($db_connect, $department_id)."',
-            '".escape($db_connect, $major)."',
+            '".escape($db_connect, $encodedMajor)."',
             '".escape($db_connect, $program_code)."'
         )";
 
