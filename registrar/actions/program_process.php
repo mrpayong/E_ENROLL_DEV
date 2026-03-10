@@ -51,12 +51,12 @@ try {
             array_push($majorArr, strtoupper($major));
         }
 
-        $encodedMajor = json_encode($majorArr);
+        $major_encoded = json_encode($majorArr);
         $db_connect->begin_transaction();
         $new_program = "INSERT INTO programs (program, department_id, major, short_name) VALUES (
             '".escape($db_connect, $program)."',
             '".escape($db_connect, $department_id)."',
-            '".escape($db_connect, $encodedMajor)."',
+            '".escape($db_connect, $major_encoded)."',
             '".escape($db_connect, $program_code)."'
         )";
 
@@ -105,7 +105,9 @@ try {
 
         if ($query = call_mysql_query($program_exist)){
             if($data = call_mysql_fetch_array($query)){
-                $oldMajorArr = json_decode(html_entity_decode($data['major']), true);
+                $oldMajorArr = is_array(json_decode(html_entity_decode($data['major']), true))
+                    ? json_decode(html_entity_decode($data['major']), true)
+                    : array();
                 $old_data = sha1($data['program_id'] . $data['program'] . $data['short_name'] . $data['department_id']);
 
             } else {
@@ -154,7 +156,7 @@ try {
 
 
         $output['code'] = 200;
-        $output['status'] = true;
+        $output['msg_status'] = true;
         $output['msg_response'] = 'Major updated successfully.';
         $output['msg_span'] = '';
         echo json_encode($output);
@@ -191,7 +193,9 @@ try {
                     array_push($major_array, strtoupper($major));
                 }
                 if(!empty($data['major'])){
-                    $exist_major_array = json_decode(html_entity_decode($data['major']));
+                    $exist_major_array = is_array(json_decode(html_entity_decode($data['major']), true))
+                        ? json_decode(html_entity_decode($data['major']), true)
+                        : array();
                     if(in_array(strtoupper($major), $exist_major_array)){
                         $output['code'] = 505;
                         $output['msg_response'] = "This major already exists for this program.";
@@ -231,7 +235,6 @@ try {
         $output['msg_status'] = true;
         $output['msg_response'] = "Major has been added successfully.";
         $output['msg_span'] = '';
-        $output['data'] = $major_array;
         echo json_encode($output);
         exit();
 
