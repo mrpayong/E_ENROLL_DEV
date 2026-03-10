@@ -51,12 +51,12 @@ try {
             array_push($majorArr, strtoupper($major));
         }
 
-        $major_encoded = json_encode($majorArr);
+        $encodedMajor = json_encode($majorArr);
         $db_connect->begin_transaction();
         $new_program = "INSERT INTO programs (program, department_id, major, short_name) VALUES (
             '".escape($db_connect, $program)."',
             '".escape($db_connect, $department_id)."',
-            '".escape($db_connect, $major_encoded)."',
+            '".escape($db_connect, $encodedMajor)."',
             '".escape($db_connect, $program_code)."'
         )";
 
