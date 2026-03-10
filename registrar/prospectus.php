@@ -28,11 +28,12 @@ if (!($g_user_role == "REGISTRAR")) {
         <?php include_once DOMAIN_PATH . '/global/header.php';?>
         <div class="container">
             <section class="card m-2 border">
-                <header class="card-header bg-primary text-white p-2 ps-3 rounded-2 rounded-bottom-0">
-                    <h1>Prospectus</h1>
+                <header class="card-header bg-primary text-white rounded-2 rounded-bottom-0" 
+                    style="padding:0.75rem; padding-left:1.25em; padding-bottom:0.5rem;">
+                    <label class="fs-2 text-white fw-bolder">Prospectus</label>
                 </header>
                 <div class="card-body pt-1">
-                    <div class="row">
+                    <div class="row mb-2 align-items-center">
                         <div class="col-md-6">
                             <label for="curriculumSelect" class="form-label text-black fw-bold">Curriculum</label>
                             <select id="curriculumSelect">
@@ -44,7 +45,7 @@ if (!($g_user_role == "REGISTRAR")) {
                         </div>
                     </div>
 
-                    <div class="row g-3 mt-1">
+                    <div class="row g-3">
                         <div class="col-12 col-lg-4">
                             <div class="summary-box bg-success-subtle rounded-2 p-2">
                                 <div class="small text-muted">Total Encoded Units</div>
@@ -65,9 +66,9 @@ if (!($g_user_role == "REGISTRAR")) {
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-2">
 
-                    <div id="prospectusBlocksViewport" class="border rounded-2 p-2">
+                    <div id="prospectusBlocksViewport" class="border rounded">
                         <div id="prospectusBlocks" class="d-flex flex-column gap-4"></div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
@@ -277,9 +278,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function semesterTableHtml(blockId, semester, title) {
+        const isFirst = title.trim().toUpperCase() === 'FIRST SEMESTER';
+        const padStyle = isFirst ? 'pe-xl-0 border-end border-black' : 'ps-xl-0';
         return `
-            <div class="col-12 col-xl-6">
-                <div class="semester-title d-flex justify-content-between align-items-center">
+            <div class="col-12 col-xl-6 ${padStyle}">
+                <div class="semester-title d-flex justify-content-between align-items-center rounded-0">
                     ${title}
                     <button type="button" class="btn btn-sm btn-light add-subject-btn" data-block-id="${blockId}" data-semester="${semester}">
                         <i class="fas fa-plus-circle"></i> Add Subject
@@ -320,8 +323,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h3 class="h5 mb-0">${y.label}</h3>
                     ${y.optional ? '<span class="badge bg-warning text-dark">Optional</span>' : ''}
                 </div>
-                <div class="p-2">
-                    <div class="row g-3">
+                <div>
+                    <div class="row">
                         ${semesterTableHtml(y.key, 1, 'FIRST SEMESTER')}
                         ${semesterTableHtml(y.key, 2, 'SECOND SEMESTER')}
                     </div>
@@ -452,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }));
             $prereq.append($('<option>', {
                 value: c.id,
-                text: c.code
+                text: `${c.code} - ${c.title}`
             }));
         });
 
