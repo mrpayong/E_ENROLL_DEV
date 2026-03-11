@@ -32,7 +32,7 @@ if (!($g_user_role == "REGISTRAR")) {
                     style="padding:0.75rem; padding-left:1.25em; padding-bottom:0.5rem;">
                     <label class="fs-2 text-white fw-bolder">Prospectus</label>
                 </header>
-                <div class="card-body pt-1">
+                <div class="card-body pt-1" style="padding-right: 0.5rem;padding-left: 0.5rem;">
                     <div class="row mb-2 align-items-center">
                         <div class="col-md-6">
                             <label for="curriculumSelect" class="form-label text-black fw-bold">Curriculum</label>
@@ -68,7 +68,7 @@ if (!($g_user_role == "REGISTRAR")) {
 
                     <hr class="my-2">
 
-                    <div id="prospectusBlocksViewport" class="border rounded">
+                    <div id="prospectusBlocksViewport" class="border-0">
                         <div id="prospectusBlocks" class="d-flex flex-column gap-4"></div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td><input style="min-width: 74px; text-align: center;" type="number" min="0" step="1" class="form-control form-control-sm entry-lab" value="0"></td>
                 <td><input style="min-width: 74px; text-align: center;" type="number" min="0" step="0.5" class="form-control form-control-sm entry-units" value="0"></td>
                 <td><select  style="min-width: 150px; text-align: center;" class="entry-prereq">${prereqOptionsHtml()}</select></td>
-                <td class="text-center"><button type="button" class="btn btn-sm btn-outline-secondary clear-entry-btn"><i class="fas fa-times"></i></button></td>
+                <td class="text-center"><button type="button" title="Clear entries" class="btn btn-sm btn-outline-secondary clear-entry-btn"><i class="fas fa-times"></i></button></td>
             </tr>
         `;
     }
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const lab = toNumber(labEl.value);
         const units = toNumber(unitsEl.value);
         const prereqCourse = courseCatalog.find(c => String(c.id) === String(prereqSel.value));
-        const prereqText = prereqCourse ? prereqCourse.code : 'None';
+        const prereqText = prereqCourse ? prereqCourse.code : '';
         
         const tr = document.createElement('tr');
         tr.setAttribute('data-block-id', String(blockId));
@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <td>${lab}</td>
             <td class="subject-row-units">${formatUnits(units)}</td>
             <td>${escapeHtml(prereqText)}</td>
-            <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-subject-btn"><i class="fas fa-times"></i></button></td>
+            <td class="text-center"><button type="button" title="Remove row" class="btn btn-sm btn-outline-danger remove-subject-btn"><i class="fas fa-times"></i></button></td>
         `;
         rowsBody.appendChild(tr);
 
@@ -353,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dataType: 'json',
             success: function (res) {
                 const raw = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-                console.log('raw:', raw);
 
                 courseCatalog = raw.map(function (x) {
                     const lecLab = (() => {
@@ -446,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if ($prereq[0].selectize) $prereq[0].selectize.destroy();
 
         $course.empty().append('<option value="" selected disabled>Select Course</option>');
-        $prereq.empty().append('<option value="" selected>None</option>');
+        $prereq.empty().append('<option value="" selected disabled>Select Pre-req</option>');
 
         courseCatalog.forEach(function (c) {
             $course.append($('<option>', {
@@ -531,13 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     requiredUnitsInput.addEventListener('input', renderTotals);
 
-    ['saveProspectusBtn', 'saveProspectusBtnTop'].forEach(function(id){
-        const btn = document.getElementById(id);
-        if (!btn) return;
-        btn.addEventListener('click', function () {
-            // existing save logic
-        });
-    });
     
     renderFixedTemplate();
     loadCurriculumOptions();
@@ -574,6 +566,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 });
 
+                if(y.key === 5 && rows.length === 0) return;
                 payload.blocks.push({
                     year_level: y.key,
                     semester: semester,
@@ -587,6 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#saveProspectusBtn').on('click', function () {
         const payload = collectProspectusPayload();
+        console.log('Collected payload:', payload);
 
         const postData = [
             { name: 'submitProspectus', value: 'createProspectus' },
@@ -596,15 +590,58 @@ document.addEventListener('DOMContentLoaded', function () {
         ];
 
         console.log('Payload to submit:', postData);
-        return;
+
+        function loadingAPIrequest(status){
+            if(status === true){
+                swal({
+                    title: "Loading",
+                    icon: 'info',
+                    text: "Please wait"
+                });
+            }
+            if(status === false){
+                swal.close();
+            }
+
+        }
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/prospectus_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/prospectus_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
-            success: function (res) {
-                // same swal pattern as section.php
+            beforeSend: loadingAPIrequest(true),
+            complete: loadingAPIrequest(false),
+            success: function (data) {
+                if(data){
+                    if(data.code === 200 && data.msg_status === true){
+                        swal({
+                            title: "Success",
+                            icon: "success",
+                            text: data.msg_response,
+                            button: false,
+                            timer:3000,
+                        })
+                    }
+                    if(data.code === 501 && data.msg_status === false){
+                        swal({
+                            title: "Failed to create",
+                            icon: "error",
+                            text: data.msg_response,
+                            button: true,
+                            timer:3000,
+                        })
+                    }
+                                        if(data.code === 500 && data.msg_status === false){
+                        swal({
+                            title: "Failed to create",
+                            icon: "error",
+                            text: data.msg_response,
+                            button: true,
+                            timer:3000,
+                        })
+                    }
+                }
             }
         });
     });
