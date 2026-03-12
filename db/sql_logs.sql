@@ -224,3 +224,6 @@ ALTER TABLE `curriculum` ADD `school_year_id` INT(50) NOT NULL AFTER `updatedAt`
 ALTER TABLE `curriculum` CHANGE `school_year_id` `school_year_id` INT(50) NOT NULL AFTER `curriculum_title`, CHANGE `year_level` `year_level` INT(50) NOT NULL AFTER `curriculum_title`;
 ALTER TABLE `curriculum` CHANGE `school_year_id` `semester` VARCHAR(50) NOT NULL;
 ALTER TABLE `curriculum` ADD `prospectus_id` INT(50) NOT NULL AUTO_INCREMENT AFTER `updatedAt`, ADD PRIMARY KEY (`prospectus_id`);
+
+-- mar 12, 2026
+ALTER TABLE `curriculum` CHANGE `curriculum_title` `curriculum_title` VARCHAR(50) NULL DEFAULT NULL;

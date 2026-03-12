@@ -281,13 +281,6 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                             <span>Enrollment</span>
                         </a>
                     </li>
-                
-                    <li class="nav-item <?php echo navigation_active("prospectus"); ?>">
-                        <a href="<?php echo BASE_URL; ?>registrar/prospectus.php">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Prospectus</span>
-                        </a>
-                    </li>
 
                     <li class="nav-item <?php echo navigation_active("curriculum"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/curriculum.php">

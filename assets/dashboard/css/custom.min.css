@@ -10832,3 +10832,12 @@ body[data-background-color=dark] .jvm-zoom-btn {
     overflow-x: hidden;
     scrollbar-gutter: stable;
 }
+#prospectusBlocksViewport.is-expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.view-curriculum-modal {
+  max-width: 95vw;
+  width: 95vw;
+}

@@ -12,6 +12,8 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
+$preselectCurriculumId = $_GET['curriculum_id'] ?? '';
+
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -72,9 +74,14 @@ if (!($g_user_role == "REGISTRAR")) {
                         <div id="prospectusBlocks" class="d-flex flex-column gap-4"></div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
-                        <button id="saveProspectusBtn" type="button" class="btn btn-success">
-                            <i class="bi bi-save me-1"></i> Save Prospectus
-                        </button>
+                        <div class="gap-2">
+                            <button id="saveProspectusBtn" type="button" class="btn btn-success">
+                                <i class="bi bi-save me-1"></i> Save Prospectus
+                            </button>
+                            <button id="toggleProspectusViewportBtn" type="button" class="btn btn-secondary me-2">
+                                View All Prospectus
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -92,6 +99,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const encodedUnitsDisplay = document.getElementById('encodedUnitsDisplay');
     const requiredUnitsDisplay = document.getElementById('requiredUnitsDisplay');
     const unitsGapDisplay = document.getElementById('unitsGapDisplay');
+    const viewport = document.getElementById('prospectusBlocksViewport');
+    const toggleBtn = document.getElementById('toggleProspectusViewportBtn');
+
+    if (viewport && toggleBtn) {
+    toggleBtn.addEventListener('click', function () {
+        const expanded = viewport.classList.toggle('is-expanded');
+        toggleBtn.textContent = expanded ? 'Shorten View' : 'View All Prospectus';
+    });
+    }
 
     if (!curriculumSelect || !requiredUnitsInput || !blocksContainer) return;
 
@@ -530,9 +546,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     requiredUnitsInput.addEventListener('input', renderTotals);
 
-    
+    const preselectCurriculumId = <?php echo json_encode($preselectCurriculumId); ?>;
     renderFixedTemplate();
-    loadCurriculumOptions();
+    loadCurriculumOptions('#curriculumSelect', preselectCurriculumId);
     renderTotals();
     loadCourseCatalog();
 
@@ -632,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             timer:3000,
                         })
                     }
-                                        if(data.code === 500 && data.msg_status === false){
+                    if(data.code === 500 && data.msg_status === false){
                         swal({
                             title: "Failed to create",
                             icon: "error",

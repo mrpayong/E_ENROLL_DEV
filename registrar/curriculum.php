@@ -6,35 +6,13 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
-
-$table_array = array();
-$select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked FROM users WHERE user_id = '".escape($db_connect, $s_user_id)."'";
-if ($query = call_mysql_query($select)) {
-    if ($num = mysqli_num_rows($query)) {
-        while ($data = call_mysql_fetch_array($query)) {
-            $data['name'] = get_full_name($data['f_name'],$data['m_name'],$data['l_name'],$data['suffix']);
-
-            $user_roles = [];
-            foreach (json_decode($data['roles']) as $role) {
-                if (isset(SYSTEM_ACCESS['E-ENROLL']['role'][$role])) {
-                    $user_roles[] = SYSTEM_ACCESS['E-ENROLL']['role'][$role];
-                }
-            }
-            $data['user_role'] = !empty($user_roles) ? implode(', ', $user_roles) : '';
-
-            
-
-            if ($data['status'] == 1) {
-                $data['account_status'] = 'Deactivated';
-            } elseif ($data['locked'] == 1) {
-                $data['account_status'] = 'Locked';
-            } elseif ($data['status'] == 0 && $data['locked'] == 0) {
-                $data['account_status'] = 'Active';
-            }
-            array_push($table_array, $data);
-        }
+$prospectus_data = array();
+$fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
+  if($sql = call_mysql_query($fetch_pros)){
+    while($data = call_mysql_fetch_array($sql)){
+      array_push($prospectus_data, $data);
     }
-}
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -161,6 +139,28 @@ if ($query = call_mysql_query($select)) {
               </div>
             </div>
 
+            <div class="modal fade" id="viewCurr" tabindex="-1" aria-labelledby="" aria-hidden="true">
+              <div class="modal-dialog modal-xl view-curriculum-modal">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Curriculum</h5>
+                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="alert alert-info py-1 mb-2 d-block d-md-none">
+                      You may scroll sideways to see other data.
+                    </div>
+                    <div id="curriculum-contents"></div>
+                  </div>
+
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             
       </div>
   </div>
@@ -169,13 +169,15 @@ if ($query = call_mysql_query($select)) {
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const proscData = <?php echo json_encode($prospectus_data); ?>;
 
     function loadingAPIrequest(status){
         if(status === true){
             swal({
                 title: "Loading",
                 icon: 'info',
-                text: "Please wait"
+                text: "Please wait",
+                button: false
             });
         }
         if(status === false){
@@ -186,18 +188,26 @@ document.addEventListener('DOMContentLoaded', function() {
     function actionsFormatter(cell) {
         const row = cell.getRow().getData();
         const statusAllowable = Number(row.status_allowable);
+        const hasProspectus = proscData.some(item => Number(item.curriculum_id) === Number(row.curriculum_id));
 
         let action = ``;
 
         if(statusAllowable === 1){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-success me-2 disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2" title="Edit"><i class="fas fa-eye"></i> View (!functional)</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+          if(!hasProspectus){
+              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black create-prospectus-btn" title="create prospectus"><i class="fas fa-plus-circle"></i> Create rospectus</button>`;
+          }
         }
         if(statusAllowable === 0){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-primary me-2 allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2" title="Edit"><i class="fas fa-eye"></i> View (!functional)</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+          if(hasProspectus){
+              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black view-btn" title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+          }
+          if(!hasProspectus){
+              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black create-prospectus-btn" title="create prospectus"><i class="fas fa-plus-circle"></i> Create rospectus</button>`;
+          }
         }
         return action;
     }
@@ -353,6 +363,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const editBtn = e.target.closest('.edit-btn');
     const allow = e.target.closest('.allow-btn');
     const disallow = e.target.closest('.disallow-btn');
+    const view = e.target.closest('.view-btn');
+    const createProspectusBtn = e.target.closest('.create-prospectus-btn');
+    let viewCurrOpen = false;
+
+    document.addEventListener('keydown', function (e) {
+      if (!viewCurrOpen) return;
+      const isReload = (e.key === 'F5') || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r');
+      if (isReload) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
 
     if(editBtn){
         const curriculumId = editBtn.getAttribute('data-id');
@@ -377,6 +399,178 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('statusModalLabel').textContent = `${currStatus === 1 ? 'Allow' : 'Disallow'} ${rowData.header}`;
         document.getElementById('statusDesc').textContent = `Are you sure you want to ${currStatus === 1 ? 'allow' : 'disallow'} ${rowData.header}?`;
         $('#statusModal').modal('show');
+    }
+    if(view){
+      // I AM TRYING TO APPEND NEW CONTENT HERE
+      const curriculumId = view.getAttribute('data-id');
+      $.ajax({
+          url: "<?php echo BASE_URL; ?>registrar/actions/fetchProspectus.php",
+          method: "GET",
+          data: { curriculum_id: curriculumId },
+          dataType: "json",
+          beforeSend: loadingAPIrequest(true),
+          success: function (data) {
+            loadingAPIrequest(false);
+            if(data){
+              if(data.msg_status === true && data.code === 200){
+                const rows = Array.isArray(data.data) ? data.data : [];
+                const totalUnits = rows.reduce((sum, r) => sum + Number(r.unit || 0), 0);
+                const $container = $('#curriculum-contents');
+                $container.empty();
+
+                if (rows.length === 0) {
+                    $container.html('<div class="text-muted">No prospectus data found.</div>');
+                    return;
+                }
+
+                // Helper: escape HTML
+                const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({
+                    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+                }[m]));
+
+                // Header info from first row
+                const headerTitle = esc(rows[0].curriculum_title || '');
+                const headerCode  = esc(rows[0].curriculum_code || '');
+
+                // Normalize semester to 1 or 2 and label
+                function semIndex(semStr) {
+                    const s = (semStr || '').toString().toLowerCase();
+                    if (s.includes('1')) return 1;
+                    if (s.includes('2')) return 2;
+                    if (s.includes('first')) return 1;
+                    if (s.includes('second')) return 2;
+                    return 0;
+                }
+                function semLabel(idx) {
+                    return idx === 1 ? 'FIRST SEMESTER' : 'SECOND SEMESTER';
+                }
+
+                // Group rows by year -> semester
+                const grouped = {};
+                rows.forEach(r => {
+                    const y = parseInt(r.year_level, 10) || 0;
+                    const sIdx = semIndex(r.semester);
+                    if (!grouped[y]) grouped[y] = {1: [], 2: []};
+                    if (sIdx === 1 || sIdx === 2) grouped[y][sIdx].push(r);
+                });
+
+                function renderSemesterTable(semRows, semIdx) {
+                  console.log("semRows", semRows, "sem: ", semRows[0].semester);
+                    let totalUnits = 0;
+                    const body = semRows.map(r => {
+                        const units = Number(r.unit || 0);
+                        totalUnits += units;
+                        return `
+                            <tr>
+                                <td>${esc(r.subject_code)}</td>
+                                <td>${esc(r.subject_title)}</td>
+                                <td class="text-center">${esc(r.lec)}</td>
+                                <td class="text-center">${esc(r.lab)}</td>
+                                <td class="text-center">${esc(units)}</td>
+                                <td>${esc(r.pre_req || '')}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    const padStyle = semRows[0].semester === '1st Semester' ? 'pe-xl-0 border-end border-black' : 'ps-xl-0';
+                    return `
+                        <div class="col-12 col-xl-6 ${padStyle}">
+                            <div class="semester-title align-items-center text-center fw-bold rounded-0">
+                                ${semLabel(semIdx)}
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm semester-table mb-2">
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Course Title</th>
+                                            <th class="text-center">Lec</th>
+                                            <th class="text-center">Lab</th>
+                                            <th class="text-center">Units</th>
+                                            <th>Pre-Req</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${body}</tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="4" class="text-end">Total Units</th>
+                                            <th class="text-center">${totalUnits.toFixed(2)}</th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Build final HTML
+                let html = `
+                  <div class="mb-3 d-flex flex-column flex-md-row justify-content-between gap-2">
+                      <div>
+                          <h4 class="mb-1">${headerTitle}</h4>
+                          <div class="text-muted">Curriculum Code: ${headerCode}</div>
+                      </div>
+                      <div class="text-md-end">
+                          <div class="fw-semibold">Total Units to be Earned</div>
+                          <div class="fs-5">${totalUnits.toFixed(2)}</div>
+                      </div>
+                  </div>
+                `;
+
+                Object.keys(grouped).sort((a,b)=>a-b).forEach(y => {
+                    html += `
+                        <section class="prospectus-block-card mb-4">
+                            <div class="prospectus-block-header px-3 py-2 d-flex justify-content-center align-items-center">
+                                <h3 class="h5 mb-0 fw-bolder">${esc(['','FIRST','SECOND','THIRD','FOURTH','FIFTH'][y])} YEAR</h3>
+                            </div>
+                            <div>
+                                <div class="row">
+                                    ${renderSemesterTable(grouped[y][1], 1)}
+                                    ${renderSemesterTable(grouped[y][2], 2)}
+                                </div>
+                            </div>
+                        </section>
+                    `;
+                });
+
+                $container.html(html);
+              }
+              if(data.msg_status === false && data.code === 500){
+                swal({
+                  title: "Falied to load curriculum",
+                  text: data.msg_response,
+                  icon: "error",
+                  button: true
+                })
+              }
+              if(data.msg_status === false && data.code === 404){
+                swal({
+                  title: "Falied to load curriculum",
+                  text: data.msg_response,
+                  icon: "error",
+                  button: true
+                })
+              }
+            }
+          },
+          error: function (xhr, status, error) {
+              swal({
+                  title: "Error",
+                  icon: "error",
+                  text: "Failed to load curriculum details.",
+                  button: true
+              });
+          }
+      });
+
+      $('#viewCurr').modal('show');
+    }
+    if (createProspectusBtn) {
+      const curriculumId = createProspectusBtn.getAttribute('data-id');
+      const url = "<?php echo BASE_URL; ?>registrar/prospectus.php?curriculum_id=" + encodeURI(curriculumId);
+      window.open(url, '_blank');
+      return;
     }
   })
 
@@ -651,7 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     })
   })
-
 
 });
 </script>
