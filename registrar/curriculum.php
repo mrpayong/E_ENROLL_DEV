@@ -38,7 +38,12 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
                                     </button>
                                 </header>
                                 <div class="p-3" style="min-height: 40rem;">
-                                    <div id="curriculum-table"></div>
+                                  <div class="mb-3">
+                                    <label class='fw-bold text-black'>Assign Status Legend: </label>
+                                    <span class="fs-6 badge bg-success text-dark ms-2">Allowed to be assigned to students</span>
+                                    <span class="fs-6 badge bg-danger text-dark ms-1">Not Allowed to be assigned to students</span>
+                                  </div>  
+                                  <div id="curriculum-table"></div>
                                 </div>
                             </section>
                         </div>
@@ -194,20 +199,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if(statusAllowable === 1){
           action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
-          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-          if(!hasProspectus){
-              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black create-prospectus-btn" title="create prospectus"><i class="fas fa-plus-circle"></i> Create rospectus</button>`;
+          if(hasProspectus === false){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+          }
+          if(hasProspectus === true){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
           }
         }
         if(statusAllowable === 0){
           action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
-          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-          if(hasProspectus){
-              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black view-btn" title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+          if(hasProspectus === true){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
           }
-          if(!hasProspectus){
-              action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 text-black create-prospectus-btn" title="create prospectus"><i class="fas fa-plus-circle"></i> Create rospectus</button>`;
+          if(hasProspectus === false){
+            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
           }
+        }
+        if(hasProspectus === false && statusAllowable === 0){
+          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-plus-circle"></i> Add Prospectus</button>`;
         }
         return action;
     }
@@ -222,15 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
     movableColumns: true,
     headerFilterPlaceholder: "Search",
     placeholder: "No Data Found",
-    ajaxResponse: function(url, params, response){
-        // Check if there is data
-        if(response && response.data && response.data.length > 0){
-            this.setHeight("auto"); // Set height to auto if data exists
-        }else{
-            this.setHeight("170px"); // Fixed height if no data
-        }
-        return response;
-    },
     columns: [
         {
             title: "Curriculum Title",
@@ -246,7 +246,38 @@ document.addEventListener('DOMContentLoaded', function() {
             headerFilterLiveFilter: true,
             headerFilter: "input",
             hozAlign: "center",
-            headerHozAlign: "center"
+            headerHozAlign: "center",
+            formatter: function(cell){
+              const value = cell.getValue();
+              const row = cell.getRow().getData();
+              const status = Number(row.status_allowable);
+
+              let badgeClass = "";
+
+              if(status === 1){
+                badgeClass = "bg-danger";
+              }
+              if(status === 0){
+                badgeClass = "bg-success";
+              }
+              return `<span class="badge ${badgeClass} fs-6">${value}</span>`;
+            }
+        },
+        {
+            title: "Required Units",
+            field: "units",
+            headerFilterLiveFilter: true,
+            headerFilter: "input",
+            hozAlign: "center",
+            headerHozAlign: "center",
+            formatter: function(cell) {
+                const value = cell.getValue();
+                return value > 1 
+                  ? `${value} Units`
+                  : value === 1
+                    ? `${value} Unit`
+                    : 'No Units';
+            }
         },
         {
             title: "Program",
@@ -263,23 +294,6 @@ document.addEventListener('DOMContentLoaded', function() {
             headerFilter: "input",
             hozAlign: "center",
             headerHozAlign: "center"
-        },
-        {
-          title: "Assign Status",
-          field: "status_allowable",
-          headerFilterLiveFilter: true,
-          headerFilter: "input",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          formatter: function(cell) {
-              const value = cell.getValue();
-              if (value == 1) {
-                  return `<span class="badge bg-danger">Not Allowed</span>`;
-              } 
-              if (value == 0) {
-                  return `<span class="badge bg-success">Allowed</span>`;
-              }
-          }
         },
         {
             title: "Actions",
@@ -328,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if(data.status === true && data.code === 200){
                   var $programSelect = $(selected);
                   $programSelect.empty();
-                  $programSelect.append('<option value="" disabled selected>Select Department</option>');
+                  $programSelect.append('<option value="" disabled selected>Select Program</option>');
                   data.data.forEach(function(departments) {
                       $programSelect.append(
                           $('<option>', {
@@ -403,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(view){
       // I AM TRYING TO APPEND NEW CONTENT HERE
       const curriculumId = view.getAttribute('data-id');
+      const rowData = curriculumTable.getRows().find(r => r.getData().curriculum_id == curriculumId).getData();
       $.ajax({
           url: "<?php echo BASE_URL; ?>registrar/actions/fetchProspectus.php",
           method: "GET",
@@ -448,26 +463,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Group rows by year -> semester
                 const grouped = {};
                 rows.forEach(r => {
-                    const y = parseInt(r.year_level, 10) || 0;
+                    const yr_lvl = parseInt(r.year_level, 10) || 0;
                     const sIdx = semIndex(r.semester);
-                    if (!grouped[y]) grouped[y] = {1: [], 2: []};
-                    if (sIdx === 1 || sIdx === 2) grouped[y][sIdx].push(r);
+                    if (!grouped[yr_lvl]) grouped[yr_lvl] = {1: [], 2: []};
+                    if (sIdx === 1 || sIdx === 2) grouped[yr_lvl][sIdx].push(r);
                 });
 
+                // console.log('group keys: ',Object.keys(grouped) ,typeof Object.keys(grouped));
+                const hasIncomplete = Object.keys(grouped).some(yr_lvl => {
+                  return grouped[yr_lvl][1].length === 0 || grouped[yr_lvl][2].length === 0;
+                });
+
+                if (hasIncomplete) {
+                  swal({
+                    title: "Failed",
+                    icon: "error",
+                    text: "Cannot view prospectus. Incomplete data.",
+                    button: true
+                  });
+                  return;
+                }
+
                 function renderSemesterTable(semRows, semIdx) {
-                  console.log("semRows", semRows, "sem: ", semRows[0].semester);
                     let totalUnits = 0;
+                    if(semRows.length === 0) return;
                     const body = semRows.map(r => {
                         const units = Number(r.unit || 0);
                         totalUnits += units;
                         return `
                             <tr>
-                                <td>${esc(r.subject_code)}</td>
-                                <td>${esc(r.subject_title)}</td>
-                                <td class="text-center">${esc(r.lec)}</td>
-                                <td class="text-center">${esc(r.lab)}</td>
-                                <td class="text-center">${esc(units)}</td>
-                                <td>${esc(r.pre_req || '')}</td>
+                              <td>${esc(r.subject_code)}</td>
+                              <td>${esc(r.subject_title)}</td>
+                              <td class="text-center">${esc(r.lec)}</td>
+                              <td class="text-center">${esc(r.lab)}</td>
+                              <td class="text-center">${esc(units)}</td>
+                              <td>${esc(r.pre_req || '')}</td>
                             </tr>
                         `;
                     }).join('');
@@ -511,29 +541,31 @@ document.addEventListener('DOMContentLoaded', function() {
                           <h4 class="mb-1">${headerTitle}</h4>
                           <div class="text-muted">Curriculum Code: ${headerCode}</div>
                       </div>
-                      <div class="text-md-end">
-                          <div class="fw-semibold">Total Units to be Earned</div>
-                          <div class="fs-5">${totalUnits.toFixed(2)}</div>
+                      <div class="text-md-end d-flex flex-column align-items-md-end">
+                          <span class="fw-semibold fs-5">Total Units Required: ${rowData.units.toFixed(2)}</span>
+                          <span class="fw-semibold fs-5">Total Units Shown: ${totalUnits.toFixed(2)}</span>
                       </div>
                   </div>
                 `;
 
-                Object.keys(grouped).sort((a,b)=>a-b).forEach(y => {
+
+                Object.keys(grouped).sort((a,b)=>a-b).forEach(yr_lvl => {
                     html += `
-                        <section class="prospectus-block-card mb-4">
+                        <section class="prospectus-block-card mb-4 border border-1 border-secondary-subtle">
                             <div class="prospectus-block-header px-3 py-2 d-flex justify-content-center align-items-center">
-                                <h3 class="h5 mb-0 fw-bolder">${esc(['','FIRST','SECOND','THIRD','FOURTH','FIFTH'][y])} YEAR</h3>
+                                <h3 class="h5 mb-0 fw-bolder">${esc(['','FIRST','SECOND','THIRD','FOURTH','FIFTH'][yr_lvl])} YEAR</h3>
                             </div>
                             <div>
                                 <div class="row">
-                                    ${renderSemesterTable(grouped[y][1], 1)}
-                                    ${renderSemesterTable(grouped[y][2], 2)}
+                                    ${renderSemesterTable(grouped[yr_lvl][1], 1)}
+                                    ${renderSemesterTable(grouped[yr_lvl][2], 2)}
                                 </div>
                             </div>
                         </section>
                     `;
                 });
 
+                $('#viewCurr').modal('show');
                 $container.html(html);
               }
               if(data.msg_status === false && data.code === 500){
@@ -564,12 +596,32 @@ document.addEventListener('DOMContentLoaded', function() {
           }
       });
 
-      $('#viewCurr').modal('show');
     }
     if (createProspectusBtn) {
       const curriculumId = createProspectusBtn.getAttribute('data-id');
-      const url = "<?php echo BASE_URL; ?>registrar/prospectus.php?curriculum_id=" + encodeURI(curriculumId);
-      window.open(url, '_blank');
+      $.ajax({
+        url: "<?php echo BASE_URL.URL_Prospectus; ?>",
+        method:"POST",
+        dataType: "json",
+        data: { curriculum_id: curriculumId},
+        beforeSend: loadingAPIrequest(true),
+        success: function(data){
+          loadingAPIrequest(false);
+          if(data){
+            if(data.code === 200 && data.msg_status === true){
+              const url = "<?php echo BASE_URL; ?>registrar/prospectus.php?coin=" + encodeURIComponent(data.token);
+              window.open(url, "_blank");
+            }
+          }
+        },
+        error: function () {
+          swal({ 
+            title: "Error", 
+            text: "Failed to load page.", 
+            icon: "error" 
+          });
+        }
+      })
       return;
     }
   })

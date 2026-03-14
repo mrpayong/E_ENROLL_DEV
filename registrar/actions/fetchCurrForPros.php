@@ -8,6 +8,8 @@ require API_PATH;
 
 $session_class->session_close();
 
+header('Content-Type: application/json');
+
 if (!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
     include HTTP_401;
     exit();

@@ -27,11 +27,25 @@ try {
         function dataEmptyCheck($val){
             return ($val === null || $val === '');
         }
+        
         if(empty($prospectus) || dataEmptyCheck($curr_id) || dataEmptyCheck($units)){
             $output['msg_response'] = 'All fields are required.';
             $output['code'] = 501;
             echo json_encode($output);
-            exit;
+            exit();
+        }
+
+        foreach ($prospectus as $block) {
+            $year_level = isset($block['year_level']) ? intVal($block['year_level']) : 0;
+            $semester   = isset($block['semester']) ? intVal($block['semester']) : 0;
+            $subjects   = !empty($block['subjects']) ? $block['subjects'] : [];
+
+            if (count($subjects) === 0) {
+                $output['msg_response'] = "No courses in Year level ".$year_level.", Semester ".$semester.".";
+                $output['code'] = 502;
+                echo json_encode($output);
+                exit();
+            }
         }
 
         $sql_curr = "SELECT curriculum_code, header, program_id FROM curriculum_master WHERE curriculum_id = '$curr_id'";
@@ -44,7 +58,7 @@ try {
         } else {
             $output['msg_response'] = 'Curriculum not found.';
             echo json_encode($output);
-            exit;
+            exit();
         }
 
         // Flatten rows
@@ -112,21 +126,25 @@ try {
         subject_code, subject_title, unit, lec_lab, pre_req, pre_req_id)
         VALUES ".(implode(',', $values)).""
         ;
-        call_mysql_query($sql_insert);
+        if($sql = call_mysql_query($sql_insert)){
+            $add_unit = "UPDATE curriculum_master SET units = '".escape($db_connect, $units)."s' WHERE curriculum_id = '".escape($db_connect, $curr_id)."'";
+            if(call_mysql_query($add_unit)){
+                $db_connect->commit();
 
-        $db_connect->commit();
-
-        $output["code"] = 200;
-        $output['msg_response'] = "Prospectus created successfully.";
-        $output['msg_span'] = "";
-        $output['msg_status'] = true;
-        echo json_encode($output);
-        exit();
+                $output["code"] = 200;
+                $output['msg_response'] = "Prospectus created successfully.";
+                $output['msg_span'] = "";
+                $output['msg_status'] = true;
+                echo json_encode($output);
+                exit();
+            }
+        }
     }
 } catch (Throwable $th) {
+    $db_connect->rollback();
     $output["code"] = 500;
     $output['msg_response'] = $th->getMessage();
-            echo json_encode($output);
-        exit();
+    echo json_encode($output);
+    exit();
 }
 ?>

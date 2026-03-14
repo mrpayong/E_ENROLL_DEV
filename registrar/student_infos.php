@@ -187,10 +187,7 @@ $encoded_departments = json_encode($departments);
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="curriculum" class="form-label">Curriculum</label>
-                                        <select class="form-select" id="curriculum" name="curriculum" required>
-                                            <option value="" disabled selected>Select Curriculum</option>
-                                            <option value="27">Curr 1</option>
-                                            <option value="27">Curr 2</option>
+                                        <select id="curriculum" name="curriculum" required>
                                         </select>
                                     </div>
                                 </div>
@@ -297,6 +294,42 @@ document.addEventListener('DOMContentLoaded', function () {
             dropdown[0].selectize.setValue(selectedId);
         }
     };
+
+    function populateCurriculumDropdown(selector, selectedId = null) {
+        const dropdown = $(selector);
+        // Destroy previous selectize instance if exists
+        if(dropdown[0].selectize){
+            dropdown[0].selectize.destroy();
+        }
+        dropdown.empty();
+        dropdown.append('<option value="" selected disabled>Select Curriculum</option>');
+
+        $.ajax({
+            url: "<?php echo BASE_URL; ?>registrar/actions/fetchCurrForPros.php",
+            method: "GET",
+            dataType: "json",
+            success: function(response){
+                if(response.code === 200 && response.data){
+                    response.data.forEach(function(item){
+                        dropdown.append(
+                            $('<option>', {
+                                value: item.curriculum_id,
+                                text: item.header + " (" + item.curriculum_code + ")"
+                            })
+                        );
+                    });
+                    dropdown.selectize({
+                        allowEmptyOption: true,
+                        create: false,
+                        sortField: 'text'
+                    });
+                    if(selectedId){
+                        dropdown[0].selectize.setValue(selectedId);
+                    }
+                }
+            }
+        });
+    }
 
     function populateProgramDropdown(selector, selectedId = null) {
         const dropdown = $(selector);
@@ -471,7 +504,8 @@ document.addEventListener('DOMContentLoaded', function () {
             swal({
                 title: "Loading",
                 icon: 'info',
-                text: "Please wait"
+                text: "Please wait",
+                button: false
             });
             swal();
         }
@@ -515,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('barangay').value = rowData.barangay !== "" ? rowData.barangay : '';
             populateProgramDropdown('#program', rowData.program_id);
             populateDepartment('#department', rowData.department_id);
-            document.getElementById('curriculum').value = rowData.curriculum_id !== "" ? rowData.curriculum_id : '';
+            populateCurriculumDropdown('#curriculum', rowData.curriculum_id);
             document.getElementById('emergency').value = Number(rowData.emergency_data) !== 0 ? rowData.emergency_data : '';
             document.getElementById('additional_data').value = Number(rowData.additional_data) !== "" ? rowData.additional_data : '';
 
@@ -604,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: data.msg_title,
                         text: data.msg_response,
                         icon: "success",
-                        buttons:false,
+                        button:false,
                         timer:3000
                     }).then(function(){
                         $('#updateModal').modal('hide');
@@ -617,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: "Failed to update",
                         icon: "error",
                         text: data.msg_response,
-                        showConfirmButton: true,
+                        button: true,
                     })
                 }
                 if(data.msg_status === false && data.code === 502){
@@ -625,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: "Failed to update",
                         icon: "error",
                         text: data.msg_response,
-                        showConfirmButton: true,
+                        button: true,
                     })
                 }
                 if(data.msg_status === false && data.code === 503){
@@ -633,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: "Failed to update",
                         icon: "error",
                         text: data.msg_response,
-                        showConfirmButton: true,
+                        button: true,
                     })
                 }
                 if(data.msg_status === false && data.code === 504){
@@ -641,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: "Update Notice",
                         icon: "info",
                         text: data.msg_response,
-                        showConfirmButton: true,
+                        button: true,
                     })
                 }
                 if(data.msg_status === false && data.code === 500){
@@ -649,7 +683,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: "Failed to update",
                         icon: "error",
                         text: data.msg_response,
-                        showConfirmButton: true,
+                        button: true,
                     })
                 }
             },
@@ -658,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     title: "Failed to update",
                     icon: "error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })
@@ -713,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             title: "Failed to lock",
                             icon: "error",
                             text: data.msg_response,
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 502){
@@ -721,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             title: "Failed to lock",
                             icon: "error",
                             text: data.msg_response,
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 503){
@@ -729,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             title: "Failed to lock",
                             icon: "error",
                             text: data.msg_response,
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 500){
@@ -737,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             title: "Failed to lock",
                             icon: "error",
                             text: data.msg_response,
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                 }
@@ -747,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     title: "Failed to lock",
                     icon: "error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 })
             }
         })

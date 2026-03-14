@@ -125,10 +125,10 @@ if ($query = call_mysql_query($data_query)) {
     if ($num = call_mysql_num_rows($query)) {
         while ($data = call_mysql_fetch_array($query)) {
             $data = array_html($data);
-            $data['curriculum_id'] = (int)$data['curriculum_id'];
-            $data['program_id'] = (int)$data['program_id'];
-            $data['units'] = (int)$data['units'];
-            $data['status_allowable'] = (int)$data['status_allowable'];
+            $data['curriculum_id'] = intVal($data['curriculum_id']);
+            $data['program_id'] = intVal($data['program_id']);
+            $data['units'] = intVal($data['units']);
+            $data['status_allowable'] = intVal($data['status_allowable']);
             $data['date_created'] = isset($data['date_created']) ? formatterDateLong($data['date_created']) : "";
             $to_encode[] = $data;
         }

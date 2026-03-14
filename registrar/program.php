@@ -405,15 +405,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function loadingAPIrequest(status){
         console.log("stat: ", status)
         if(status === true){
-            Swal.fire({
+            swal({
                 title: "Loading",
                 icon: 'info',
-                text: "Please wait"
+                text: "Please wait",
+                button:false
             });
-            Swal.showLoading();
         }
         if(status === false){
-            Swal.close();
+            swal.close();
         }
 
     }
@@ -442,14 +442,14 @@ document.addEventListener('DOMContentLoaded', function () {
             complete: loadingAPIrequest(false),
             success: function(data){
                 if(data){
-                    Swal.close();
+                    swal.close();
                     if(data.status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             title: "Program created!",
                             text: "Program has been created successfully!",
                             icon: "success",
                             timer: 3000,
-                            showConfirmButton: false,
+                            button: false,
                         }).then(function(){
                             $('#programForm')[0].reset();
                             programModal.hide();
@@ -457,40 +457,40 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                     }
                     if(data.status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             title: "Failed to create program.",
                             text: "All fields are required.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             title: "Failed to create program.",
                             text: "Program name or code already exist.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         }).then(function(){
                             document.getElementById('programCode').value = "";
                             document.getElementById('programName').value = "";
                         })
                     }
                     if(data.status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             title: "An error occured.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                 }
             },
             error: function(xhr, status, error){
-                Swal.fire({
+                swal({
                     title: "Error",
                     icon: "error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 });
             }
         })
@@ -503,31 +503,31 @@ document.addEventListener('DOMContentLoaded', function () {
             dataType: "json",
             success: function(data) {
                 if(data.status === false && data.code === 400){
-                    Swal.fire({
+                    swal({
                         title: "Error!",
                         icon: "error",
                         text: "Unavailable.",
-                        showConfirmButton: true,
+                        button: true,
                         timer: 5000
                     });
                     return;
                 }
                 if(data.status === false && data.code === 401){
-                    Swal.fire({
+                    swal({
                         title: "Error!",
                         icon: "error",
                         text: "Unavailable.",
-                        showConfirmButton: true,
+                        button: true,
                         timer: 5000
                     });
                     return;
                 }
                 if(data.status === false && data.code === 500){
-                    Swal.fire({
+                    swal({
                         title: "Error!",
                         icon: "error",
                         text: "Something went wrong.",
-                        showConfirmButton: true,
+                        button: true,
                         timer: 5000
                     });
                     return;
@@ -551,11 +551,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             },
             error: function() {
-                Swal.fire({
+                swal({
                     title: "Error",
                     icon: "error",
                     text: "Failed to load departments.",
-                    showConfirmButton: true
+                    button: true
                 });
             }
         });
@@ -583,10 +583,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const postData = formData.concat(newData);
 
-        console.log("post: ", postData)
-
-
-
         $.ajax({
             url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
             method: "POST",
@@ -596,9 +592,8 @@ document.addEventListener('DOMContentLoaded', function () {
             complete: loadingAPIrequest(false),
             success: function(data){
                 if(data){
-                    // Swal.close();
                     if(data.msg_status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             title: "Program udpated!",
                             text: "Program has been udpated successfully!",
                             icon: "success",
@@ -610,53 +605,53 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                     }
                     if(data.msg_status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             title: "Failed to edit program.",
                             text: "All fields are required.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             title: "Failed to edit program.",
                             text: "It seems the information you are trying to edit does not exist or you have unstable network.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 503){
-                        Swal.fire({
+                        swal({
                             title: "Failed to edit program.",
                             text: "Connection failed",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 504){
-                        Swal.fire({
+                        swal({
                             title: "Failed to edit program.",
                             text: "You did not make any changes.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             title: "An error occured.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                 }
             },
             error: function(xhr, status, error){
-                Swal.fire({
+                swal({
                     title: "Error",
                     icon: "error",
                     text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 });
             }
         })
@@ -692,14 +687,13 @@ document.addEventListener('DOMContentLoaded', function () {
             complete: loadingAPIrequest(false),
             success: function(data){
                 if(data){
-                    // Swal.close();
                     if(data.msg_status === true && data.code === 200){
-                        Swal.fire({
+                        swal({
                             title: "Program archived!",
                             text: "Program has been archived successfully.",
                             icon: "success",
                             timer: 3000,
-                            showConfirmButton: false
+                            button: false
                         }).then(function(){
                             $('#archiveProgramForm')[0].reset();
                             $('#archiveProgramModal').modal('hide');
@@ -707,53 +701,53 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                     }
                     if(data.msg_status === false && data.code === 502){
-                        Swal.fire({
+                        swal({
                             title: "Failed to archive program.",
                             text: "It seems the information you are trying to archive does not exist or you have unstable network.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 503){
-                        Swal.fire({
+                        swal({
                             title: "Failed to archive program.",
                             text: data.msg_response,
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 501){
-                        Swal.fire({
+                        swal({
                             title: "Failed to archive program.",
                             text: data.msg_response,
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 504){
-                        Swal.fire({
+                        swal({
                             title: "Failed to archive program.",
                             text: data.msg_response,
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                     if(data.msg_status === false && data.code === 500){
-                        Swal.fire({
+                        swal({
                             title: "An error occured.",
                             text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
                             icon: "error",
-                            showConfirmButton: true,
+                            button: true,
                         })
                     }
                 }
             },
             error: function(xhr, status, error){
-                Swal.fire({
+                swal({
                     title: "Error",
                     icon: "error",
                     text: "You're good, possibly just a network interruption, check your internet connection. Consult support at MISD is advised.",
-                    showConfirmButton: true
+                    button: true
                 });
             }
         })

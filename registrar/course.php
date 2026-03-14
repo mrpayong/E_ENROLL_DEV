@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: "error",
                 title: "Error",
                 text: "Code detection and Auto-fill will not commence.",
-                showConfirmButton: true
+                button: true
             })
         }
     }

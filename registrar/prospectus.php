@@ -75,16 +75,35 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                     </div>
                     <div class="d-flex justify-content-end mt-4">
                         <div class="gap-2">
-                            <button id="saveProspectusBtn" type="button" class="btn btn-success">
+                            <button id="saveProspectusBtn" type="button" class="text-black btn btn-success">
                                 <i class="bi bi-save me-1"></i> Save Prospectus
                             </button>
-                            <button id="toggleProspectusViewportBtn" type="button" class="btn btn-secondary me-2">
+                            <button id="toggleProspectusViewportBtn" type="button" class="text-black btn btn-secondary me-2">
                                 View All Prospectus
                             </button>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <div class="modal fade" id="saveProspectusModal" tabindex="-1" aria-labelledby="saveDescLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="saveDescLabel"></h5>
+                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="saveDesc"></p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            <button id="confirmSaveProspectusBtn" type="button" class="btn btn-primary">Confirm Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php include_once FOOTER_PATH; ?>
     </div>
@@ -548,9 +567,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const preselectCurriculumId = <?php echo json_encode($preselectCurriculumId); ?>;
     renderFixedTemplate();
-    loadCurriculumOptions('#curriculumSelect', preselectCurriculumId);
     renderTotals();
     loadCourseCatalog();
+
+    const coin = new URLSearchParams(window.location.search).get('coin');
+    if(coin){
+        $.ajax({
+            url: "<?php echo BASE_URL.URL_FROMCURR; ?>",
+            method: "POST",
+            data: { coin: coin },
+            dataType: "json",
+            success: function(data){
+                if(data){
+                    if(data.code === 200 && data.msg_status === true){
+                        loadCurriculumOptions('#curriculumSelect', data.curriculum_id);
+                    }
+                }
+            },
+            error: function(){
+                swal({
+                    title: "Error",
+                    text: "Could not find curriculum. You may manually select it.",
+                    icon: "error"
+                });
+            }
+        })
+    }
+
 
 
     function getCurriculumValue() {
@@ -594,9 +637,23 @@ document.addEventListener('DOMContentLoaded', function () {
         return payload;
     }
 
+    function loadingAPIrequest(status){
+        if(status === true){
+            swal({
+                title: "Loading",
+                icon: 'info',
+                text: "Please wait",
+                button: false
+            });
+        }
+        if(status === false){
+            swal.close();
+        }
+
+    }
+
     $('#saveProspectusBtn').on('click', function () {
         const payload = collectProspectusPayload();
-        console.log('Collected payload:', payload);
 
         const postData = [
             { name: 'submitProspectus', value: 'createProspectus' },
@@ -607,59 +664,80 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log('Payload to submit:', postData);
 
-        function loadingAPIrequest(status){
-            if(status === true){
-                swal({
-                    title: "Loading",
-                    icon: 'info',
-                    text: "Please wait"
-                });
-            }
-            if(status === false){
-                swal.close();
-            }
+        document.getElementById('saveDescLabel').textContent = 'Saving Prospectus';
+        document.getElementById('saveDesc').textContent = "Are you sure you want to save this prospectus? Once created it cannot be updated or deleted.";
+        $('#saveProspectusModal').modal('show');
 
-        }
 
-        $.ajax({
-            url: "<?php echo BASE_URL; ?>registrar/actions/prospectus_process.php",
-            method: "POST",
-            data: postData,
-            dataType: "json",
-            beforeSend: loadingAPIrequest(true),
-            complete: loadingAPIrequest(false),
-            success: function (data) {
-                if(data){
-                    if(data.code === 200 && data.msg_status === true){
-                        swal({
-                            title: "Success",
-                            icon: "success",
-                            text: data.msg_response,
-                            button: false,
-                            timer:3000,
-                        })
+        $('#confirmSaveProspectusBtn').off('click').on('click', function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: "<?php echo BASE_URL; ?>registrar/actions/prospectus_process.php",
+                method: "POST",
+                data: postData,
+                dataType: "json",
+                beforeSend: loadingAPIrequest(true),
+                complete: loadingAPIrequest(false),
+                success: function (data) {
+                    if(data){
+                        if(data.code === 200 && data.msg_status === true){
+                            swal({
+                                title: "Success",
+                                icon: "success",
+                                text: data.msg_response,
+                                button: false,
+                                timer:3000,
+                            }).then(function () {
+                                $('#saveProspectusModal').modal('hide');
+                                if(window.opener && !window.opener.closed){
+                                    window.opener.location.href = "<?php echo BASE_URL; ?>registrar/curriculum.php";
+                                }
+                                window.close();
+                                setTimeout(function() {
+                                    window.location.href = "<?php echo BASE_URL; ?>registrar/curriculum.php";
+                                }, 500);
+                            })
+                        }
+                        if(data.code === 501 && data.msg_status === false){
+                            $('#saveProspectusModal').modal('hide');
+                            swal({
+                                title: "Failed to create",
+                                icon: "error",
+                                text: data.msg_response,
+                                button: true,
+                            })
+                        }
+                        if(data.code === 502 && data.msg_status === false){
+                            $('#saveProspectusModal').modal('hide');
+                            swal({
+                                title: "Failed to create",
+                                icon: "error",
+                                text: data.msg_response,
+                                button: true,
+                            })
+                        }
+                        if(data.code === 500 && data.msg_status === false){
+                            $('#saveProspectusModal').modal('hide');
+                            swal({
+                                title: "Failed to create",
+                                icon: "error",
+                                text: data.msg_response,
+                                button: true,
+                            })
+                        }
                     }
-                    if(data.code === 501 && data.msg_status === false){
-                        swal({
-                            title: "Failed to create",
-                            icon: "error",
-                            text: data.msg_response,
-                            button: true,
-                            timer:3000,
-                        })
-                    }
-                    if(data.code === 500 && data.msg_status === false){
-                        swal({
-                            title: "Failed to create",
-                            icon: "error",
-                            text: data.msg_response,
-                            button: true,
-                            timer:3000,
-                        })
-                    }
+                },
+                error: function () {
+                    $('#saveProspectusModal').modal('hide');
+                    swal({
+                        title: "Error",
+                        text: "An error occurred while saving the prospectus.",
+                        icon: "error"
+                    });
                 }
-            }
-        });
+            });
+        })
     });
 
 

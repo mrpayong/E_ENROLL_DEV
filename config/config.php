@@ -178,6 +178,10 @@ define('IMG_DEFAULT', 'profile-img.png');
 define("HTTP_401", DOMAIN_PATH . "/error_page/401.php");
 define("HTTP_404", DOMAIN_PATH . "/error_page/404.php");
 
+// Added by tristan mar3,2026 11pm
+define('URL_Prospectus', "registrar/actions/getCoin.php");
+define('URL_FROMCURR', "registrar/actions/gotCoin.php");
+
 if (SYSTEM_FLAG === 'DEV') {
     ifexist_ini_set("display_errors", 1);
     //error_reporting(-1);
