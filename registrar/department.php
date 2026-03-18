@@ -243,10 +243,9 @@ if($sql_depts = call_mysql_query($sql_depts)){
                                             <input type="text" class="form-control" id="newProgram" name="newProgram" required>
                                         </div>
                                     </div>
-
                                     <div class="mb-3">
                                         <label for="newMajor" class="form-label">Major</label>
-                                        <input type="text" class="form-control" id="newMajor" name="newMajor" required>
+                                        <input type="text" class="form-control" id="newMajor" name="newMajor">
                                     </div>
                                 </div>
 
@@ -281,6 +280,22 @@ document.addEventListener('DOMContentLoaded', function () {
             departmentModal.hide();
         });
 
+        function loadingAPIrequest(status){
+            if(status === true){
+                swal({
+                    title: "Loading",
+                    icon: 'info',
+                    text: "Please wait",
+                    button:false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
+                });
+            }
+            if(status === false){
+                swal.close();
+            }
+        }
+
         const departments = <?php echo json_encode($departments); ?>
         
         function populateDepartmentDropdown(selector, selectedId = null) {
@@ -312,11 +327,11 @@ document.addEventListener('DOMContentLoaded', function () {
         function actionsFormatter(cell) {
             const row = cell.getRow().getData();
 
-            if(row.major === "") {
-                return `
-                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
-            `;
-            }
+            // if(row.major === "") {
+            //     return `
+            //     <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
+            // `;
+            // }
             return `
                 <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
                 <button data-id="${row.program_id}" data-major="${row.major}" class="btn btn-sm btn-warning update-prog-btn fs-6" title="Update Program"><i class="bi bi-pencil-square"></i> Update Program</button>
@@ -324,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const departmentTable = new Tabulator("#department-table", {
-            ajaxURL: "<?php echo BASE_URL; ?>/registrar/actions/fetchDepartment.php",
+            ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchDepartment.php",
             ajaxConfig: "GET",            
             layout: "fitDataStretch",
             movableColumns: true,
@@ -520,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('newCode').value = rowData.short_name;
                 document.getElementById('newMajor').value = rowData.major;
                 oldMajor = rowData.major;
-                department_id = rowData.department_id;
+                // department_id = rowData.department_id;
                 populateDepartmentDropdown('#departmentProgram', String(rowData.department_id));
                 document.getElementById('editProgramModalLabel').textContent = `Update ${rowData.program}`; 
                 program_id = rowData.program_id;
@@ -529,21 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
 
-
-        function loadingAPIrequest(status){
-            console.log("stat: ", status)
-            if(status === true){
-                swal({
-                    title: "Loading",
-                    icon: 'info',
-                    text: "Please wait"
-                });
-            }
-            if(status === false){
-                swal.close();
-            }
-
-        }
 
         // create
         $('#programForm').on('submit', function(e){
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const postData = formData.concat(newData);
 
             $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
                 method: "POST",
                 data: postData,
                 dataType: "json",
@@ -646,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('postData: ', postData);
 
             $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
                 method: "POST",
                 data: postData,
                 dataType: "json",
@@ -688,22 +688,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
         })
-
-        function loadingAPIrequest(status){
-            if(status === true){
-                swal({
-                    title: "Loading",
-                    icon: 'info',
-                    text: "Please wait",
-                    button:false,
-                    closeOnClickOutside: false,
-                    closeOnEsc: false
-                });
-            }
-            if(status === false){
-                swal.close();
-            }
-        }
 
         //  create department
         DeanData('#deptHead'); 
@@ -852,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 
                 $.ajax({
-                    url: "<?php echo BASE_URL; ?>/registrar/actions/department_process.php",
+                    url: "<?php echo BASE_URL; ?>registrar/actions/department_process.php",
                     method: "POST",
                     data: postData,
                     dataType: "json",
@@ -1029,10 +1013,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     name: "programId",
                     value: program_id
                 },
-                {
-                    name: "newDepartment",
-                    value: department_id
-                },
+                // {
+                //     name: "newDepartment",
+                //     value: department_id
+                // },
                 {
                     name: "oldMajor",
                     value: oldMajor
@@ -1042,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const postData = formData.concat(newData);
 
             $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
                 method: "POST",
                 data: postData,
                 dataType: "json",

@@ -139,7 +139,7 @@ $encoded_departments = json_encode($departments);
                                     <div class="mb-3">
                                         <i class="bi bi-calendar-event"></i>
                                         <label for="birth_date" class="form-label">Date of Birth</label>
-                                        <input type="date" class="form-control" id="birth_date" name="birth_date" required readOnly>
+                                        <input type="text" class="form-control" id="birth_date" name="birth_date" required readOnly>
                                     </div>
                                     <div class="mb-3">
                                         <label for="username" class="form-label">Username</label>
@@ -238,7 +238,7 @@ $encoded_departments = json_encode($departments);
                 <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <form class="modal-content" id="lockForm" autocomplete="off">
-                            <div class="modal-header bg-eclearance text-white py-2">
+                            <div class="modal-header bg-primary text-white py-2">
                                 <h5 class="modal-title" id="statusModalLabel"></h5>
                                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -363,11 +363,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let action = ``;
         
         if(status === 0){
-            action += `<button data-id="${row.user_id}" class="btn btn-sm btn-primary me-2 edit-btn" title="Edit"><i class="text-white fas fa-pencil-alt"></i></button>`
-            action += `<button data-id="${row.user_id}" class="btn btn-sm btn-warning unlock-btn" title="Unlock"><i class="text-white fas fa-lock-open"></i></button>`
+            action += `<button data-id="${row.student_id}" class="btn btn-sm btn-primary me-2 edit-btn" title="Update"><i class="text-white fas fa-pencil-alt"></i></button>`
+            action += `<button data-id="${row.student_id}" class="btn btn-sm btn-warning unlock-btn" title="Unlock"><i class="text-white fas fa-lock-open"></i></button>`
         }
         if(status === 1){
-            action += `<button data-id="${row.user_id}" class="btn btn-sm btn-dark lock-btn" title="Lock"><i class="text-white fas fa-lock"></i></button>`
+            action += `<button data-id="${row.student_id}" class="btn btn-sm btn-dark lock-btn" title="Lock"><i class="text-white fas fa-lock"></i></button>`
         }
         return action;
     }
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var studentTable = new Tabulator("#student-table", {
-        ajaxURL: "<?php echo BASE_URL; ?>/registrar/actions/fetchStudentInfo.php",
+        ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchStudentInfo.php",
         ajaxConfig: "GET",
         layout: "fitDataStretch",
         pagination: "remote",
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             {
                 title: "Student ID", 
-                field: "student_id", 
+                field: "student_id_no", 
                 headerFilterLiveFilter: true,
                 hozAlign: "center",
                 headerHozAlign: "center",
@@ -505,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait",
-                button: false
+                button: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
-            swal();
         }
         if(status === false){
-            swal();
+            swal.close();
         }
     }
 
@@ -526,12 +527,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if(editBtn){
             const rowId = editBtn.getAttribute('data-id');
-            const row = studentTable.getRows().find(r => r.getData().user_id == rowId);
+            const row = studentTable.getRows().find(r => r.getData().student_id == rowId);
 
             const rowData = row.getData();
             console.log('updating:', rowData);
             document.getElementById('updateModalLabel').textContent = `Update ${rowData.name}`;
-            document.getElementById('idNumber').value = rowData.general_id;
+            document.getElementById('idNumber').value = rowData.student_id_no !== null ? rowData.student_id_no : rowData.general_id;
             document.getElementById('f_name').value = rowData.f_name;
             document.getElementById('m_name').value = rowData.m_name;
             document.getElementById('l_name').value = rowData.l_name;
@@ -564,9 +565,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 rowId = unlockBtn.getAttribute('data-id');
             }
 
-            const row = studentTable.getRows().find(r => r.getData().user_id == rowId);
+            const row = studentTable.getRows().find(r => r.getData().student_id == rowId);
             const rowData = row.getData();
-            editId = rowData.general_id;
+            editId = rowData.student_id_no;
             currStatus = rowData.status;
 
             if(lockBtn){
@@ -626,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('post:', postData)
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/student_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/student_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
@@ -721,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/student_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/student_process.php",
             method: "POST",
             data: postData,
             dataType: "json",

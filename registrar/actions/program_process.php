@@ -73,7 +73,7 @@ try {
 
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitProgram']) && $_POST['submitProgram'] === "editProgram"){
         $program = isset($_POST['newProgram']) ? trim($_POST['newProgram']) : "";
-        $department_id = isset($_POST['newDepartment']) ? trim($_POST['newDepartment']) : '';
+        $department_id = isset($_POST['department']) ? trim($_POST['department']) : '';
         $major = isset($_POST['newMajor']) ? strtoupper(trim($_POST['newMajor'])) : '';
         $oldMajor = isset($_POST['oldMajor']) ? (trim($_POST['oldMajor'])) : '';
         $program_code = isset($_POST['newCode']) ? trim($_POST['newCode']) : "";
@@ -91,7 +91,7 @@ try {
         function dataEmptyCheck($val){
             return ($val === null || $val === '');
         }
-        if(empty($program) || empty($department_id) || empty($program_code) || empty($major) || empty($program_code) || dataEmptyCheck($department_id)){
+        if(empty($program) || empty($program_code) || dataEmptyCheck($department_id)){
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
             echo json_encode($output);
@@ -105,9 +105,11 @@ try {
 
         if ($query = call_mysql_query($program_exist)){
             if($data = call_mysql_fetch_array($query)){
-                $oldMajorArr = is_array(json_decode(html_entity_decode($data['major']), true))
-                    ? json_decode(html_entity_decode($data['major']), true)
-                    : array();
+                if(count(json_decode(html_entity_decode($data['major']), true)) !== 0){
+                    $oldMajorArr = is_array(json_decode(html_entity_decode($data['major']), true))
+                        ? json_decode(html_entity_decode($data['major']), true)
+                        : array();
+                }
                 $old_data = sha1($data['program_id'] . $data['program'] . $data['short_name'] . $data['department_id']);
 
             } else {
@@ -123,13 +125,23 @@ try {
             exit();
         }
 
-        if($new_data === $old_data && in_array($major, $oldMajorArr)){
-            $output['code'] = 504;
-            $output['msg_response'] = "You did not make any changes.";
-            echo json_encode($output);
-            exit();
+        
+        if(count($oldMajorArr) !== 0){
+            if($new_data === $old_data && in_array($major, $oldMajorArr)){
+                $output['code'] = 504;
+                $output['msg_response'] = "You did not make any changes.";
+                echo json_encode($output);
+                exit();
+            }
         }
-
+        if(count($oldMajorArr) === 0){
+            if($new_data === $old_data){
+                $output['code'] = 504;
+                $output['msg_response'] = "You did not make any changes.";
+                echo json_encode($output);
+                exit();
+            }
+        }
         if($oldMajor !== $major){
             if(in_array($oldMajor, $oldMajorArr)){
                 $index = array_search($oldMajor, $oldMajorArr);
@@ -138,8 +150,6 @@ try {
                 }
             }
         }
-
-
 
         $db_connect->begin_transaction();
         $encodedMajor = json_encode($oldMajorArr);
