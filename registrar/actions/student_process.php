@@ -14,7 +14,7 @@ try {
         $contact = isset($_POST['contact']) ? trim($_POST['contact']) : '';
         $year_level = isset($_POST['year_level']) ? intVal(trim($_POST['year_level'])) : '';
         $program_id = isset($_POST['program']) ? intVal(trim($_POST['program'])) : '';
-        $major = isset($_POST['major']) ? trim($_POST['major']) : '';
+        $major = isset($_POST['major']) ? strtoupper(trim($_POST['major'])) : '';
         $curriculum_id = isset($_POST['curriculum']) ? intVal(trim($_POST['curriculum'])) : '';
         $emergency = isset($_POST['emergency']) ? trim($_POST['emergency']) : '';
         $additional = isset($_POST['additional_data']) ? trim($_POST['additional_data']) : '';
@@ -56,19 +56,19 @@ try {
 
         $new_data = sha1($student_id . $barangay . $address . $contact . $year_level . $program_id . $major . $curriculum_id . $emergency . $additional . $department_id);
 
-        $student_exist = "SELECT student_id, barangay, address, contact, year_level, program_id, major, curriculum_id, emergency_data, additional_data, department_id FROM student WHERE student_id = '".     escape($db_connect, $student_id)        ."'";
+        $student_exist = "SELECT student_id, student_id_no, barangay, address, contact, year_level, program_id, major, curriculum_id, emergency_data, additional_data, department_id FROM student WHERE student_id_no = '".     escape($db_connect, $student_id)        ."'";
         if($query = call_mysql_query($student_exist)){
             if($data = call_mysql_fetch_array($query)){
                 $to_edit = $data['student_id'];
 
-                $old_data = sha1($data['student_id'] . $data['barangay'] . $data['address'] . $data['contact'] . $data['year_level'] . $data['program_id'] . $data['major'] . $data['curriculum_id'] . $data['emergency_data'] . $data['additional_data']) . $data['department_id'];
+                $old_data = sha1($data['student_id_no'] . $data['barangay'] . $data['address'] . $data['contact'] . $data['year_level'] . $data['program_id'] . $data['major'] . $data['curriculum_id'] . $data['emergency_data'] . $data['additional_data']) . $data['department_id'];
             }
 
             if(empty($to_edit)){
                 $db_connect->begin_transaction();
 
                 $sql_create = "INSERT INTO student (
-                    student_id,
+                    student_id_no,
                     firstname,
                     lastname,
                     ccc_email,
@@ -116,7 +116,7 @@ try {
 
                 $output['code'] = 200;
                 $output['msg_status'] = true;
-                $output['msg_response'] = "Student's account updated successfully.";
+                $output['msg_response'] = "Student's account updated successfully and information saved.";
                 $output['msg_span'] = '';
                 echo json_encode($output);
                 exit();

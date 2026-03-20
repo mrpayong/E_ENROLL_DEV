@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function loadCourseCatalog() {
         $.ajax({
-            url: '<?php echo BASE_URL; ?>/registrar/actions/ferchCourseForForm.php',
+            url: '<?php echo BASE_URL; ?>registrar/actions/ferchCourseForForm.php',
             type: 'GET',
             dataType: 'json',
             success: function (res) {
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $dropdown.append('<option value="" selected disabled>Select Curriculum</option>');
 
         $.ajax({
-            url: '<?php echo BASE_URL; ?>/registrar/actions/fetchCurrForPros.php',
+            url: '<?php echo BASE_URL; ?>registrar/actions/fetchCurrForPros.php',
             type: 'GET',
             dataType: 'json',
             success: function (response) {
@@ -643,7 +643,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait",
-                button: false
+                button: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
         }
         if(status === false){

@@ -409,7 +409,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait",
-                button:false
+                button:false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
         }
         if(status === false){
@@ -434,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("post: ", postData)
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
@@ -498,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateDepartmentDropdown(selected, selectedId = null) {
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/fetchDeptForProgram.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/fetchDeptForProgram.php",
             method: "GET",
             dataType: "json",
             success: function(data) {
@@ -584,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const postData = formData.concat(newData);
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
@@ -598,6 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             text: "Program has been udpated successfully!",
                             icon: "success",
                             timer: 3000,
+                            button:false
                         }).then(function(){
                             $('#editProgramModalForm')[0].reset();
                             $('#editProgramModal').modal('hide');
@@ -679,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/program_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/program_process.php",
             method: "POST",
             data: postData,
             dataType: "json",

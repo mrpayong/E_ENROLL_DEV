@@ -227,3 +227,6 @@ ALTER TABLE `curriculum` ADD `prospectus_id` INT(50) NOT NULL AUTO_INCREMENT AFT
 
 -- mar 12, 2026
 ALTER TABLE `curriculum` CHANGE `curriculum_title` `curriculum_title` VARCHAR(50) NULL DEFAULT NULL;
+
+-- mar 17, 2026
+ALTER TABLE `student` CHANGE `student_id` `student_id_no` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '';

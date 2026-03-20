@@ -313,7 +313,7 @@ if ($query = call_mysql_query($select)) {
 
         // Tabulator Table
         var fiscalYearTable = new Tabulator("#fiscal-year-table", {
-            ajaxURL: "<?php echo BASE_URL; ?>/registrar/actions/fetchFiscalYear.php",
+            ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchFiscalYear.php",
             ajaxConfig: "GET",
             ajaxContentType: "form",
             layout: "fitDataStretch",
@@ -616,7 +616,10 @@ if ($query = call_mysql_query($select)) {
                 swal({
                     title: "Loading",
                     icon: 'info',
-                    text: "Please wait"
+                    text: "Please wait",
+                    button:false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
                 });
             }
             if(status === false){
@@ -643,7 +646,7 @@ if ($query = call_mysql_query($select)) {
                 return;
 
                 $.ajax({
-                    url: "<?php echo BASE_URL; ?>/registrar/actions/fiscalYear_process.php",
+                    url: "<?php echo BASE_URL; ?>registrar/actions/fiscalYear_process.php",
                     method: "POST",
                     data: postData,
                     dataType: "json",
@@ -743,7 +746,7 @@ if ($query = call_mysql_query($select)) {
                 const postData = formData.concat(newData);
                 
                 $.ajax({
-                    url: "<?php echo BASE_URL; ?>/registrar/actions/fiscalYear_process.php",
+                    url: "<?php echo BASE_URL; ?>registrar/actions/fiscalYear_process.php",
                     method: "POST",
                     data: postData,
                     dataType: "json",
@@ -835,7 +838,7 @@ if ($query = call_mysql_query($select)) {
 
 
                 $.ajax({
-                    url: "<?php echo BASE_URL; ?>/registrar/actions/fiscalYear_process.php",
+                    url: "<?php echo BASE_URL; ?>registrar/actions/fiscalYear_process.php",
                     method: "POST",
                     data: postData,
                     dataType: "json",

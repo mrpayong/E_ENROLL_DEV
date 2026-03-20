@@ -147,7 +147,7 @@ if ($query = call_mysql_query($data_query)) {
             $lec = $lec_lab["0"];
             $lab = $lec_lab["1"];
             $data['schedule'] = json_decode(html_entity_decode($data['schedule']));
-            if(is_array($data['schedule'])){
+            if(is_array($data['schedule'])){  
                 $schedule_commanize = array_map('commanize', $data['schedule']);
                 $long_sched = implode('| <br>', $schedule_commanize);
             } else {
