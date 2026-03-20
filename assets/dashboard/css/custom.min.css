@@ -6074,7 +6074,7 @@ label.error {
    background-color: #fff;
    -webkit-box-shadow: 1px 1px 14px 0 rgba(18, 38, 63, .26);
    -moz-box-shadow: 1px 1px 14px 0 rgba(18, 38, 63, .26);
-   box-shadow: 1px 1px 14px 0 rgba(18, 38, 63, .26)
+   box-shadow: 1px 1px 14px 0 rgba(18, 38, 63, .26);
 }
 
 .alert [data-notify=icon] {
@@ -6082,8 +6082,8 @@ label.error {
 }
 
 .alert [data-notify=icon]::before {
-   line-height: 35px;
-   font-size: 22px;
+   line-height: 33px;
+   font-size: 20px;
    display: block;
    left: 15px;
    position: absolute;

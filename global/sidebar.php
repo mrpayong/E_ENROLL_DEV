@@ -236,7 +236,7 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
-                
+
                 <?php } else if ($g_user_role == 'REGISTRAR') { ?>
                     <!-- navigation section (remove if not needed) -->
                     <li class="nav-section">
@@ -310,6 +310,19 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
+                    <li class="nav-item <?php echo navigation_active("grade_master"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/grade_master.php">
+                            <i class="fas fa-book-reader"></i>
+                            <span>Grade Master</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("grade_settings"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/grade_settings.php">
+                            <i class="fas fa-book-reader"></i>
+                            <span>Grade Settings</span>
+                        </a>
+                    </li>
 
                 <?php } ?>
             </ul>

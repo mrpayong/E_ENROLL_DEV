@@ -101,24 +101,29 @@ function activity_log_new($action)
 	global $db_connect, $session_class;
 	$date_now = date('Y-m-d H:i:s');
 	$user_id = $session_class->getValue('user_id');
-	$role_txt = $session_class->getValue('role_id');
+	$user_role = $session_class->getValue('user_role');
 	$fingerprint = $session_class->getValue('browser_fingerprint');
 	$role_id = 0;
+	$table = "";
+
+	## change based on need
+	$tables = ['1' => 'activity_log', '2' => 'activity_log', '3' => 'activity_log_dean', '4' => 'activity_log', '5' => 'activity_log_student'];
 
 	## user access
 	$user_access_role = SYSTEM_ACCESS[GLOBAL_SYSTEM_ACCESS]['role'];
-	$role_id = array_search($role_txt, $user_access_role);
+	$role_id = array_search($user_role, $user_access_role) ?? 0;
 
+	## set table
+	$table = $tables[$role_id] ?? "activity_log";
 	if (!empty($user_id) and trim($action) != "") { // may user
-		$insert = "INSERT INTO activity_log (user_id, action, date_log, session_id, user_level) VALUES ( '" . $user_id . "', '" . escape($db_connect, $action) . "','" . $date_now . "','" . $fingerprint . "', " . $role_id . ") ";
-
+		$insert = "INSERT INTO " . $table . " (user_id, action, date_log, session_id, user_level) VALUES ( '" . $user_id . "', '" . escape($db_connect, $action) . "','" . $date_now . "','" . $fingerprint . "', " . $role_id . ")";
 		if (mysqli_query($db_connect, $insert)) {
 			return true;
 		}
 	}
+
 	return false;
 }
-
 
 function data_log_new($action, $user_id, $system_access = "", $jwt_data = "")
 {

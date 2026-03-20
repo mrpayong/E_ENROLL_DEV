@@ -43,7 +43,7 @@ $active_page = active_page();
 define("ACTIVE_PAGE", $active_page);
 
 ## SYSTEM ACCESS LINKs [system_url("local_domain","web_domain")]
-$url = system_url("e_dev_enrollment", "e_dev_enrollment.com");
+$url = system_url("E_ENROLL_DEV", "e_dev_enrollment.com");
 $api_url = system_url("e_dev_eguro", "e_dev_eguro.com");
 define("BASE_URL", $url);
 define("API_URL", $api_url);
@@ -144,12 +144,15 @@ define("UPLOAD_IMG_PATH", DOMAIN_PATH . '/upload/img/');
 define('LOGS_PATH', DOMAIN_PATH . '/upload/logs/');
 define('CSV_PATH', DOMAIN_PATH . '/upload/csv/');
 
+define("PROOF_PATH", DOMAIN_PATH . "/upload/proof/");
+define("TEXT_LOGS_PATH", DOMAIN_PATH . "/upload/text_logs/");
+
 ## img path
 define("IMG_PATH", BASE_URL . 'upload/img/');
 define("FILE_PATH", BASE_URL . 'upload/file/');
 
-## for website
-
+## default img
+define('IMG_DEFAULT', 'profile-img.png');
 
 ## guide path
 
@@ -160,6 +163,9 @@ $g_account_status = [
     "2" => "Archived",
 ];
 define("ACCOUNT_STATUS", $g_account_status);
+
+## key for encryption/decryption
+define("GRADE_KEY", 3230133208695999);
 
 ## default
 $default_session = (SYSTEM_FLAG === 'DEV') ? 'e_dev_enrollment_session' : 'e_enrollment_session';
@@ -178,9 +184,6 @@ define('CRYPT_DIRTY', array("+", "/", "="));
 define('CRYPT_CLEAN', array("_PLUS_", "_SLASH_", "_EQUALS_"));
 
 ## other constant variable
-
-## default img
-define('IMG_DEFAULT', 'profile-img.png');
 
 ## http errors
 define("HTTP_401", DOMAIN_PATH . "/error_page/401.php");
