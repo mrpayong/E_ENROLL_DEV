@@ -635,7 +635,7 @@ if ($sem_query = call_mysql_query($query)) {
 
         (function populateSYDropdown() {
             $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/fetchSemesterForForm.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/fetchSemesterForForm.php",
                 method: "GET",
                 dataType: "json",
                 success: function(response) {
@@ -758,7 +758,10 @@ if ($sem_query = call_mysql_query($query)) {
                 swal({
                     title: "Loading",
                     icon: 'info',
-                    text: "Please wait"
+                    text: "Please wait",
+                    buttons:false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
                 });
             }
             if(status === false){
@@ -1116,7 +1119,7 @@ if ($sem_query = call_mysql_query($query)) {
             const postData = formData.concat(newData);
 
             $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/schedule_process.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/schedule_process.php",
                 method: "POST",
                 data: postData,
                 dataType: "json",

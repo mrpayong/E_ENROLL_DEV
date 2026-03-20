@@ -61,17 +61,17 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
 
                     <div class="mb-3">
                       <label for="currTitle" class="form-label">Curriculum Title</label>
-                      <input type="text" class="form-control" id="currTitle" name="currTitle" required/>
+                      <input placeholder="Curriculum Title" type="text" class="form-control" id="currTitle" name="currTitle" required/>
                     </div>
 
                     <div class="mb-3">
                       <label for="currCode" class="form-label">Curriculum Code</label>
-                      <input type="text" class="form-control" id="currCode" name="currCode" required/>
+                      <input placeholder="Curriculum Code" type="text" class="form-control" id="currCode" name="currCode" required/>
                     </div>
 
                     <div class="mb-3">
                       <label for="program" class="form-label">Program</label>
-                      <select class="form-select" id="program" name="program" required>
+                      <select id="program" name="program" required>
                       </select>
                     </div>
                   </div>
@@ -108,7 +108,7 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
 
                     <div class="mb-3">
                       <label for="newProgram" class="form-label">Program</label>
-                      <select class="form-select" id="newProgram" name="newProgram" required>
+                      <select id="newProgram" name="newProgram" required>
                       </select>
                     </div>
                   </div>
@@ -182,7 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: "Loading",
                 icon: 'info',
                 text: "Please wait",
-                button: false
+                button: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
         }
         if(status === false){
@@ -233,140 +235,166 @@ document.addEventListener('DOMContentLoaded', function() {
     placeholder: "No Data Found",
     columns: [
         {
-            title: "Curriculum Title",
-            field: "header",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center"
+          title: "Curriculum Title",
+          field: "header",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
+              }
+          },
         },
         {
-            title: "Curriculum Code",
-            field: "curriculum_code",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center",
-            formatter: function(cell){
+          title: "Curriculum Code",
+          field: "curriculum_code",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
+              }
+          },
+          formatter: function(cell){
+            const value = cell.getValue();
+            const row = cell.getRow().getData();
+            const status = Number(row.status_allowable);
+
+            let badgeClass = "";
+
+            if(status === 1){
+              badgeClass = "bg-danger";
+            }
+            if(status === 0){
+              badgeClass = "bg-success";
+            }
+            return `<span class="badge ${badgeClass} fs-6">${value}</span>`;
+          }
+        },
+        {
+          title: "Required Units",
+          field: "units",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
+              }
+          },
+          formatter: function(cell) {
               const value = cell.getValue();
-              const row = cell.getRow().getData();
-              const status = Number(row.status_allowable);
-
-              let badgeClass = "";
-
-              if(status === 1){
-                badgeClass = "bg-danger";
+              return value > 1 
+                ? `${value} Units`
+                : value === 1
+                  ? `${value} Unit`
+                  : 'No Units';
+          }
+        },
+        {
+          title: "Program",
+          field: "program_name",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
               }
-              if(status === 0){
-                badgeClass = "bg-success";
+          },
+        },
+        {
+          title: "Created On",
+          field: "date_created",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
               }
-              return `<span class="badge ${badgeClass} fs-6">${value}</span>`;
-            }
+          },
         },
         {
-            title: "Required Units",
-            field: "units",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center",
-            formatter: function(cell) {
-                const value = cell.getValue();
-                return value > 1 
-                  ? `${value} Units`
-                  : value === 1
-                    ? `${value} Unit`
-                    : 'No Units';
-            }
-        },
-        {
-            title: "Program",
-            field: "program_name",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center"
-        },
-        {
-            title: "Created On",
-            field: "date_created",
-            headerFilterLiveFilter: true,
-            headerFilter: "input",
-            hozAlign: "center",
-            headerHozAlign: "center"
-        },
-        {
-            title: "Actions",
-            field: "actions",
-            hozAlign: "center",
-            headerHozAlign: "center",
-            formatter: actionsFormatter
+          title: "Actions",
+          field: "actions",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          formatter: actionsFormatter
         }
     ]
   })
 
 
   function populateProgramDropdown(selected, selectedId = null) {
-      $.ajax({
-          url: "<?php echo BASE_URL; ?>/registrar/actions/fetchProgForSection.php",
-          method: "GET",
-          dataType: "json",
-          success: function(data) {
-              if(data.status === false && data.code === 400){
-                  swal({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      button: true,
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 401){
-                  swal({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Unavailable.",
-                      button: true,
-                  });
-                  return;
-              }
-              if(data.status === false && data.code === 500){
-                  swal({
-                      title: "Error!",
-                      icon: "error",
-                      text: "Something went wrong.",
-                      button: true,
-                  });
-                  return;
-              }
-              if(data.status === true && data.code === 200){
-                  var $programSelect = $(selected);
-                  $programSelect.empty();
-                  $programSelect.append('<option value="" disabled selected>Select Program</option>');
-                  data.data.forEach(function(departments) {
-                      $programSelect.append(
-                          $('<option>', {
-                              value: departments.program_id,
-                              text: departments.program,
-                              selected: departments.program_id == selectedId
-                          })
-                      );
-                  });
-                  if(selectedId){
-                      $programSelect.val(selectedId)
-                  }
-              }
-          },
-          error: function() {
-              swal({
-                  title: "Error",
-                  icon: "error",
-                  text: "Failed to load programs.",
-                  button: true
-              });
+    $.ajax({
+      url: "<?php echo BASE_URL; ?>registrar/actions/fetchProgForSection.php",
+      method: "GET",
+      dataType: "json",
+      success: function(data) {
+        if (data.status === false) {
+          swal({
+            title: "Error!",
+            icon: "error",
+            text: data.code === 500 ? "Something went wrong." : "Unavailable.",
+            button: true,
+          });
+          return;
+        }
+
+        if (data.status === true && data.code === 200) {
+          const $programSelect = $(selected);
+
+          // destroy selectize if already initialized
+          if ($programSelect[0].selectize) {
+            $programSelect[0].selectize.destroy();
           }
-      });
+
+          $programSelect.empty();
+          $programSelect.append('<option value="" disabled selected>Select Program</option>');
+
+          data.data.forEach(function(departments) {
+            $programSelect.append(
+              $('<option>', {
+                value: departments.program_id,
+                text: departments.program
+              })
+            );
+          });
+
+          $programSelect.selectize({
+            allowEmptyOption: true,
+            create: false,
+            sortField: 'text',
+            placeholder: 'Select Program'
+          });
+
+          const selectize = $programSelect[0].selectize;
+          selectize.clear(true); // prevent auto-select
+
+          if (selectedId) {
+            selectize.setValue(String(selectedId), true);
+          }
+        }
+      },
+      error: function() {
+        swal({
+          title: "Error",
+          icon: "error",
+          text: "Failed to load programs.",
+          button: true
+        });
+      }
+    });
   }
+
 
   let editId;
   let currStatus;
@@ -640,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const postData = formData.concat(newData);
 
     $.ajax({
-      url: "<?php echo BASE_URL; ?>/registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",
@@ -724,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const postData = formData.concat(newData);
 
     $.ajax({
-      url: "<?php echo BASE_URL; ?>/registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",

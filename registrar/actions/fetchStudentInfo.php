@@ -27,7 +27,7 @@ $dbfield = [
     'u.user_role', 'u.username', 'u.email_address', 'u.position', 'u.status', 'u.locked', 'u.last_signin',
 
     //from student table
-    's.student_id', 's.contact', 's.barangay', 's.address', 's.year_level', 's.major', 's.ccc_email',
+    's.student_id', 's.student_id_no', 's.contact', 's.barangay', 's.address', 's.year_level', 's.major', 's.ccc_email',
     's.program_id', 's.curriculum_id', 's.emergency_data', 's.additional_data','s.department_id',
 
     'd.department'
@@ -37,7 +37,7 @@ $dborig = [
     'user_role', 'username', 'email_address', 'position', 'program', 'status', 'locked', 'last_signin'
 ];
 
-$left_join = "LEFT JOIN student AS s ON u.general_id = s.student_id LEFT JOIN departments AS d ON s.department_id = d.department_id";
+$left_join = "LEFT JOIN student AS s ON u.general_id = s.student_id_no LEFT JOIN departments AS d ON s.department_id = d.department_id";
 
 // Filtering
 $sql_where_array = [];
@@ -124,6 +124,7 @@ if ($query = call_mysql_query($data_query)) {
             $data['user_id'] = (int)$data['user_id'];
             $data['status'] = (int)$data['status'];
             $data['locked'] = (int)$data['locked'];
+            $data['student_id'] = (int)$data['student_id'];
             $data['name'] = get_full_name($data['f_name'], $data['m_name'], $data['l_name'], $data['suffix']);
             $data['birth_date'] = isset($data['birth_date']) ? formatterDateLong($data['birth_date']) : "";
             $data['emergency_data'] = isset($data['emergency_data']) ? $data['emergency_data'] : "";

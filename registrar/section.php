@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     (function populateSYDropdown() {
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/fetchSemesterForForm.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/fetchSemesterForForm.php",
             method: "GET",
             dataType: "json",
             success: function(response) {
@@ -240,14 +240,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Reload the Tabulator table with the selected school_year_id as a parameter
-        sectionTable.setData("<?php echo BASE_URL; ?>/registrar/actions/fetchSection.php", {
+        sectionTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchSection.php", {
             school_year_id: schoolYearId
         });
     });
 
 
     const sectionTable = new Tabulator("#sectionTable", {
-        ajaxURL: "<?php echo BASE_URL; ?>/registrar/actions/fetchSection.php",
+        ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchSection.php",
         ajaxConfig: "GET",
         layout: "fitDataStretch",
         responsiveLayout: "collapse",
@@ -325,7 +325,10 @@ document.addEventListener('DOMContentLoaded', function() {
             swal({
                 title: "Loading",
                 icon: 'info',
-                text: "Please wait"
+                text: "Please wait",
+                button:false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
         }
         if(status === false){
@@ -335,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateProgramDropdown(selected, selectedId = null) {
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/fetchProgForSection.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/fetchProgForSection.php",
             method: "GET",
             dataType: "json",
             success: function(response) {
@@ -396,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("post data: ", postData)
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/section_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/section_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
@@ -502,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("post data: ", postData)
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/section_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/section_process.php",
             method: "POST",
             data: postData,
             dataType: "json",

@@ -275,8 +275,8 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
-                    <li class="nav-item <?php echo navigation_active("enroll"); ?>">
-                        <a href="<?php echo BASE_URL; ?>registrar/enroll.php">
+                    <li class="nav-item <?php echo navigation_active("enrollment"); ?>">
+                        <a href="<?php echo BASE_URL; ?>registrar/enrollment.php">
                             <i class="fas fa-graduation-cap"></i>
                             <span>Enrollment</span>
                         </a>

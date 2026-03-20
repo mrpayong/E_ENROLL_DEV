@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     const courseTable = new Tabulator("#courseTable", {
-        ajaxURL: "<?php echo BASE_URL; ?>/registrar/actions/fetchCourse.php",
+        ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchCourse.php",
         ajaxConfig: "GET",
         layout: "fitDataStretch",
         responsiveLayout: "collapse",
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchSubjectCode_units(){
         try {
             const response = await $.ajax({
-                url: "<?php echo BASE_URL; ?>/registrar/actions/subjectFormAutomate.php",
+                url: "<?php echo BASE_URL; ?>registrar/actions/subjectFormAutomate.php",
                 method: "GET",
                 dataType: "json",
             })
@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const postData = formData.concat(newData);
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/course_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/course_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const postData = formData.concat(newData);
 
         $.ajax({
-            url: "<?php echo BASE_URL; ?>/registrar/actions/course_process.php",
+            url: "<?php echo BASE_URL; ?>registrar/actions/course_process.php",
             method: "POST",
             data: postData,
             dataType: "json",
