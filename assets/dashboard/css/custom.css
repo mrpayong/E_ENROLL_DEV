@@ -6163,8 +6163,8 @@ label.error {
 }
 
 .alert [data-notify="icon"]::before {
-  line-height: 35px;
-  font-size: 22px;
+  line-height: 33px;
+  font-size: 20px;
   display: block;
   left: 15px;
   position: absolute;

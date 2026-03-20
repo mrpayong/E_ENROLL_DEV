@@ -14,15 +14,16 @@ function del_file($file)
 	}
 }
 
-function formatterDateLong($date) {
+function formatterDateLong($date)
+{
 	// added by Tristan
 	// added when: Jan. 2026
 	date_default_timezone_set(DEFAULT_TIMEZONE);
-    if (empty($date)) return "";
-    $timestamp = strtotime($date);
-    if ($timestamp === false) return $date; // fallback if invalid
-    // Format as "Month Day, Year"
-    return date('F d, Y', $timestamp);
+	if (empty($date)) return "";
+	$timestamp = strtotime($date);
+	if ($timestamp === false) return $date; // fallback if invalid
+	// Format as "Month Day, Year"
+	return date('F d, Y', $timestamp);
 }
 
 function deleteDir($dirPath)
@@ -630,13 +631,11 @@ function msg_alert($response, $msg)
 	return $output;
 }
 
-function update_summary_logs($summary_file, $filename, $gen_id = "", $username = "")
+function update_summary_logs($summary_file, $filename, $username = "")
 {
-	global $session_class;
-
 	//$name = $session_class->getValue('name');
 	date_default_timezone_set(DEFAULT_TIMEZONE);
-	$log = date("Y-m-d H:i:s") . "|" . $gen_id . "|" . $username . "|" . $filename . "\r\n";
+	$log = date("Y-m-d H:i:s") . "|" . $username . "|" . $filename . "\r\n";
 	file_put_contents($summary_file, $log, FILE_APPEND);
 }
 
@@ -692,4 +691,68 @@ function tailCustom($filepath, $lines = 1, $adaptive = true)
 	fclose($f);
 
 	return trim($output);
+}
+
+function get_graderating($school_year)
+{
+	global $db_connect;
+
+	$result = [];
+	$default_query = "SELECT school_year_id,settings  FROM settings WHERE module = 'grade_system' AND (school_year_id ='" . $school_year . "' OR school_year_id = '0') ORDER BY school_year_id ASC";
+	if ($query = call_mysql_query($default_query)) {
+		if ($num = call_mysql_num_rows($query)) {
+			while ($data = call_mysql_fetch_array($query)) {
+				$result = json_decode($data['settings'], true);
+			}
+		}
+		mysqli_free_result($query);
+	}
+
+	return $result;
+}
+
+function customTrim($data)
+{
+	if (is_string($data)) {
+		return trim($data);
+	} elseif (is_array($data)) {
+		return array_map('customTrim', $data);
+	} elseif (is_object($data) && method_exists($data, '__toString')) {
+		return trim((string)$data);
+	} else {
+		return $data;
+	}
+}
+
+function isArrayCompletelyEmpty($arr)
+{
+	if (!is_array($arr) || empty($arr)) {
+		return true;
+	}
+
+	foreach ($arr as $value) {
+		$value = customTrim($value);
+		if (!empty($value) || $value === 0 || $value === '0') {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function customIsEmpty($data)
+{
+	if (is_string($data)) {
+		return empty(trim($data));
+	} elseif (is_array($data)) {
+		return isArrayCompletelyEmpty($data);
+	} elseif (is_object($data)) {
+		return empty((array)$data);
+	} elseif (is_numeric($data)) {
+		return false;
+	} elseif (is_bool($data)) {
+		return false;
+	} else {
+		return true;
+	}
 }

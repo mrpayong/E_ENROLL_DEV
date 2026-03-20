@@ -48,6 +48,7 @@
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/js/jquery.timepicker.min.js?v=<?php echo FILE_VERSION; ?>"></script>
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/js/dropify.js?v=<?php echo FILE_VERSION; ?>"></script>
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/js/daterangepicker.js?v=<?php echo FILE_VERSION; ?>"></script>
+<script type="text/javascript" src="<?php echo BASE_URL; ?>assets/js/sweetalert2.js?v=<?php echo FILE_VERSION; ?>"></script>
 
 
 <!-- DASHBOARD JS Files -->
@@ -68,6 +69,81 @@
 
 <!-- SCRIPTS -->
 <script>
+    /** for popup */
+    var windowObjectReference = null;
+
+    function openRequestedPopup({
+        url,
+        title,
+        w,
+        h,
+        position = 'center'
+    }) {
+        if (windowObjectReference == null || windowObjectReference.closed) {
+
+        } else {
+            windowObjectReference.close();
+            windowObjectReference = null
+        };
+
+        // Fixes dual-screen position                             Most browsers      Firefox
+        const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
+        const dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
+
+        const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+        const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+        const systemZoom = width / window.screen.availWidth;
+
+        var left = 0;
+        var top = 0;
+        if (position == "top_left") {
+            left = 0;
+            top = 0;
+        } else if (position == "top_right") {
+            left = width;
+            top = 0;
+        } else {
+            left = (width - w) / 2 / systemZoom + dualScreenLeft;
+            top = (height - h) / 2 / systemZoom + dualScreenTop;
+        }
+
+        windowObjectReference = window.open(url, title,
+            `scrollbars=yes,width=${w / systemZoom},height=${h / systemZoom},top=${top},left=${left}`
+        )
+
+        if (window.focus) windowObjectReference.focus();
+    }
+
+    function alert_notif(message, state = "success") {
+        /** state = default, primary, secondary, info, success, warning, danger/error */
+        const icons = {
+            success: "fas fa-check-circle",
+            info: "fas fa-info-circle",
+            warning: "fas fa-exclamation-circle",
+            danger: "fas fa-times-circle",
+        };
+        
+        if (state == "error") state = "danger";
+
+        var content = {};
+        content.title = "";
+        content.message = message;
+        content.icon = icons[state] ?? "none";
+        content.url = "#";
+        content.target = "";
+
+        $.notify(content, {
+            type: state,
+            placement: {
+                from: "top",
+                align: "right",
+            },
+            time: 100,
+            delay: 0,
+        });
+    }
+
     (function() {
         /** date and time */
         var set_server_time = <?php echo "'" . DATE_TIME . "';\r\n"; ?>
