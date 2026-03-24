@@ -125,8 +125,6 @@ if ($action == "SAVE_GRADE") {
         'course_desc',
         'program_code',
         'units',
-        'midterm_grade',
-        'finalterm_grade',
         'final_grade',
         'final_grade_text',
         'converted_grade',
