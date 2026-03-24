@@ -25,8 +25,8 @@ try {
 
     $dbfield = [
         // student fields
-        's.student_id_no', 's.year_level',
-        's.major', 's.program_id', 's.curriculum_id',
+        's.student_id', 's.student_id_no', 's.year_level',
+        's.major', 's.program_id', 's.curriculum_id', 's.class_id',
 
         // user fields (for name/info)
         'u.f_name', 'u.m_name', 'u.l_name', 'u.suffix',
@@ -34,6 +34,12 @@ try {
 
         // lookup fields
         'p.program', 'p.short_name', 
+
+        // curriculum
+        'c.curriculum_code',
+
+        // section
+        'sc.class_name'
     ];
 
     $dborig = [
@@ -43,7 +49,9 @@ try {
     ];
 
     $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
-                 "LEFT JOIN programs AS p ON s.program_id = p.program_id";
+                 "LEFT JOIN programs AS p ON s.program_id = p.program_id ".
+                 "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id ".
+                 "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id ";
 
     // Filtering
     $sql_where_array = [];
@@ -139,13 +147,14 @@ try {
             while ($data = call_mysql_fetch_array($query)) {
                 $data = array_html($data);
 
-                $data['student_id'] = $data['student_id_no'];
-                $data['program_id'] = (int)$data['program_id'];
-                $data['curriculum_id'] = (int)$data['curriculum_id'];
-                $data['year_level'] = (int)$data['year_level'];
-                $data['status'] = (int)$data['status'];
-                $data['locked'] = (int)$data['locked'];
-                $data['program'] = $data['short_name'].' ~ '.$data['major'];
+                $data['program_id'] = isset($data['program_id']) ? intVal($data['program_id']) : '';
+                $data['student_id'] = isset($data['student_id']) ? intVal($data['student_id']) : '';
+                $data['curriculum_id'] = isset($data['curriculum_id']) ? intVal($data['curriculum_id']) : '';
+                $data['year_level'] = isset($data['year_level']) ? intVal($data['year_level']) : '';
+                $data['status'] = isset($data['status']) ? intVal($data['status']) : '';
+                $data['locked'] = isset($data['locked']) ? intVal($data['locked']) : '';
+                $data['program'] = isset($data['program']) ? $data['short_name'].' ~ '.$data['major'] : "No program";
+                $data['section'] = isset($data['class_name']) ? $data['class_name'] : "No section";
 
                 $data['name'] = get_full_name($data['f_name'], $data['m_name'], $data['l_name'], $data['suffix']);
 

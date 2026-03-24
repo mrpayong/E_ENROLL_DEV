@@ -28,7 +28,7 @@ if($g_user_role !== "REGISTRAR"){
 }
 
 $departments = [];
-$query = "SELECT department_id, department FROM departments WHERE status = '1' ORDER BY department ASC";
+$query = "SELECT department_id, department FROM departments ORDER BY department ASC";
 $result = call_mysql_query($query);
 
 if($result){

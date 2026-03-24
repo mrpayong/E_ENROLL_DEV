@@ -167,7 +167,7 @@ try {
 
         $output['code'] = 200;
         $output['msg_status'] = true;
-        $output['msg_response'] = 'Major updated successfully.';
+        $output['msg_response'] = 'Program/Major updated successfully.';
         $output['msg_span'] = '';
         echo json_encode($output);
         exit();

@@ -6,6 +6,13 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
+$general_page_title = "Section";
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
+
 if (!($g_user_role == "REGISTRAR")) {
     header("Location: " . BASE_URL);
     exit();
@@ -63,9 +70,12 @@ if ($query = call_mysql_query($select)) {
     <div class="main-panel">
         <?php include_once DOMAIN_PATH . '/global/header.php';?>
         <div class="container">
-
+            <div class="page-inner">
+                <?php
+                include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                ?>
                 <section class="section">
-                    <div class="row mx-2 mb-3 mt-3">
+                    <div class="row mb-3">
                         <div class="d-flex flex-md-row flex-column align-items-center col-md-12">
                             <div class="input-group align-items-center">
                                 <label for="syDropdown" class="fw-semibold me-2">School Year / Semester</label>
@@ -78,10 +88,10 @@ if ($query = call_mysql_query($select)) {
                         </div>
                     </div>
 
-                    <div class="row justify-content-center mx-4 m-4">
+                    <div class="row justify-content-center m-0">
                         <section class="card shadow-sm  p-0">
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                                <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Section</h1>
+                                <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Section Table</h1>
                                 <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
                                 id="createSectionBtn" style="background:#173ea5;" disabled>
                                     <i class="bi bi-plus-lg"></i> Create Section
@@ -112,8 +122,7 @@ if ($query = call_mysql_query($select)) {
                                 </div>
                                 <div class="mb-3">
                                     <label for="program" class="form-label">Program</label>
-                                    <select class="form-select" id="program" name="program" required>
-                                        <option value="">Select Program</option>
+                                    <select id="program" name="program" required>
                                     </select>
                                 </div>
                                 <div class="mb-3">
@@ -122,8 +131,8 @@ if ($query = call_mysql_query($select)) {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Create</button>
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelProgramModalBtn">Cancel</button>
+                                <button type="submit" class="btn btn-rounded btn-label-custom">Create</button>
+                                <button type="button" class="btn btn-rounded btn-label-danger" data-bs-dismiss="modal" id="cancelProgramModalBtn">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -144,7 +153,7 @@ if ($query = call_mysql_query($select)) {
                                 </div>
                                 <div class="mb-3">
                                     <label for="newProgram" class="form-label">Program</label>
-                                    <select class="form-select" id="newProgram" name="newProgram" required>
+                                    <select id="newProgram" name="newProgram" required>
                                         <option value="">Select Program</option>
                                     </select>
                                 </div>
@@ -161,8 +170,7 @@ if ($query = call_mysql_query($select)) {
                         </form>
                     </div>
                 </div>
-
-
+            </div>
         </div>
         <?php include_once FOOTER_PATH; ?>
     </div>
@@ -342,10 +350,17 @@ document.addEventListener('DOMContentLoaded', function() {
             method: "GET",
             dataType: "json",
             success: function(response) {
-                if(response.status && response.data) {
-                    var $programSelect = $(selected);
+                if (response.status && response.data) {
+                    const $programSelect = $(selected);
+
+                    // destroy existing selectize instance if present
+                    if ($programSelect[0].selectize) {
+                        $programSelect[0].selectize.destroy();
+                    }
+
                     $programSelect.empty();
-                    $programSelect.append('<option value="">Select Program</option>');
+                    $programSelect.append('<option value="" selected disabled>Select Program</option>');
+
                     response.data.forEach(function(prog) {
                         $programSelect.append(
                             $('<option>', {
@@ -354,8 +369,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             })
                         );
                     });
-                    if(selectedId !== null){
-                        $programSelect.val(selectedId)
+
+                    // init selectize
+                    $programSelect.selectize({
+                        allowEmptyOption: true,
+                        create: false,
+                        sortField: 'text',
+                        placeholder: 'Select Program'
+                    });
+
+                    const selectize = $programSelect[0].selectize;
+                    selectize.clear(true); // prevent auto‑select
+
+                    if (selectedId !== null) {
+                        selectize.setValue(String(selectedId), true);
                     }
                 }
             },

@@ -6,6 +6,18 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
+$general_page_title = "Curriculum";
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
+
+if (!($g_user_role == "REGISTRAR")) {
+    header("Location: " . BASE_URL);
+    exit();
+}
+
 $prospectus_data = array();
 $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
   if($sql = call_mysql_query($fetch_pros)){
@@ -27,147 +39,153 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
   <?php include_once DOMAIN_PATH . '/global/sidebar.php';?>
   <div class="main-panel">
     <?php include_once DOMAIN_PATH . '/global/header.php';?>
-      <div id="main" class="container">
-                <section class="section">
-                        <div class="row justify-content-center mx-4 m-4">
-                            <section class="card shadow-sm p-0" style="margin:auto;">
-                                <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                                    <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Curriculum</h1>
-                                    <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" style="background:#173ea5;" data-bs-toggle="modal" data-bs-target="#createModal">
-                                        <i class="bi bi-plus-lg text-white"></i> Create Curriculum
-                                    </button>
-                                </header>
-                                <div class="p-3" style="min-height: 40rem;">
-                                  <div class="mb-3">
-                                    <label class='fw-bold text-black'>Assign Status Legend: </label>
-                                    <span class="fs-6 badge bg-success text-dark ms-2">Allowed to be assigned to students</span>
-                                    <span class="fs-6 badge bg-danger text-dark ms-1">Not Allowed to be assigned to students</span>
-                                  </div>  
-                                  <div id="curriculum-table"></div>
-                                </div>
-                            </section>
+    
+    <div id="main" class="container">
+      <div class="page-inner">
+        <?php
+        include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+        ?>
+
+        <section class="section">
+                <div class="row justify-content-center m-0">
+                    <section class="card shadow-sm p-0" style="margin:auto;">
+                        <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
+                            <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Curriculum Table</h1>
+                            <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" style="background:#173ea5;" data-bs-toggle="modal" data-bs-target="#createModal">
+                                <i class="bi bi-plus-lg text-white"></i> Create Curriculum
+                            </button>
+                        </header>
+                        <div class="p-3" style="min-height: 40rem;">
+                          <div class="mb-3">
+                            <label class='fw-bold text-black'>Assign Status Legend: </label>
+                            <span class="fs-6 badge bg-success text-dark ms-2">Allowed to be assigned to students</span>
+                            <span class="fs-6 badge bg-danger text-dark ms-1">Not Allowed to be assigned to students</span>
+                          </div>  
+                          <div id="curriculum-table"></div>
                         </div>
-                </section>
+                    </section>
+                </div>
+        </section>
 
-            <!-- Create Curriculum Modal -->
-            <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <form class="modal-content" id="createForm">
-                  <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="createModalLabel">Create Curriculum</h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-
-                    <div class="mb-3">
-                      <label for="currTitle" class="form-label">Curriculum Title</label>
-                      <input placeholder="Curriculum Title" type="text" class="form-control" id="currTitle" name="currTitle" required/>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="currCode" class="form-label">Curriculum Code</label>
-                      <input placeholder="Curriculum Code" type="text" class="form-control" id="currCode" name="currCode" required/>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="program" class="form-label">Program</label>
-                      <select id="program" name="program" required>
-                      </select>
-                    </div>
-                  </div>
-
-
-                  <div class="modal-footer">
-                    <button type="submit" class="fs-6 btn btn-primary">Create</button>
-                    <button type="button" class="fs-6 btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                  </div>
-
-                </form>
+        <!-- Create Curriculum Modal -->
+        <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <form class="modal-content" id="createForm">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="createModalLabel">Create Curriculum</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-            </div>
+              <div class="modal-body">
 
-            <!-- edit -->
-            <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <form class="modal-content" id="updateForm">
-                  <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="updateModalLabel"></h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
+                <div class="mb-3">
+                  <label for="currTitle" class="form-label">Curriculum Title</label>
+                  <input placeholder="Curriculum Title" type="text" class="form-control" id="currTitle" name="currTitle" required/>
+                </div>
 
-                    <div class="mb-3">
-                      <label for="newCurrTitle" class="form-label">Curriculum Title</label>
-                      <input  type="text" class="form-control" id="newCurrTitle" name="newCurrTitle" required/>
-                    </div>
+                <div class="mb-3">
+                  <label for="currCode" class="form-label">Curriculum Code</label>
+                  <input placeholder="Curriculum Code" type="text" class="form-control" id="currCode" name="currCode" required/>
+                </div>
 
-                    <div class="mb-3">
-                      <label for="newCurrCode" class="form-label">Curriculum Code</label>
-                      <input  type="text" class="form-control" id="newCurrCode" name="newCurrCode" required/>
-                    </div>
-
-                    <div class="mb-3">
-                      <label for="newProgram" class="form-label">Program</label>
-                      <select id="newProgram" name="newProgram" required>
-                      </select>
-                    </div>
-                  </div>
-
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                  </div>
-
-                </form>
-              </div>
-            </div>
-
-            <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <form class="modal-content" id="statusForm">
-                  <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="statusModalLabel"></h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <p id="statusDesc"></p>
-                  </div>
-
-
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary btn-confirm">Confirm</button>
-                    <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                  </div>
-
-                </form>
-              </div>
-            </div>
-
-            <div class="modal fade" id="viewCurr" tabindex="-1" aria-labelledby="" aria-hidden="true">
-              <div class="modal-dialog modal-xl view-curriculum-modal">
-                <div class="modal-content">
-                  <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Curriculum</h5>
-                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="alert alert-info py-1 mb-2 d-block d-md-none">
-                      You may scroll sideways to see other data.
-                    </div>
-                    <div id="curriculum-contents"></div>
-                  </div>
-
-
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Close</button>
-                  </div>
+                <div class="mb-3">
+                  <label for="program" class="form-label">Program</label>
+                  <select id="program" name="program" required>
+                  </select>
                 </div>
               </div>
-            </div>
 
-            
+
+              <div class="modal-footer">
+                <button type="submit" class="fs-6 btn btn-primary">Create</button>
+                <button type="button" class="fs-6 btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- edit -->
+        <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <form class="modal-content" id="updateForm">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="updateModalLabel"></h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+
+                <div class="mb-3">
+                  <label for="newCurrTitle" class="form-label">Curriculum Title</label>
+                  <input  type="text" class="form-control" id="newCurrTitle" name="newCurrTitle" required/>
+                </div>
+
+                <div class="mb-3">
+                  <label for="newCurrCode" class="form-label">Curriculum Code</label>
+                  <input  type="text" class="form-control" id="newCurrCode" name="newCurrCode" required/>
+                </div>
+
+                <div class="mb-3">
+                  <label for="newProgram" class="form-label">Program</label>
+                  <select id="newProgram" name="newProgram" required>
+                  </select>
+                </div>
+              </div>
+
+
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <form class="modal-content" id="statusForm">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="statusModalLabel"></h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p id="statusDesc"></p>
+              </div>
+
+
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary btn-confirm">Confirm</button>
+                <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Cancel</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <div class="modal fade" id="viewCurr" tabindex="-1" aria-labelledby="" aria-hidden="true">
+          <div class="modal-dialog modal-xl view-curriculum-modal">
+            <div class="modal-content">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Curriculum</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="alert alert-info py-1 mb-2 d-block d-md-none">
+                  You may scroll sideways to see other data.
+                </div>
+                <div id="curriculum-contents"></div>
+              </div>
+
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+    <?php include_once FOOTER_PATH; ?>
   </div>
 </div>
 </body>

@@ -312,14 +312,14 @@ function navigation_active($pages, $class = 'active', $conditions = [])
 
                     <li class="nav-item <?php echo navigation_active("grade_master"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/grade_master.php">
-                            <i class="fas fa-book-reader"></i>
+                            <i class="fas fa-chalkboard-teacher"></i>
                             <span>Grade Master</span>
                         </a>
                     </li>
 
                     <li class="nav-item <?php echo navigation_active("grade_settings"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/grade_settings.php">
-                            <i class="fas fa-book-reader"></i>
+                            <i class="fas fa-cogs"></i>
                             <span>Grade Settings</span>
                         </a>
                     </li>

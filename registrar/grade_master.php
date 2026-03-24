@@ -253,7 +253,7 @@ if (!empty($result)) {
                     <div class="modal fade" id="table_grade_log" aria-hidden="true" data-bs-backdrop="static" aria-labelledby="bulkGradeBackdropLabel">
                         <div class="modal-dialog modal-dialog-centered modal-xl">
                             <div class="modal-content">
-                                <div class="modal-header">
+                                <div class="modal-header bg-primary">
                                     <h5 class="modal-title" id="bulkGradeBackdropLabel">Grade Logs</h5>
                                     <button type="button" class="btn-close" id="close_csv_upload" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
@@ -273,7 +273,7 @@ if (!empty($result)) {
                     <div class="modal fade" id="import_bulk_grade" aria-hidden="true" data-bs-backdrop="static" aria-labelledby="bulkImportBackdropLabel">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
-                                <div class="modal-header">
+                                <div class="modal-header bg-primary">
                                     <h5 class="modal-title" id="bulkImportBackdropLabel">Grade Import</h5>
                                     <button type="button" class="btn-close" id="close_csv_upload" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>

@@ -43,7 +43,8 @@ $active_page = active_page();
 define("ACTIVE_PAGE", $active_page);
 
 ## SYSTEM ACCESS LINKs [system_url("local_domain","web_domain")]
-$url = system_url("E_ENROLL_DEV", "e_dev_enrollment.com");
+// $url = system_url("E_ENROLL_DEV", "e_dev_enrollment.com"); // <-- uncomment for general development
+$url = system_url("e_dev_enrollment", "e_dev_enrollment.com"); // <-- for tristan
 $api_url = system_url("e_dev_eguro", "e_dev_eguro.com");
 define("BASE_URL", $url);
 define("API_URL", $api_url);

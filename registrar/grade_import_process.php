@@ -238,10 +238,12 @@ if ($method == "POST") {
                 $column['STUDENT NAME'] = trim($column['STUDENT NAME']);
                 $student_program_id = 0;
                 $student_major = "";
+                echo "student id: ".$column['STUDENT ID'];
                 $sql_query  = "SELECT student_id,lastname,firstname,middle_name,suffix_name,program_id,major,year_level FROM student WHERE student_id_no = '" . escape($db_connect, $column['STUDENT ID']) . "' LIMIT 1";
                 $query_student = call_mysql_query($sql_query);
                 if ($query_student !== false) {
-                    $rdata = mysqli_fetch_array($query_student, MYSQLI_ASSOC);
+                    // $rdata = mysqli_fetch_array($query_student, MYSQLI_ASSOC);
+                    if($rdata = call_mysql_fetch_array($query_student)){
                     $student_id = $rdata['student_id'];
                     $middle = ($rdata['middle_name'] == "") ? '' : $rdata['middle_name'];
                     $suffix = ($rdata['suffix_name'] == "") ? '' : $rdata['suffix_name'];
@@ -249,8 +251,9 @@ if ($method == "POST") {
                     $student_program_id = $rdata['program_id'];
                     $student_major = $rdata['major'];
                     mysqli_free_result($query_student);
-                }
+                    }
 
+                }
                 if ($student_id == 0) {
                     $error = true;
                     $error_found['msg'] .= "Student ID " . $column['STUDENT ID'] . " doesn\'t exist in DATABASE!" . $separator;

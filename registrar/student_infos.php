@@ -11,6 +11,13 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
+$general_page_title = "Student Information";
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
+
 ## table
 $table_array = array();
 $select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked FROM users WHERE user_id = '".escape($db_connect, $s_user_id)."'";
@@ -81,11 +88,16 @@ $encoded_departments = json_encode($departments);
         <?php include_once DOMAIN_PATH . '/global/header.php';?>
 
         <div id="main" class="container">
+            <div class="page-inner">
+                <?php
+                include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                ?>
+            
                 <section class="section">
-                    <div class="row justify-content-center mx-4 m-4">
+                    <div class="row justify-content-center m-0">
                         <section class="card shadow-sm p-0" style="margin:auto;">
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                                <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Student Information</h1>
+                                <label class="fw-semibold mb-3 mb-md-0 fs-5 text-white">Student Information Table</label>
                             </header>
                             <div class="p-3" style="min-height: 40rem;">
                                 <div id="student-table"></div>
@@ -94,168 +106,169 @@ $encoded_departments = json_encode($departments);
                     </div>
                 </section>
 
-            <!-- update modal -->
-            <section>
-                <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <form class="modal-content" id="updateForm" autocomplete="off">
-                            <div class="modal-header bg-primary text-white py-2">
-                                <h5 class="modal-title" id="updateModalLabel"></h5>
-                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="d-flex flex-row gap-3 w-auto">
-                                    <div class="mb-3">
-                                        <i class="bi bi-person-badge"></i>
-                                        <label for="idNumber" class="form-label">Student ID</label>
-                                        
-                                        <input type="text" class="form-control" id="idNumber" name="idNumber" required readOnly>
+                <!-- update modal -->
+                <section>
+                    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <form class="modal-content" id="updateForm" autocomplete="off">
+                                <div class="modal-header bg-primary text-white py-2">
+                                    <h5 class="modal-title" id="updateModalLabel"></h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="d-flex flex-row gap-3 w-auto">
+                                        <div class="mb-3">
+                                            <i class="bi bi-person-badge"></i>
+                                            <label for="idNumber" class="form-label">Student ID</label>
+                                            
+                                            <input type="text" class="form-control" id="idNumber" name="idNumber" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="f_name" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="f_name" name="f_name" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="m_name" class="form-label">Middle Name</label>
+                                            <input type="text" class="form-control" id="m_name" name="m_name" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="l_name" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="l_name" name="l_name" required readOnly>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="f_name" class="form-label">First Name</label>
-                                        <input type="text" class="form-control" id="f_name" name="f_name" required readOnly>
+
+
+                                    <div class="d-flex flex-row gap-3 w-auto">
+                                        <div class="mb-3">
+                                            <label for="suffix" class="form-label">Suffix Name</label>
+                                            <input type="text" class="form-control" id="suffix" name="suffix" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <i class="bi bi-gender-ambiguous"></i>
+                                            <label for="gender" class="form-label">Gender</label>
+                                            <input class="form-control" id="gender" name="gender" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <i class="bi bi-calendar-event"></i>
+                                            <label for="birth_date" class="form-label">Date of Birth</label>
+                                            <input type="text" class="form-control" id="birth_date" name="birth_date" required readOnly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="username" name="username" required readOnly>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="m_name" class="form-label">Middle Name</label>
-                                        <input type="text" class="form-control" id="m_name" name="m_name" required readOnly>
+
+
+
+                                    <div class="row" >
+                                        <div class="col-md-6 mb-3">
+                                            <label for="barangay" class="form-label">Barangay</label>
+                                            <select class="form-select" id="barangay" name="barangay" required>
+                                                <option value="" disabled selected>Select Barangay</option>
+                                                <option value="Brgy. Canlubang">Brgy. Canlubang</option>
+                                                <option value="Brgy. Mayapa">Brgy. Mayapa</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="addressLong" class="form-label">Address</label>
+                                            <input type="text" class="form-control" id="addressLong" name="addressLong" required>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="l_name" class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" id="l_name" name="l_name" required readOnly>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="contact" class="form-label">Contact Number</label>
+                                            <input type="text" min="0" max="9" pattern="\d{11}"
+                                            inputmode="numeric" maxlength="11" placeholder="0000 000 0000" class="form-control" id="contact" name="contact" 
+                                            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11);" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ccc_email" class="form-label">CCC Email</label>
+                                            <input type="email" class="form-control" id="ccc_email" name="ccc_email" required readOnly>
+                                        </div>
                                     </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="year_level" class="form-label">Year Level</label>
+                                            <input type="number" class="form-control"
+                                                maxlength="1" id="year_level" name="year_level" inputmode="numeric" pattern="\d{11}"
+                                                oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11);"
+                                                required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="curriculum" class="form-label">Curriculum</label>
+                                            <select id="curriculum" name="curriculum" required>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row w-auto">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="department" class="form-label">Department</label>
+                                            <select class="form-control" id="department" name="department" required>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="program" class="form-label">Program</label>
+                                            <select class="form-control" id="program" name="program" required>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="major" class="form-label">Major</label>
+                                            <input type="text" class="form-control" id="major" name="major">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row" >
+                                        <div class="col-md-6 mb-3">
+                                            <label for="emergency" class="form-label">Emergency</label>
+                                            <textarea type="text" class="form-control" id="emergency" name="emergency" required>
+                                            </textarea>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="additional_data" class="form-label">Additional Info</label>
+                                            <textarea type="text" class="form-control" id="additional_data" name="additional_data" required>
+                                            </textarea>
+                                        </div>
+                                    </div>
+
                                 </div>
 
-
-                                <div class="d-flex flex-row gap-3 w-auto">
-                                    <div class="mb-3">
-                                        <label for="suffix" class="form-label">Suffix Name</label>
-                                        <input type="text" class="form-control" id="suffix" name="suffix" required readOnly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <i class="bi bi-gender-ambiguous"></i>
-                                        <label for="gender" class="form-label">Gender</label>
-                                        <input class="form-control" id="gender" name="gender" required readOnly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <i class="bi bi-calendar-event"></i>
-                                        <label for="birth_date" class="form-label">Date of Birth</label>
-                                        <input type="text" class="form-control" id="birth_date" name="birth_date" required readOnly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="username" class="form-label">Username</label>
-                                        <input type="text" class="form-control" id="username" name="username" required readOnly>
-                                    </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn-confirm btn btn-primary">Update</button>
+                                    <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
                                 </div>
-
-
-
-                                <div class="row" >
-                                    <div class="col-md-6 mb-3">
-                                        <label for="barangay" class="form-label">Barangay</label>
-                                        <select class="form-select" id="barangay" name="barangay" required>
-                                            <option value="" disabled selected>Select Barangay</option>
-                                            <option value="Brgy. Canlubang">Brgy. Canlubang</option>
-                                            <option value="Brgy. Mayapa">Brgy. Mayapa</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="addressLong" class="form-label">Address</label>
-                                        <input type="text" class="form-control" id="addressLong" name="addressLong" required>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="contact" class="form-label">Contact Number</label>
-                                        <input type="text" min="0" max="9" pattern="\d{11}"
-                                        inputmode="numeric" maxlength="11" placeholder="0000 000 0000" class="form-control" id="contact" name="contact" 
-                                        oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11);" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="ccc_email" class="form-label">CCC Email</label>
-                                        <input type="email" class="form-control" id="ccc_email" name="ccc_email" required readOnly>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="year_level" class="form-label">Year Level</label>
-                                        <input type="number" class="form-control"
-                                            maxlength="1" id="year_level" name="year_level" inputmode="numeric" pattern="\d{11}"
-                                            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11);"
-                                            required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="curriculum" class="form-label">Curriculum</label>
-                                        <select id="curriculum" name="curriculum" required>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="row w-auto">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="department" class="form-label">Department</label>
-                                        <select class="form-control" id="department" name="department" required>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="program" class="form-label">Program</label>
-                                        <select class="form-control" id="program" name="program" required>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="major" class="form-label">Major</label>
-                                        <input type="text" class="form-control" id="major" name="major">
-                                    </div>
-                                </div>
-                                
-                                <div class="row" >
-                                    <div class="col-md-6 mb-3">
-                                        <label for="emergency" class="form-label">Emergency</label>
-                                        <textarea type="text" class="form-control" id="emergency" name="emergency" required>
-                                        </textarea>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="additional_data" class="form-label">Additional Info</label>
-                                        <textarea type="text" class="form-control" id="additional_data" name="additional_data" required>
-                                        </textarea>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="submit" class="btn-confirm btn btn-primary">Update</button>
-                                <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- lock modal -->
-            <section>
-                <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <form class="modal-content" id="lockForm" autocomplete="off">
-                            <div class="modal-header bg-primary text-white py-2">
-                                <h5 class="modal-title" id="statusModalLabel"></h5>
-                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div>
-                                    <p id="lockDesc" class="form-text text-dark fw-semibold"></p>
+                <!-- lock modal -->
+                <section>
+                    <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form class="modal-content" id="lockForm" autocomplete="off">
+                                <div class="modal-header bg-primary text-white py-2">
+                                    <h5 class="modal-title" id="statusModalLabel"></h5>
+                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                            </div>
+                                <div class="modal-body">
+                                    <div>
+                                        <p id="lockDesc" class="form-text text-dark fw-semibold"></p>
+                                    </div>
+                                </div>
 
-                            <div class="modal-footer">
-                                <button type="submit" class="btn-confirm btn btn-primary">Confirm</button>
-                                <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn-confirm btn btn-primary">Confirm</button>
+                                    <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
 
         <?php include_once FOOTER_PATH; ?>

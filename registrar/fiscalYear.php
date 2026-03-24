@@ -6,6 +6,13 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
+$general_page_title = "Fiscal Year";
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
+
 if (!($g_user_role == "REGISTRAR")) {
     header("Location: " . BASE_URL);
     exit();
@@ -55,156 +62,164 @@ if ($query = call_mysql_query($select)) {
 </head>
 
 <body>
-<div class="wrapper">
-    <?php include_once DOMAIN_PATH . '/global/sidebar.php'; ?>
+    <div class="wrapper">
+        <?php include_once DOMAIN_PATH . '/global/sidebar.php'; ?>
 
-<div class="main-panel">
+        <div class="main-panel">
             <?php include_once DOMAIN_PATH . '/global/header.php'; ?>
-<div class="container">
-            <main id="main" class="main">
-                <section class="section">
-                    <div class="row justify-content-center mx-4 m-4">
-                        <section class="card shadow-sm  p-0">
-                            <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                                <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Fiscal Year Management</h1>
-                                <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createFiscalYearBtn" style="background:#173ea5;">
-                                    <i class="bi bi-plus-lg"></i> Create Fiscal Year
-                                </button>
-                            </header>
-                            <div class="table-responsive px-3 pb-4 pt-1 mt-3">
-                                <div class="rounded-3" style="min-height: 40rem;">
+            
+            <div class="container">
+                <div class="page-inner">
+                    <?php
+                    include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                    ?>
 
-                                    <div id="fiscal-year-table" class="table-bordered  rounded"></div>
-                                </div>
+                    <main id="main" class="main">
+                        <section class="section">
+                            <div class="row justify-content-center m-0">
+                                <section class="card shadow-sm  p-0">
+                                    <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
+                                        <label class="fw-semibold mb-3 mb-md-0 fs-5 text-white">Fiscal Year Table</label>
+                                        <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createFiscalYearBtn" style="background:#173ea5;">
+                                            <i class="bi bi-plus-lg"></i> Create Fiscal Year
+                                        </button>
+                                    </header>
+                                    <div class="table-responsive px-3 pb-4 pt-1 mt-3">
+                                        <div class="rounded-3" style="min-height: 40rem;">
+
+                                            <div id="fiscal-year-table" class="table-bordered  rounded"></div>
+                                        </div>
+                                    </div>
+                                </section>
                             </div>
                         </section>
+                    </main>
+
+                    <!-- Modal for Create Fiscal Year -->
+                    <div class="modal fade" id="fiscalYearModal" tabindex="-1" aria-labelledby="fiscalYearModalLabel" aria-modal="true" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <form class="modal-content" id="fiscalYearForm" autocomplete="off">
+                            <header class="modal-header bg-primary py-2">
+                                <h2 class="modal-title fs-5 text-light" id="fiscalYearModalLabel">Create Fiscal Year</h2>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </header>
+                            <section class="modal-body">
+                                <div class="mb-3">
+                                    <label for="schoolYear" class="form-label">School Year</label>
+                                    <input type="text" class="form-control" id="schoolYear" name="schoolYear" placeholder="e.g. 2025-2026" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="semester" class="form-label">Semester</label>
+                                    <select class="form-select" id="semester" name="semester" required>
+                                        <option value="">Select Semester</option>
+                                        <option value="1st Semester">1st Semester</option>
+                                        <option value="2nd Semester">2nd Semester</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" required>
+                                </div>
+                            </section>
+                            <footer class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Create</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            </footer>
+                            </form>
+                        </div>
                     </div>
-                </section>
-            </main>
 
-            <!-- Modal for Create Fiscal Year -->
-            <div class="modal fade" id="fiscalYearModal" tabindex="-1" aria-labelledby="fiscalYearModalLabel" aria-modal="true" role="dialog">
-                <div class="modal-dialog" role="document">
-                    <form class="modal-content" id="fiscalYearForm" autocomplete="off">
-                    <header class="modal-header bg-primary py-2">
-                        <h2 class="modal-title fs-5 text-light" id="fiscalYearModalLabel">Create Fiscal Year</h2>
-                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </header>
-                    <section class="modal-body">
-                        <div class="mb-3">
-                            <label for="schoolYear" class="form-label">School Year</label>
-                            <input type="text" class="form-control" id="schoolYear" name="schoolYear" placeholder="e.g. 2025-2026" required>
+                    <!-- Edit Fiscal Year Modal -->
+                    <div class="modal fade" id="EditFiscalYearModal" tabindex="-1" aria-labelledby="EditFiscalYearModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form class="modal-content" id="EditFiscalYearForm" autocomplete="off">
+                                <header class="modal-header bg-primary py-2">
+                                <h2 class="modal-title bg-primary fs-5 text-light" id="editModalTitle"></h2>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </header>
+                            <section class="modal-body">
+                                <div class="mb-3">
+                                    <label for="editSchoolYear" class="form-label">School Year</label>
+                                    <input type="text" class="form-control" id="editSchoolYear" name="schoolYear" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editSemester" class="form-label">Semester</label>
+                                    <select class="form-select" id="editSemester" name="semester" required>
+                                        <option value="">Select Semester</option>
+                                        <option value="1st Semester">1st Semester</option>
+                                        <option value="2nd Semester">2nd Semester</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editStartDate" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="editStartDate" name="startDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editEndDate" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="editEndDate" name="endDate" required>
+                                </div>
+                            </section>
+                            <footer class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            </footer>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="semester" class="form-label">Semester</label>
-                            <select class="form-select" id="semester" name="semester" required>
-                                <option value="">Select Semester</option>
-                                <option value="1st Semester">1st Semester</option>
-                                <option value="2nd Semester">2nd Semester</option>
-                            </select>
+                    </div>
+
+                    <!-- lock school year -->
+                    <div class="modal fade" id="LockUnlockFiscalYearModal" tabindex="-1" aria-labelledby="LockUnlockFiscalYearModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form class="modal-content" id="LockUnlockFiscalYear" autocomplete="off">
+                                <header class="modal-header bg-primary py-2">
+                                <h2 class="modal-title bg-primary fs-5 text-light" id="fyFlagLabel"></h2>
+                                <button type="button" class="btn-close text-white cancelAction" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </header>
+                            <section class="modal-body">
+                                <input type="hidden" name="school_year_id" id="lockUnlockSchoolYearId">
+                                <input type="hidden" name="flag_used" id="flagSchoolYear">
+                                <div class="mb-3">
+                                <label for="confirmLockLabel" id="confirmFlagDescription" class="form-label"></label>
+                                </div>
+                            </section>
+                            <footer class="modal-footer">
+                                <button type="submit" class="btn btn-primary confirmAction">Yes</button>
+                                <button type="button" class="btn btn-danger cancelAction" data-bs-dismiss="modal">No</button>
+                            </footer>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="startDate" class="form-label">Start Date</label>
-                            <input type="date" class="form-control" id="startDate" name="startDate" required>
+                    </div>
+
+                    <!-- set default fiscal year -->
+                    <div class="modal fade" id="defaultFiscalyear" tabindex="-1" aria-labelledby="defaulFiscalyearLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form class="modal-content" id="defaultFY" autocomplete="off">
+                                <header class="modal-header bg-primary py-2">
+                                <h2 class="modal-title bg-primary fs-5 text-light" id="defaultFyLabel"></h2>
+                                <button type="button" class="btn-close text-white closeDef" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </header>
+                            <section class="modal-body">
+                                <div class="mb-3">
+                                <span id="confirmDefaultDesc"></span>
+                                </div>
+                            </section>
+                            <footer class="modal-footer">
+                                <button type="submit" class="btn btn-primary confirmDef">Yes</button>
+                                <button type="button" class="btn btn-danger closeDef" data-bs-dismiss="modal">No</button>
+                            </footer>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="endDate" class="form-label">End Date</label>
-                            <input type="date" class="form-control" id="endDate" name="endDate" required>
-                        </div>
-                    </section>
-                    <footer class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Create</button>
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                    </footer>
-                    </form>
+                    </div>
                 </div>
             </div>
-
-            <!-- Edit Fiscal Year Modal -->
-            <div class="modal fade" id="EditFiscalYearModal" tabindex="-1" aria-labelledby="EditFiscalYearModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form class="modal-content" id="EditFiscalYearForm" autocomplete="off">
-                        <header class="modal-header bg-primary py-2">
-                        <h2 class="modal-title bg-primary fs-5 text-light" id="editModalTitle"></h2>
-                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </header>
-                    <section class="modal-body">
-                        <div class="mb-3">
-                            <label for="editSchoolYear" class="form-label">School Year</label>
-                            <input type="text" class="form-control" id="editSchoolYear" name="schoolYear" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editSemester" class="form-label">Semester</label>
-                            <select class="form-select" id="editSemester" name="semester" required>
-                                <option value="">Select Semester</option>
-                                <option value="1st Semester">1st Semester</option>
-                                <option value="2nd Semester">2nd Semester</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editStartDate" class="form-label">Start Date</label>
-                            <input type="date" class="form-control" id="editStartDate" name="startDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editEndDate" class="form-label">End Date</label>
-                            <input type="date" class="form-control" id="editEndDate" name="endDate" required>
-                        </div>
-                    </section>
-                    <footer class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                    </footer>
-                    </form>
-                </div>
-            </div>
-
-            <!-- lock school year -->
-            <div class="modal fade" id="LockUnlockFiscalYearModal" tabindex="-1" aria-labelledby="LockUnlockFiscalYearModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form class="modal-content" id="LockUnlockFiscalYear" autocomplete="off">
-                        <header class="modal-header bg-primary py-2">
-                        <h2 class="modal-title bg-primary fs-5 text-light" id="fyFlagLabel"></h2>
-                        <button type="button" class="btn-close text-white cancelAction" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </header>
-                    <section class="modal-body">
-                        <input type="hidden" name="school_year_id" id="lockUnlockSchoolYearId">
-                        <input type="hidden" name="flag_used" id="flagSchoolYear">
-                        <div class="mb-3">
-                        <label for="confirmLockLabel" id="confirmFlagDescription" class="form-label"></label>
-                        </div>
-                    </section>
-                    <footer class="modal-footer">
-                        <button type="submit" class="btn btn-primary confirmAction">Yes</button>
-                        <button type="button" class="btn btn-danger cancelAction" data-bs-dismiss="modal">No</button>
-                    </footer>
-                    </form>
-                </div>
-            </div>
-
-            <!-- set default fiscal year -->
-            <div class="modal fade" id="defaultFiscalyear" tabindex="-1" aria-labelledby="defaulFiscalyearLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form class="modal-content" id="defaultFY" autocomplete="off">
-                        <header class="modal-header bg-primary py-2">
-                        <h2 class="modal-title bg-primary fs-5 text-light" id="defaultFyLabel"></h2>
-                        <button type="button" class="btn-close text-white closeDef" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </header>
-                    <section class="modal-body">
-                        <div class="mb-3">
-                        <span id="confirmDefaultDesc"></span>
-                        </div>
-                    </section>
-                    <footer class="modal-footer">
-                        <button type="submit" class="btn btn-primary confirmDef">Yes</button>
-                        <button type="button" class="btn btn-danger closeDef" data-bs-dismiss="modal">No</button>
-                    </footer>
-                    </form>
-                </div>
-            </div>
-</div>
-<?php include_once FOOTER_PATH; ?>
-</div>
-</div>
+            
+            <?php include_once FOOTER_PATH; ?>
+        </div>
+    </div>
 </body>
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 
@@ -282,7 +297,7 @@ if ($query = call_mysql_query($select)) {
             if (row.flag_used === "Locked") {
                 actions += `
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <button data-id="${row.school_year_id}" class="unlockFiscalYear border border-dark btn btn-sm fs-6" style="color:black; background:#88857D;">
+                        <button data-id="${row.school_year_id}" class="unlockFiscalYear border border-dark btn btn-sm" style="font-size:0.90rem;color:black; background:#88857D;">
                             <i class="fas fa-lock"></i> Unock
                         </button>
                         <div class="form-check form-switch m-0">
@@ -295,10 +310,10 @@ if ($query = call_mysql_query($select)) {
             if (row.flag_used === "Active") {
                 actions += `
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <button class="border border-dark fs-6 btn btn-sm btn-warning edit-fiscal-year-btn" data-id="${row.school_year_id}" style="color:black;">
+                        <button class="border border-dark btn btn-sm btn-warning edit-fiscal-year-btn" data-id="${row.school_year_id}" style="font-size:0.90rem;color:black;">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button data-id="${row.school_year_id}" class="lockFiscalYear border border-dark fs-6 btn btn-sm btn-primary" style="color:black;">
+                        <button data-id="${row.school_year_id}" class="lockFiscalYear border border-dark btn btn-sm btn-primary" style="font-size:0.90rem;color:black;">
                             <i class="fas fa-lock-open"></i> Lock
                         </button>
                         <div class="form-check form-switch m-0">
@@ -643,7 +658,6 @@ if ($query = call_mysql_query($select)) {
                 }];
                 let postData = formData.concat(newData);
                 console.log("post data: ", postData)
-                return;
 
                 $.ajax({
                     url: "<?php echo BASE_URL; ?>registrar/actions/fiscalYear_process.php",

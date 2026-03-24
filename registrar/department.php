@@ -7,6 +7,13 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
+$general_page_title = "Department";
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
+
 if (!($g_user_role == "REGISTRAR")) {
     header("Location: " . BASE_URL);
     exit();
@@ -43,19 +50,23 @@ if($sql_depts = call_mysql_query($sql_depts)){
     <div class="main-panel">
         <?php include_once DOMAIN_PATH . '/global/header.php';?>
         <div class="container">
+            <div class="page-inner">
+                <?php
+                include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                ?>
                 <main id="main">
                     <section class="section">
 
-                        <div class="row justify-content-center mx-4 m-4">
+                        <div class="row justify-content-center m-0">
                             <section class="card shadow-sm  p-0" style="margin:auto;">
                                 <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
-                                    <h1 class="fw-semibold text-white mb-3 mb-md-0 fs-3">Department</h1>
+                                    <label class="fw-semibold text-white mb-3 mb-md-0 fs-5">Department Table</label>
                                     <button
                                         id="addDepartmentBtn"
                                         type="button"
                                         data-bs-toggle="modal"
                                         data-bs-target="#departmentModal"
-                                        class="btn btn-info fs-6 fw-semibold rounded-3 d-flex align-items-center">
+                                        class="btn btn-info btn-sm fs-6 fw-semibold rounded-3 d-flex align-items-center">
                                         <i class="bi bi-building-add me-2"></i> Add Department
                                     </button>
                                 </header>
@@ -70,70 +81,70 @@ if($sql_depts = call_mysql_query($sql_depts)){
 
                 <!-- Modal for Add Department -->
                 <section>
-                <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-modal="true" role="dialog">
-                    <div class="modal-dialog" role="document">
-                    <form class="modal-content" id="departmentForm" autocomplete="off">
-                        <header class="modal-header py-2 bg-primary text-white">
-                        <h2 class="modal-title fs-5" id="departmentModalLabel">Add Department</h2>
-                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </header>
-                        <section class="modal-body">
-                        <div class="mb-3">
-                            <label for="departmentName" class="form-label">Department Name</label>
-                            <input type="text" class="form-control" id="departmentName" name="departmentName" required>
+                    <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-modal="true" role="dialog">
+                        <div class="modal-dialog" role="document">
+                        <form class="modal-content" id="departmentForm" autocomplete="off">
+                            <header class="modal-header py-2 bg-primary text-white">
+                            <h2 class="modal-title fs-5" id="departmentModalLabel">Add Department</h2>
+                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </header>
+                            <section class="modal-body">
+                            <div class="mb-3">
+                                <label for="departmentName" class="form-label">Department Name</label>
+                                <input type="text" class="form-control" id="departmentName" name="departmentName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="deptHead" class="form-label">Dean</label>
+                                <select class="form-select" id="deptHead" name="deptHead" required>
+                                    <option value="">Choose a Dean</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="codeName" class="form-label">Department Code</label>
+                                <input type="text" class="form-control" id="codeName" name="codeName" required>
+                            </div>
+                            </section>
+                            <footer class="modal-footer py-1">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
+                            </footer>
+                        </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="deptHead" class="form-label">Dean</label>
-                            <select class="form-select" id="deptHead" name="deptHead" required>
-                                <option value="">Choose a Dean</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="codeName" class="form-label">Department Code</label>
-                            <input type="text" class="form-control" id="codeName" name="codeName" required>
-                        </div>
-                        </section>
-                        <footer class="modal-footer py-1">
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
-                        </footer>
-                    </form>
                     </div>
-                </div>
                 </section>
 
                 <!-- modal for edit department -->
                 <section>
-                <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-modal="true" role="dialog">
-                    <div class="modal-dialog" role="document">
-                    <form class="modal-content" id="editDepartmentForm" autocomplete="off">
-                        <header class="modal-header py-2 bg-primary text-white">
-                        <h2 class="modal-title bg-primary text-light fs-5" id="editDepartmentModalTitle"></h2>
-                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </header>
-                        <section class="modal-body">
-                        <div class="mb-3">
-                            <label for="departmentNewName" class="form-label">Department Name</label>
-                            <input type="text" class="form-control" id="departmentNewName" name="departmentNewName" required>
+                    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-modal="true" role="dialog">
+                        <div class="modal-dialog" role="document">
+                        <form class="modal-content" id="editDepartmentForm" autocomplete="off">
+                            <header class="modal-header py-2 bg-primary text-white">
+                            <h2 class="modal-title bg-primary text-light fs-5" id="editDepartmentModalTitle"></h2>
+                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </header>
+                            <section class="modal-body">
+                            <div class="mb-3">
+                                <label for="departmentNewName" class="form-label">Department Name</label>
+                                <input type="text" class="form-control" id="departmentNewName" name="departmentNewName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDeptHead" class="form-label">Dean</label>
+                                <select class="form-select" id="editDeptHead" name="editDeptHead" required>
+                                    <option id="editDeptHeadId" value="">Choose a Dean</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newCodeName" class="form-label">Department Code</label>
+                                <input type="text" class="form-control" id="newCodeName" name="newCodeName" required>
+                            </div>
+                            </section>
+                            <footer class="modal-footer py-1">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
+                            </footer>
+                        </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="editDeptHead" class="form-label">Dean</label>
-                            <select class="form-select" id="editDeptHead" name="editDeptHead" required>
-                                <option id="editDeptHeadId" value="">Choose a Dean</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="newCodeName" class="form-label">Department Code</label>
-                            <input type="text" class="form-control" id="newCodeName" name="newCodeName" required>
-                        </div>
-                        </section>
-                        <footer class="modal-footer py-1">
-                        <button type="submit" class="btn btn-primary">Update</button>
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
-                        </footer>
-                    </form>
                     </div>
-                </div>
                 </section>
 
                 <!-- add program  -->
@@ -259,8 +270,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
                         </div>
                     </div>
                 </section>
-
-
+            </div>
         </div>
         <?php include_once FOOTER_PATH; ?>
     </div>
@@ -299,28 +309,54 @@ document.addEventListener('DOMContentLoaded', function () {
         const departments = <?php echo json_encode($departments); ?>
         
         function populateDepartmentDropdown(selector, selectedId = null) {
-            const dropdown = $(selector);
-            if(dropdown[0].selectize){
-                dropdown[0].selectize.destroy();
-            }
-            dropdown.empty();
-            dropdown.append('<option value="" selected disabled>Select Department</option>');
-            departments.forEach(function(item){
-                dropdown.append(
+            const $dropdown = $(selector);
+
+            $.ajax({
+                url: "<?php echo BASE_URL; ?>/registrar/actions/fetchDeptForProgram.php",
+                method: "GET",
+                dataType: "json",
+                success: function(res) {
+                if (!res || res.status !== true || !Array.isArray(res.data)) return;
+
+                // destroy old selectize
+                if ($dropdown[0].selectize) {
+                    $dropdown[0].selectize.destroy();
+                }
+
+                $dropdown.empty();
+                $dropdown.append('<option value="" selected disabled>Select Department</option>');
+
+                res.data.forEach(function(item){
+                    $dropdown.append(
                     $('<option>', {
                         value: item.department_id,
                         text: item.department
                     })
-                );
+                    );
+                });
+
+                $dropdown.selectize({
+                    allowEmptyOption: true,
+                    create: false,
+                    sortField: 'text'
+                });
+
+                const selectize = $dropdown[0].selectize;
+                selectize.clear(true);
+
+                if (selectedId) {
+                    selectize.setValue(String(selectedId), true);
+                }
+                },
+                error: function() {
+                swal({
+                    title: "Error",
+                    icon: "error",
+                    text: "Failed to load departments.",
+                    button: true
+                });
+                }
             });
-            dropdown.selectize({
-                allowEmptyOption: true,
-                create: false,
-                sortField: 'text'
-            });
-            if(selectedId){
-                dropdown[0].selectize.setValue(selectedId);
-            }
         }
 
 
@@ -840,15 +876,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     method: "POST",
                     data: postData,
                     dataType: "json",
-                    beforeSend: function(){
-                        $("#editDepartmentForm :submit").html('<span class="spinner-border spinner-border-sm"></span>');
-                        $("#editDepartmentForm :input").prop('disabled', true);
-                    },
-                    complete: function(){
-                        $('#editDepartmentForm :submit').html('Edit');
-                        $("#editDepartmentForm :input").prop("disabled", false);
-                        $("#editDepartmentForm :button").prop("disabled", false);
-                    },
+                    beforeSend: loadingAPIrequest(true),
+                    complete: loadingAPIrequest(false),
                     success: function(data){
                         if(data){
                             if(data.code === 200 && data.msg_status === true){
@@ -1047,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 closeOnEsc: false,
                             }).then(function(){
                                 swalOpenLock = false;
+                                populateDepartmentDropdown('#departmentProgram');
                                 $('#editProgramModalForm')[0].reset();
                                 $('#editProgramModal').modal('hide');
                                 departmentTable.setData();

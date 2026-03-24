@@ -230,3 +230,24 @@ ALTER TABLE `curriculum` CHANGE `curriculum_title` `curriculum_title` VARCHAR(50
 
 -- mar 17, 2026
 ALTER TABLE `student` CHANGE `student_id` `student_id_no` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '';
+
+-- mar 19, 2026
+ALTER TABLE `enrollments` CHANGE `student_id` `student_id_no` VARCHAR(50) NOT NULL;
+
+
+-- mar 24, 2026
+CREATE TABLE `grade_tracker` (
+  `tracker_id` int(11) NOT NULL,
+  `data_changed` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`data_changed`)),
+  `upload_file` text NOT NULL DEFAULT '',
+  `reason` text NOT NULL DEFAULT '',
+  `date_added` datetime NOT NULL DEFAULT current_timestamp(),
+  `added_by` text NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+ALTER TABLE `grade_tracker`
+  ADD PRIMARY KEY (`tracker_id`);
+
+ALTER TABLE `grade_tracker`
+  MODIFY `tracker_id` int(11) NOT NULL AUTO_INCREMENT;
