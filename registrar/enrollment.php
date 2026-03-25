@@ -28,7 +28,6 @@ if($fetchSql = call_mysql_query($sql)){
     }
 }
 
-
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -56,10 +55,14 @@ if($fetchSql = call_mysql_query($sql)){
                     </header>
                     <div class="card-body pt-1" style="min-height: 40rem;">
                         <div class="row">
-                            <div class="d-flex flex-md-row flex-column justify-content-start align-items-center col-md-4">
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text bg-primary-subtle fw-bold" id="inputGroup-sizing-default">Fiscal Year</span>
-                                    <input type="text" id="fyInput" class="form-control fw-bolder" aria-label="Sizing example input" readonly aria-describedby="inputGroup-sizing-default">
+                            <div class="d-flex flex-md-row flex-column justify-content-start align-items-center col-md-12">
+                                <div class="input-group my-3 align-items-center">
+                                    <label for="syDropdown" class="fw-bold me-2" id="inputGroup-sizing-default">Fiscal Year</label>
+                                    <select id="syDropdown" style="width:250px;">
+                                    </select>
+                                    <button id="generateBtn" style="height: 2.1rem; margin-bottom:0.35rem !important;" 
+                                    class="bg-success text-white border-0 rounded-end">
+                                        Generate</button>
                                 </div>
                             </div>
                         </div>
@@ -73,17 +76,83 @@ if($fetchSql = call_mysql_query($sql)){
 
                 <div class="modal fade" id="viewStudentInfo" tabindex="-1" aria-labelledby="viewLabel" aria-hidden="true">
                     <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
+                        <form class="modal-content">
                             <div class="modal-header bg-primary">
                                 <h5 class="modal-title" id="viewLabel">Student Academic Information</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <h1>CONTENTS HERE</h1>
+                                <div class="row">
+                                    <div class="mb-3 col-md-4">
+                                        <i class="bi bi-person-badge"></i>
+                                        <label for="idNumber" class="form-label">Student ID</label>
+                                        <input type="text" class="form-control fw-bold" id="idNumber" name="idNumber" readOnly>
+                                    </div>
+                                    <div class="mb-3 col-md-4">
+                                        <label for="student_name" class="form-label">Name</label>
+                                        <input type="text" class="form-control fw-bold" id="student_name" name="student_name" readOnly>
+                                    </div>
+                                    <div class="mb-3 col-md-4">
+                                        <label for="section" class="form-label">Section</label>
+                                        <input type="text" class="form-control fw-bold" id="section" name="section" readOnly>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="mb-3 col-md-4">
+                                        <i class="bi bi-person-badge"></i>
+                                        <label for="yr_lvl" class="form-label">Year Level</label>
+                                        <input type="text" class="form-control  fw-bold" id="yr_lvl" name="yr_lvl" readOnly>
+                                    </div>
+                                    <div class="mb-3 col-md-4">
+                                        <label for="program" class="form-label">Program</label>
+                                        <input type="text" class="form-control  fw-bold" id="program" name="program" readOnly>
+                                    </div>
+                                    <div class="mb-3 col-md-4">
+                                        <label for="student_class" class="form-label">Student Classification</label>
+                                        <input type="text" class="form-control  fw-bold" id="student_class" name="student_class" readOnly>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="mb-3 col-md-12">
+                                        <label for="fiscal" class="form-label">Fiscal Year</label>
+                                        <input type="text" class="form-control  fw-bold" id="fiscal" name="fiscal" readOnly>
+                                    </div>
+                                </div>
+
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
+
+                <div class="modal fade" id="addUnitsModal" tabindex="-1" aria-labelledby="addUnitLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form class="modal-content" id="AddUnitsForm">
+                            <div class="modal-header bg-primary">
+                                <h5 class="modal-title" id="addUnitLabel"></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="mb-3 col-md-6">
+                                        <i class="bi bi-person-badge"></i>
+                                        <label for="required_units" class="form-label">Required Units</label>
+                                        <input type="number" class="form-control fw-bold" id="required_units" name="required_units" required readonly>
+                                    </div>
+                                    <div class="mb-3 col-md-6">
+                                        <label for="additional_units" class="form-label">Units To Add</label>
+                                        <input type="number" class="form-control fw-bold" id="additional_units" name="additional_units" required>
+                                        <p class="text-secondary">For this semester only</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
             </div>
         </div>
 
@@ -96,10 +165,28 @@ if($fetchSql = call_mysql_query($sql)){
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script>
 (function(){
-    const actionButtons = function(cell, formatterParams){
+    const actionButtons = function(cell){
         const student_id = cell.getRow().getData().student_id;
-        const viewBtn = `<button class="btn btn-sm btn-info view-btn fs-6" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>`;
-        return viewBtn;
+        const stnd_class = cell.getRow().getData().student_classification;
+
+        let action = ``;
+        if(stnd_class === "Regular"){
+            action += `
+            <div class="d-flex justify-content-evenly">
+                <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
+            </div>
+            `;
+        }
+        if(stnd_class === "Irregular"){
+            action += `
+            <div class="d-flex justify-content-evenly gap-1">
+                <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
+                <button class="btn btn-secondary btn-sm modify-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-edit"></i> Modify Units</button>
+            </div>
+            `;
+        }
+  
+        return action;
     };
     
     const enrollTable = new Tabulator("#enrollTable", {
@@ -110,7 +197,9 @@ if($fetchSql = call_mysql_query($sql)){
         ajaxSorting: true,
         placeholder: "No Data Available",
         pagination: "remote",
+        headerFilterPlaceholder: "Search",
         paginationSize: 10,
+        minHeight:500,
         columns:[
             {
                 title:"Student ID", 
@@ -172,34 +261,184 @@ if($fetchSql = call_mysql_query($sql)){
                 }
             },
             {
-                title:"Student Classification", 
-                field: "WAIT",
+                title:"Earned Units", 
+                field: "earned_units_sem",
                 headerFilter:"input",
                 hozAlign: "center",
-                formatter: () => "wait for Final Grade Module"
+            },
+            {
+                title:"Required Units", 
+                field: "required_units_sem",
+                headerFilter:"input",
+                hozAlign: "center",
+            },
+            {
+                title:"Student Classification", 
+                field: "student_classification",
+                headerFilter:"input",
+                hozAlign: "center"
             },
             {
                 title: "Actions",
                 formatter:actionButtons,
                 hozAlign: "center",
                 headerHozAlign: "center",
+                minWidth: "200rem"
             }
         ],
     })
 
-    const FY = <?php echo json_encode($defaultFy); ?>;
-    (function FyInput(){
-        document.getElementById('fyInput').value = FY ?? "No Fiscal Year";
-    })();
+    function populateSYDropdown(selectedId = null) {
+        const $sy = $('#syDropdown');
+
+        $.ajax({
+            url: "<?php echo BASE_URL; ?>/registrar/actions/fetchFiscalYear.php",
+            method: "GET",
+            dataType: "json",
+            success: function(res) {
+            if (!res || !Array.isArray(res.data)) return;
+
+            // destroy previous selectize if exists
+            if ($sy[0].selectize) $sy[0].selectize.destroy();
+
+            $sy.empty();
+            $sy.append('<option value="" disabled>Select Fiscal Year</option>');
+            let defaultId = null;
+
+            res.data.forEach(function(row) {
+                console.log("fy: ", row)
+                const label = `${row.school_year} ${row.sem}`;
+                $sy.append(
+                    $('<option>', { value: row.school_year_id, text: label })
+                );
+                if (Number(row.isDefault) === 1) {
+                    defaultId = row.school_year_id;
+                }
+            });
+
+            $sy.selectize({
+                allowEmptyOption: true,
+                create: false,
+                sortField: 'text',
+                placeholder: 'Select Fiscal Year'
+            });
+
+            const selectize = $sy[0].selectize;
+            selectize.clear(true);
+            if (defaultId !== null) {
+                selectize.setValue(String(defaultId), true);
+            }
+            },
+            error: function() {
+            swal({
+                title: "Error",
+                icon: "error",
+                text: "Failed to load fiscal years.",
+                button: true
+            });
+            }
+        });
+    }
+
+    populateSYDropdown('syDropdown');
+    
+    function formatYear(yr_lvl){
+        switch(yr_lvl){
+            case 1:
+                return "1st Year";
+                break;
+            case 2:
+                return "2nd Year";
+                break;
+            case 3:
+                return "3rd Year";
+                break;
+            case 4:
+                return "4th Year";
+                break;
+            default:
+                return "No year level";
+        }
+    }
+
+    // const FY = <?php echo json_encode($defaultFy); ?>;
+    // (function FyInput(){
+    //     document.getElementById('fyInput').value = FY ?? "No Fiscal Year";
+    // })();
+
+    $('#syDropdown').on('change', function(){
+        const fyId = $(this).val() || '';
+        enrollTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchEnrollees.php", {
+            school_year_id: $('#syDropdown').val()
+        });
+    });
+
+    let student_id = "";
+    let yr_level = "";
+
+    function underOverLoad(dataMod){
+        console.log(dataMod)
+        if(dataMod !== null){
+            swal({
+                title: "Student Study Load",
+                text: "Should this student be underload or overload?",
+                buttons: {
+                    cancel: "Cancel",
+                    under: { text: "Underload", value: "under" },
+                    over: { text: "Overload", value: "over" }
+                }
+            })
+        }
+    }
 
     document.querySelector('#enrollTable').addEventListener('click', function(e){
         e.preventDefault();
         const view = e.target.closest('.view-btn');
+        const mod = e.target.closest('.modify-btn');
         if(view){
             const btn_id = view.getAttribute('data-id');
+            const row = enrollTable.getRows().find(r => r.getData().student_id == btn_id);
+
+
+
+            const rowData = row.getData();
+            document.getElementById('idNumber').value = rowData.student_id_no;
+            document.getElementById('student_name').value = rowData.name;
+            document.getElementById('section').value = rowData.section;
+            document.getElementById('yr_lvl').value = formatYear(rowData.year_level);
+            document.getElementById('program').value = rowData.program;
+            document.getElementById('fiscal').value = rowData.fiscal_year;
+
             $('#viewStudentInfo').modal('show');
         }
+
+        if(mod){
+            const btn_id = mod.getAttribute('data-id');
+            const row = enrollTable.getRows().find(r => r.getData().student_id == btn_id);
+
+            const rowData = row.getData();
+
+            underOverload(btn_id);
+            return;
+
+            document.getElementById('addUnitLabel').textContent = `${rowData.name}`;
+            document.getElementById('required_units').value = Number(rowData.required_units_sem)
+            $('#addUnitsModal').modal('show');
+        }
     })
+
+
+    // $('#AddUnitsForm').on('submit', function(e){
+    //     e.preventDefault();
+    //     const formData = jQuery("#AddUnitsForm").serializeArray();
+
+    //     const newData = [
+    //         {
+    //             name: "student_id_no",
+    //             value:
+    //         }
+    //     ]
+    // })
 })();
 </script>
 </html>

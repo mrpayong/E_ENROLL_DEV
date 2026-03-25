@@ -61,7 +61,10 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
                             <span class="fs-6 badge bg-success text-dark ms-2">Allowed to be assigned to students</span>
                             <span class="fs-6 badge bg-danger text-dark ms-1">Not Allowed to be assigned to students</span>
                           </div>  
-                          <div id="curriculum-table"></div>
+                          <div class="table-responsive d-flex flex-column justify-content-between" style="min-height: 40rem;">
+                            <div id="curriculum-table"></div>
+                          </div>
+                          
                         </div>
                     </section>
                 </div>
@@ -218,25 +221,25 @@ document.addEventListener('DOMContentLoaded', function() {
         let action = ``;
 
         if(statusAllowable === 1){
-          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
           if(hasProspectus === false){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
           }
           if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
           }
         }
         if(statusAllowable === 0){
-          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
           if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
           }
           if(hasProspectus === false){
-            action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
           }
         }
         if(hasProspectus === false && statusAllowable === 0){
-          action += `<button data-id="${row.curriculum_id}" class="fs-6 btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-plus-circle"></i> Add Prospectus</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-plus-circle"></i> Add Prospectus</button>`;
         }
         return action;
     }
@@ -245,12 +248,13 @@ document.addEventListener('DOMContentLoaded', function() {
     ajaxURL: "<?php echo BASE_URL;  ?>/registrar/actions/fetchCurriculum.php",
     ajaxConfig: "GET",
     layout: "fitDataStretch",
-    responsiveLayout: "collapse",
     pagination: "remote",
     paginationSize: 10,
     movableColumns: true,
+    resizableColumns:true,
     headerFilterPlaceholder: "Search",
     placeholder: "No Data Found",
+    minHeight:500,
     columns: [
         {
           title: "Curriculum Title",
@@ -259,6 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
           headerFilter: "input",
           hozAlign: "center",
           headerHozAlign: "center",
+          frozen: !isMobile(),
           headerFilterParams: {
               elementAttributes: {
                   style: "height:2.5em;width:100%;"
@@ -290,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(status === 0){
               badgeClass = "bg-success";
             }
-            return `<span class="badge ${badgeClass} fs-6">${value}</span>`;
+            return `<span class="badge ${badgeClass}">${value}</span>`;
           }
         },
         {
@@ -315,8 +320,8 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         },
         {
-          title: "Program",
-          field: "program_name",
+          title: "Program Code",
+          field: "short_name",
           headerFilterLiveFilter: true,
           headerFilter: "input",
           hozAlign: "center",
@@ -345,7 +350,9 @@ document.addEventListener('DOMContentLoaded', function() {
           field: "actions",
           hozAlign: "center",
           headerHozAlign: "center",
-          formatter: actionsFormatter
+          formatter: actionsFormatter,
+          headerSort: false,
+          minWidth: "350rem",
         }
     ]
   })

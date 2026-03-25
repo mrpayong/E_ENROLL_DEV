@@ -406,6 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headerFilter: false,
                     headerHozAlign: "center",
                     hozAlign: "center",
+                    frozen: !isMobile(),
                     formatter: actionsFormatter,
                 },
                 {

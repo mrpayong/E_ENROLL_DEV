@@ -251,3 +251,21 @@ ALTER TABLE `grade_tracker`
 
 ALTER TABLE `grade_tracker`
   MODIFY `tracker_id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `final_grade` CHANGE `remarks` `remarks` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'PASSED, FAILED, INC, LOA, DRP';
+
+-- mar 25, 2026
+CREATE TABLE `e_enrollment`.`modify_units_students` (
+  `mus_key` INT(100) NOT NULL , 
+  `student_id_no` VARCHAR(100) NOT NULL , 
+  `year_level` INT(100) NOT NULL , 
+  `ol_ul_flag` BOOLEAN NOT NULL , 
+  `modified_unit` INT(100) NOT NULL , 
+  `school_year_id` INT(100) NOT NULL , 
+  `semester` VARCHAR(100) NOT NULL , 
+  `curriculum_id` INT(100) NOT NULL , 
+  `created_At` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP , 
+  `updated_At` DATETIME(6) NULL , 
+  PRIMARY KEY (`mus_key`)
+  ) 
+  ENGINE = InnoDB;

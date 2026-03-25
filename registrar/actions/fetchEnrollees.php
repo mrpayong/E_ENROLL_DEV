@@ -20,6 +20,7 @@ try {
         exit();
     }
 
+    $fy_id = isset($_GET['school_year_id']) ? intVal($_GET['school_year_id']) : 0;
     $query_limit = QUERY_LIMIT;
     $table_name = "student AS s";
 
@@ -39,7 +40,47 @@ try {
         'c.curriculum_code',
 
         // section
-        'sc.class_name'
+        'sc.class_name',
+
+        // enrollments
+        'e.school_year_id', 'e.student_id_no',
+
+        // school year
+        'sy.school_year', 'sy.sem',
+
+        // final grade
+        'fg.final_grade', 'fg.converted_grade',
+
+        "(SELECT COALESCE(SUM(cur.unit),0)
+        FROM curriculum AS cur
+        WHERE cur.curriculum_id = s.curriculum_id
+            AND cur.year_level = s.year_level
+            AND UPPER(cur.semester) = UPPER(sy.sem)
+        ) AS required_units_sem",
+
+        "(SELECT GROUP_CONCAT(DISTINCT cur.subject_code ORDER BY cur.subject_code SEPARATOR ', ')
+        FROM curriculum cur
+        WHERE cur.curriculum_id = s.curriculum_id
+            AND cur.year_level = s.year_level
+            AND UPPER(cur.semester) = UPPER(sy.sem)
+            AND cur.subject_code <> ''
+        ) AS required_subject_codes",
+
+        "(SELECT COALESCE(SUM(fg2.units),0)
+        FROM final_grade fg2
+        WHERE fg2.student_id_text = s.student_id_no
+            AND fg2.yr_level = CAST(s.year_level AS CHAR)
+            AND UPPER(fg2.sem) = UPPER(sy.sem)
+            AND fg2.subject_code IN (
+                SELECT cur.subject_code
+                FROM curriculum cur
+                WHERE cur.curriculum_id = s.curriculum_id
+                AND cur.year_level = s.year_level
+                AND UPPER(cur.semester) = UPPER(sy.sem)
+            )
+            AND fg2.converted_grade REGEXP '^[0-9.]+$'
+            AND CAST(fg2.converted_grade AS DECIMAL(5,2)) BETWEEN 1.00 AND 3.00
+        ) AS earned_units_sem"
     ];
 
     $dborig = [
@@ -48,10 +89,32 @@ try {
         'program'
     ];
 
-    $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
-                 "LEFT JOIN programs AS p ON s.program_id = p.program_id ".
-                 "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id ".
-                 "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id ";
+    if ($fy_id !== '') {
+        $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
+                    "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
+                    "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
+                    "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id " .
+                    "INNER JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments WHERE school_year_id = '$fy_id') e 
+                        ON e.student_id_no = s.student_id_no " .
+                    "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
+                    "INNER JOIN final_grade AS fg
+                        ON fg.student_id_text = s.student_id_no
+                    AND fg.school_year = sy.school_year
+                    AND fg.sem = sy.sem ";
+    } else {
+        $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
+                    "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
+                    "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
+                    "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id " .
+                    "LEFT JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments) e 
+                        ON e.student_id_no = s.student_id_no " .
+                    "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
+                    "INNER JOIN final_grade AS fg
+                        ON fg.student_id_text = s.student_id_no
+                    AND fg.school_year = sy.school_year
+                    AND fg.sem = sy.sem ";
+                    
+    }
 
     // Filtering
     $sql_where_array = [];
@@ -87,7 +150,7 @@ try {
     }
     $sql_where = '';
     if (!empty($sql_where_array)) {
-        $sql_where = implode(' AND ', $sql_where_array);
+        $sql_where = $sql_where ? ($sql_where . " AND e.school_year_id = '$fy_id'") : "e.school_year_id = '$fy_id'";
     }
 
     // Sorting
@@ -125,7 +188,7 @@ try {
     // Count total records
     $field_query = 'COUNT(*) as count';
     $sql_conds = empty($sql_where) ? '' : "WHERE $sql_where";
-    $count_query = "SELECT $field_query FROM $table_name $left_join $sql_conds";
+    $count_query = "SELECT COUNT(DISTINCT s.student_id_no) as count FROM $table_name $left_join $sql_conds";
 
     $total_query = 0;
     if ($query = call_mysql_query($count_query)) {
@@ -139,7 +202,7 @@ try {
 
     // Fetch data
     $field_query = implode(',', $dbfield);
-    $data_query = "SELECT $field_query FROM $table_name $left_join $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
+    $data_query = "SELECT $field_query FROM $table_name $left_join $sql_conds GROUP BY s.student_id_no ORDER BY $orderby LIMIT $start_no, $query_limit";
 
     $to_encode = [];
     if ($query = call_mysql_query($data_query)) {
@@ -153,9 +216,22 @@ try {
                 $data['year_level'] = isset($data['year_level']) ? intVal($data['year_level']) : '';
                 $data['status'] = isset($data['status']) ? intVal($data['status']) : '';
                 $data['locked'] = isset($data['locked']) ? intVal($data['locked']) : '';
+                $data['school_year_id'] = isset($data['school_year_id']) ? intVal($data['school_year_id']) : '';
                 $data['program'] = isset($data['program']) ? $data['short_name'].' ~ '.$data['major'] : "No program";
                 $data['section'] = isset($data['class_name']) ? $data['class_name'] : "No section";
+                $data['fiscal_year'] = isset($data['school_year_id']) ? $data['school_year']. " ". $data['sem']: '';
+                $data['final_grade'] = isset($data['final_grade']) ? intVal($data['final_grade']) : '';
+                $data['converted_grade'] = isset($data['converted_grade']) ? doubleval($data['converted_grade']) : '';
 
+                $required = isset($data['required_units_sem']) ? intVal($data['required_units_sem']) : 0;
+                $earned = isset($data['earned_units_sem']) ? intVal($data['earned_units_sem']) : 0;
+                $data['required_subject_codes'] = $data['required_subject_codes'] ?? '';
+
+                if ($earned >= $required) {
+                    $data['student_classification'] = "Regular";
+                } else {
+                    $data['student_classification'] = "Irregular";
+                }
                 $data['name'] = get_full_name($data['f_name'], $data['m_name'], $data['l_name'], $data['suffix']);
 
                 $to_encode[] = $data;

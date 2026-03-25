@@ -32,7 +32,8 @@ $dbfield = [
     'c.units',
     'c.status_allowable',
     'c.date_created',
-    'p.program AS program_name'
+    'p.program AS program_name',
+    'p.short_name'
 ];
 
 $dborig = [

@@ -238,7 +238,6 @@ if ($method == "POST") {
                 $column['STUDENT NAME'] = trim($column['STUDENT NAME']);
                 $student_program_id = 0;
                 $student_major = "";
-                echo "student id: ".$column['STUDENT ID'];
                 $sql_query  = "SELECT student_id,lastname,firstname,middle_name,suffix_name,program_id,major,year_level FROM student WHERE student_id_no = '" . escape($db_connect, $column['STUDENT ID']) . "' LIMIT 1";
                 $query_student = call_mysql_query($sql_query);
                 if ($query_student !== false) {
