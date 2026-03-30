@@ -76,16 +76,15 @@ function navigation_active($pages, $class = 'active', $conditions = [])
         <div class="sidebar-content">
             <ul class="nav nav-secondary">
                 <?php if ($g_user_role == 'ADMIN') { ?>
-                    <!-- navigation section (remove if not needed) -->
+                    <!-- navigation section -->
                     <li class="nav-section">
                         <span class="sidebar-mini-icon">
                             <i class="fa fa-ellipsis-h"></i>
                         </span>
-                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4> <!-- change based on role -->
+                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4>
                     </li>
 
-                    <!-- start navigation -->
-
+                    <!-- Dashboard -->
                     <li class="nav-item <?php echo navigation_active("main_admin"); ?>">
                         <a href="<?php echo BASE_URL . "admin/main_admin.php" ?>">
                             <i class="fas fa-home"></i>
@@ -93,6 +92,7 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
+                    <!-- User Information -->
                     <li class="nav-item <?php echo navigation_active("user_information"); ?>">
                         <a href="<?php echo BASE_URL . "admin/user_information.php" ?>">
                             <i class="fas fa-users"></i>
@@ -100,142 +100,90 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
-                    <li class="nav-item <?php echo navigation_active("activity_log", "active submenu", ["user" => ["admin", "registrar"]]); ?>">
-                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#activity_log_nav">
-                            <i class="fas fa-list"></i>
-                            <p>Activity Log</p>
+                    <!-- User Management -->
+                    <li class="nav-item <?php echo navigation_active("user_management"); ?>">
+                        <a href="<?php echo BASE_URL . "admin/user_management.php" ?>">
+                            <i class="fas fa-user-cog"></i>
+                            <p>User Management</p>
+                        </a>
+                    </li>
+
+                    <!-- User Uploads (submenu) -->
+                    <li class="nav-item <?php echo navigation_active("user_upload", "active submenu"); ?>">
+                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#user_upload_nav">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>User Uploads</p>
                             <span class="caret"></span>
                         </a>
-                        <div class="collapse <?php echo navigation_active("activity_log", "show", ["user" => ["admin", "registrar"]]); ?>" id="activity_log_nav">
+                        <div class="collapse <?php echo navigation_active("user_upload", "show"); ?>" id="user_upload_nav">
                             <ul class="nav nav-collapse">
-                                <li class="<?php echo navigation_active("activity_log", "active", ["user" => ["admin"]]); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/activity_log.php?user=admin" ?>">
-                                        <span class="sub-item">Administrator</span>
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/admin_upload.php"; ?>">
+                                        <span class="sub-item">Admin Uploads</span>
                                     </a>
                                 </li>
-                                <li class="<?php echo navigation_active("activity_log", "active", ["user" => ["registrar"]]); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/activity_log.php?user=registrar"; ?>">
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/registrar_upload.php"; ?>">
+                                        <span class="sub-item">Registrar Uploads</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/dean_upload.php"; ?>">
+                                        <span class="sub-item">Dean Uploads</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Activity Logs -->
+                    <li class="nav-item <?php echo navigation_active("activity_logs", "active submenu"); ?>">
+                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#activity_logs_nav">
+                            <i class="fas fa-clock"></i>
+                            <p>Activity Logs</p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse <?php echo navigation_active("activity_logs", "show"); ?>" id="activity_logs_nav">
+                            <ul class="nav nav-collapse">
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/registrar_logs.php"; ?>">
                                         <span class="sub-item">Registrar</span>
                                     </a>
                                 </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item <?php echo navigation_active("user_log", "active submenu", ["user" => ["admin", "registrar"]]); ?>">
-                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#user_log_nav">
-                            <i class="fas fa-list"></i>
-                            <p>User Log</p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse <?php echo navigation_active("user_log", "show", ["user" => ["admin", "registrar"]]); ?>" id="user_log_nav">
-                            <ul class="nav nav-collapse">
-                                <li class="<?php echo navigation_active("user_log", "active", ["user" => ["admin"]]); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/user_log.php?user=admin" ?>">
-                                        <span class="sub-item">Administrator</span>
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/admin_logs.php"; ?>">
+                                        <span class="sub-item">Admin</span>
                                     </a>
                                 </li>
-                                <li class="<?php echo navigation_active("user_log", "active", ["user" => ["registrar"]]); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/user_log.php?user=registrar"; ?>">
-                                        <span class="sub-item">Registrar</span>
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/dean_logs.php"; ?>">
+                                        <span class="sub-item">Dean</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="<?php echo BASE_URL . "admin/students_logs.php"; ?>">
+                                        <span class="sub-item">Student</span>
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </li>
 
-
-                    <!-- for sub menu, change href and id (it should be unique id) -->
-                    <li class="nav-item <?php echo navigation_active("other,admin", "active submenu"); ?>">
-                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#sub_nav">
-                            <i class="fas fa-layer-group"></i>
-                            <p>Parent Nav</p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse <?php echo navigation_active("other,admin", "show"); ?>" id="sub_nav">
-                            <ul class="nav nav-collapse">
-                                <li class="<?php echo navigation_active("other"); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/other.php" ?>">
-                                        <span class="sub-item">Sub Parent Nav 1</span>
-                                    </a>
-                                </li>
-                                <li class="<?php echo navigation_active("admin"); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/admin.php" ?>">
-                                        <span class="sub-item">Sub Parent Nav 2</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-
-                    <li class="nav-item <?php echo navigation_active("other"); ?>">
-                        <a href="<?php echo BASE_URL . "admin/other.php" ?>">
-                            <i class="fas fa-desktop"></i>
-                            <p>With bagdes Nav</p>
-                            <span class="badge badge-success">4</span>
+                    <!-- User Logs (single link) -->
+                    <li class="nav-item <?php echo navigation_active("user_logs"); ?>">
+                        <a href="<?php echo BASE_URL . "admin/user_logs.php"; ?>">
+                            <i class="fas fa-user-check"></i>
+                            <p>User Logs</p>
                         </a>
                     </li>
 
-
-                    <li class="nav-item <?php echo navigation_active("other"); ?>">
-                        <a href="<?php echo BASE_URL . "admin/other.php" ?>">
-                            <i class="fas fa-file"></i>
-                            <p>Single Nav</p>
+                    <!-- Backup -->
+                    <li class="nav-item <?php echo navigation_active("backup"); ?>">
+                        <a href="<?php echo BASE_URL . "admin/backup.php"; ?>">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            <p>Backup</p>
                         </a>
                     </li>
-
-                <?php } else if ($g_user_role == 'ADMIN_STAFF') { ?>
-                    <!-- navigation section (remove if not needed) -->
-                    <li class="nav-section">
-                        <span class="sidebar-mini-icon">
-                            <i class="fa fa-ellipsis-h"></i>
-                        </span>
-                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4> <!-- change based on role -->
-                    </li>
-
-                    <!-- start navigation -->
-
-                    <!-- for sub menu, change href and id (it should be unique id) -->
-                    <li class="nav-item <?php echo navigation_active("main_admin,admin", "active submenu"); ?>">
-                        <a class="collapsed" aria-expanded="false" data-bs-toggle="collapse" href="#sub_nav">
-                            <i class="fas fa-layer-group"></i>
-                            <p>Parent Nav</p>
-                            <span class="caret"></span>
-                        </a>
-                        <div class="collapse <?php echo navigation_active("main_admin,admin", "show"); ?>" id="sub_nav">
-                            <ul class="nav nav-collapse">
-                                <li class="<?php echo navigation_active("main_admin"); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/main_admin.php" ?>">
-                                        <span class="sub-item">Sub Parent Nav 1</span>
-                                    </a>
-                                </li>
-                                <li class="<?php echo navigation_active("admin"); ?>">
-                                    <a href="<?php echo BASE_URL . "admin/admin.php" ?>">
-                                        <span class="sub-item">Sub Parent Nav 2</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-
-                    <li class="nav-item <?php echo navigation_active("other"); ?>">
-                        <a href="<?php echo BASE_URL . "admin/other.php" ?>">
-                            <i class="fas fa-desktop"></i>
-                            <p>With bagdes Nav</p>
-                            <span class="badge badge-success">4</span>
-                        </a>
-                    </li>
-
-
-                    <li class="nav-item <?php echo navigation_active("other"); ?>">
-                        <a href="<?php echo BASE_URL . "admin/other.php" ?>">
-                            <i class="fas fa-file"></i>
-                            <p>Single Nav</p>
-                        </a>
-                    </li>
-
 
                 <?php } else if ($g_user_role == 'REGISTRAR') { ?>
                     <!-- navigation section (remove if not needed) -->
@@ -321,6 +269,73 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         <a href="<?php echo BASE_URL; ?>registrar/grade_settings.php">
                             <i class="fas fa-cogs"></i>
                             <span>Grade Settings</span>
+                        </a>
+                    </li>
+
+                <?php } else if ($g_user_role == 'STUDENT') { ?>
+                    <!-- navigation section (remove if not needed) -->
+                    <li class="nav-section">
+                        <span class="sidebar-mini-icon">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </span>
+                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4>
+                    </li>
+
+                    <!-- start navigation -->
+                    <li class="nav-item <?php echo navigation_active("enrollment_status"); ?>">
+                        <a href="<?php echo BASE_URL . "student/enrollment_status.php" ?>">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>Enrollment Status</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("grades"); ?>">
+                        <a href="<?php echo BASE_URL . "student/grades.php" ?>">
+                            <i class="fas fa-graduation-cap"></i>
+                            <p>Grades</p>
+                        </a>
+                    </li>
+
+                    <!-- Fiscal Year (Student) - opens global modal -->
+                    <li class="nav-item">
+                        <a href="#" id="student_fiscal_year_link">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>Fiscal Year</p>
+                        </a>
+                    </li>
+
+                
+                
+                <?php } else if ($g_user_role == 'DEAN') { ?>
+                    <!-- navigation section for DEAN -->
+                    <li class="nav-section">
+                        <span class="sidebar-mini-icon">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </span>
+                        <h4 class="text-section"><?php echo ACCESS_NAME[$g_user_role]; ?></h4>
+                    </li>
+
+                    <!-- Fiscal Year (Dean) - opens global modal -->
+                    <li class="nav-item">
+                        <a href="#" id="dean_fiscal_year_link">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>Fiscal Year</p>
+                        </a>
+                    </li>
+
+
+                    <!-- start navigation for DEAN -->
+                    <li class="nav-item <?php echo navigation_active("student_approvals"); ?>">
+                        <a href="<?php echo BASE_URL . "dean/student_approvals.php" ?>">
+                            <i class="fas fa-user-check"></i>
+                            <p>Student Approvals</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item <?php echo navigation_active("student_information"); ?>">
+                        <a href="<?php echo BASE_URL . "dean/student_information.php" ?>">
+                            <i class="fas fa-users"></i>
+                            <p>Student Information</p>
                         </a>
                     </li>
 

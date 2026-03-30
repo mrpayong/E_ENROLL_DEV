@@ -10842,3 +10842,145 @@ body[data-background-color=dark] .jvm-zoom-btn {
   width: 95vw;
 }
 
+#summary-table .tabulator-header {
+  border-bottom: 2px solid white !important;
+}
+
+
+/* que css, put here by tristan */
+.approval-card { border-top: 3px solid #0d6efd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+/* Force square corners on this card and header to match system layout */
+.approval-card,
+.approval-card .card-header,
+.approval-card .card-body {
+	border-radius: 0 !important;
+}
+
+.subject-tag { display: inline-block; background: #e7f1ff; color: #0d6efd; padding: 2px 10px; border-radius: 50px; font-size: 0.75rem; margin: 2px; border: 1px solid #cfe2ff; cursor: help; }
+
+/* Prospectus modal embedded layout - registrar style sheet */
+.prospectus-wrapper {
+	padding: 12px 18px 18px;
+	background-color: #f5f6f8;
+}
+
+.prospectus-sheet {
+	background-color: #ffffff;
+	border: 1px solid #ced4da;
+	padding: 18px 22px;
+	border-radius: 4px;
+}
+
+.prospectus-header .school-name {
+	font-weight: 700;
+	font-size: 1.05rem;
+	letter-spacing: 1px;
+}
+
+.prospectus-header .school-office {
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.prospectus-header .school-address {
+	font-size: 0.8rem;
+}
+
+.prospectus-title {
+	font-weight: 600;
+	margin-top: 6px;
+}
+
+.prospectus-revision {
+	font-size: 0.8rem;
+}
+
+.prospectus-meta {
+	font-size: 0.8rem;
+	margin-bottom: 8px;
+}
+
+.prospectus-meta .meta-label {
+	font-weight: 600;
+}
+
+.prospectus-meta .meta-spacer {
+	display: inline-block;
+	min-width: 40px;
+}
+
+.year-block {
+	margin-top: 10px;
+}
+
+.year-heading {
+	background-color: #343a40;
+	color: #ffffff;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.85rem;
+	padding: 4px 0;
+	margin-bottom: 4px;
+}
+
+.sem-heading {
+	background-color: #6c757d;
+	color: #ffffff;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.75rem;
+	padding: 3px 0;
+	margin-bottom: 2px;
+}
+
+.prospectus-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.75rem;
+}
+
+.prospectus-table th,
+.prospectus-table td {
+	border: 1px solid #343a40;
+	padding: 3px 4px;
+}
+
+.prospectus-table th {
+	background-color: #4b545c;
+	color: #ffffff;
+	font-weight: 600;
+}
+
+.prospectus-table .total-row td {
+	font-weight: 600;
+}
+
+/* --- Match student grades.php prospectus layout --- */
+
+/* Flex layout for meta header rows (Name / Student No. + Units) */
+.prospectus-meta > div {
+	display: flex;
+	align-items: baseline;
+}
+
+.prospectus-meta .meta-label {
+	margin-right: 4px;
+}
+
+.prospectus-meta .meta-spacer {
+	flex: 1 1 auto;
+}
+
+/* Blue semester header bar, consistent with student Grades page */
+.sem-heading {
+	background-color: #2563EB !important;
+	color: #ffffff !important;
+}
+
+/* Center all text inside prospectus tables */
+.prospectus-table th,
+.prospectus-table td {
+	text-align: center;
+}
+

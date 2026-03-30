@@ -81,7 +81,7 @@ if($program_query = call_mysql_query($program_sql)){
 $sems = array();
 $query = "SELECT school_year_id, sem, school_year
     FROM school_year 
-    WHERE isDefault = 0
+    WHERE flag_used = 1
     ORDER BY date_from DESC";
 if ($sem_query = call_mysql_query($query)) {
     if ($num = mysqli_num_rows($sem_query)) {

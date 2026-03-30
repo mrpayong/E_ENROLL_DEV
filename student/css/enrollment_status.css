@@ -1,0 +1,363 @@
+/* Enrollment Status page specific styles */
+
+@page {
+    size: A4 landscape;
+    margin: 10mm;
+}
+
+.enroll-alert {
+	background-color: #e7f1ff;
+	border-left: 5px solid #0d6efd;
+	color: #084298;
+}
+
+.alert-warning {
+	background-color: #fff3cd;
+	border-left: 5px solid #ffc107;
+	color: #856404;
+	border-radius: 8px;
+}
+
+.alert-warning .alert-heading {
+	color: #856404;
+}
+
+.student-info-card {
+	border: 1px solid #dee2e6;
+	border-top: 3px solid #0d6efd;
+}
+
+.info-label {
+	font-size: 0.75rem;
+	color: #6c757d;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+
+.info-value {
+	font-weight: 600;
+	color: #333;
+}
+
+.subject-cart-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+}
+
+/* Subject tables (Available / Backlog / Higher-Year).
+   Constrain height and enable vertical scroll so that long
+   lists of subjects remain usable without stretching the page
+   too much. */
+.subject-table-wrapper {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 0;
+}
+
+/* Main subjects column (Available + Backlog/Higher-Year).
+    Keep this column reasonably tall and scrollable so that the
+    card header and cart remain visible on most screens. */
+/* .subjects-container-scroll {
+    max-height: 700px;
+    overflow-y: auto;
+} */
+
+/* Tabbed subjects card (Available / Backlog / Higher-Year)
+    Tabs are hidden; Available, Backlog, and Higher-Year are
+    shown as separate stacked cards instead. */
+#subjects_tabs {
+    display: none;
+}
+
+#subjects_tabs .nav-link {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+#subjects_tabs .badge {
+    font-weight: 500;
+}
+
+/* Always show both panels; the "active" class is now used only
+   as a logical state flag for JS, not for visibility. */
+.subjects-tab-panel {
+    display: block;
+}
+
+.schedule-table th {
+	background-color: #f8f9fa;
+	text-align: center;
+	color: #0d6efd;
+	font-size: 0.85rem;
+}
+
+.schedule-table td {
+    height: 40px;
+    border: 1px solid #eee;
+}
+
+.schedule-table td[data-day] {
+    position: relative;
+    padding: 0 !important;
+    vertical-align: top;
+}
+
+/* Half-hour guideline (e.g., 8:30 between 8am and 9am) */
+.schedule-table td[data-day]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1px dashed #e0e0e0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.schedule-table td.schedule-has-class {
+	background-color: #e7f1ff;
+	color: #084298;
+	font-size: 0.75rem;
+    vertical-align: middle;
+    white-space: pre-line;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Highlight for the current day column in the preview */
+.schedule-table th.schedule-today,
+.schedule-table td.schedule-today {
+    background-color: #fff9e6;
+}
+
+.btn-proceed {
+	background-color: #6fb98f;
+	border: none;
+	color: white;
+	width: 100%;
+	padding: 10px;
+	font-weight: bold;
+}
+
+.btn-proceed:hover {
+	background-color: #5da37a;
+}
+
+.empty-cart-state {
+	padding: 20px 0;
+	text-align: center;
+	color: #adb5bd;
+}
+
+.cart-body-container {
+	max-height: 400px;
+	overflow-y: auto;
+	padding: 15px;
+}
+
+.btn-proceed-container {
+	padding: 15px;
+	border-top: 1px solid #eee;
+	background: #fff;
+}
+
+
+/* Subject Cart Card Design */
+.cart-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    transition: box-shadow 0.2s, transform 0.1s, background-color 0.2s;
+    margin-bottom: 10px;
+    border-left: 4px solid #0d6efd;
+}
+
+.cart-item:hover {
+    background-color: #f8fafc;
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.14);
+    transform: translateY(-1px);
+}
+
+.cart-item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+}
+
+.cart-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #0d6efd;
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-item-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cart-item-title a:hover {
+    text-decoration: underline;
+}
+
+.cart-item-units {
+    background-color: #6c757d;
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.cart-item-body {
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.cart-item-body .subject-name {
+    color: #6b7280;
+    font-weight: 400;
+    margin-bottom: 2px;
+}
+
+.cart-item-section {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.cart-item-schedule {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+.cart-remove-btn {
+    border: none;
+    background-color: #dc3545;
+    color: #ffffff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background-color 0.2s;
+}
+
+.cart-remove-btn:hover {
+    background-color: #c82333;
+}
+
+/* Hide Action column in Step 1 (block subjects mode) */
+#subjects_table.no-action th:last-child,
+#subjects_table.no-action td:last-child {
+    display: none;
+}
+
+.schedule-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    background-color: #e7f1ff;
+    border-left: 3px solid #007bff;
+    color: #004085;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 11px;
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.schedule-block b {
+    color: #0056b3;
+    display: block;
+}
+
+/* legacy overrides removed above; cart layout now defined in Subject Cart Card Design block */
+
+/* Print styles: focus on enrolled schedule only */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #enrolled_schedule_print_area,
+    #enrolled_schedule_print_area * {
+        visibility: visible;
+    }
+
+    #enrolled_schedule_print_area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        background-color: #ffffff;
+    }
+
+    #enrolled_schedule_print_area .card-body {
+        padding: 16px 24px;
+    }
+
+    #enrolled_schedule_print_area h4 {
+        font-size: 18pt;
+        margin-bottom: 8px;
+    }
+
+    #enrolled_schedule_print_area p {
+        font-size: 11pt;
+        margin-bottom: 12px;
+    }
+
+    #enrolled_schedule_print_area .table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    #enrolled_schedule_print_area .table thead th {
+        border-bottom: 2px solid #000000;
+        font-size: 11pt;
+        text-transform: uppercase;
+    }
+
+    #enrolled_schedule_print_area .table th,
+    #enrolled_schedule_print_area .table td {
+        border: 1px solid #000000;
+        padding: 6px 8px;
+        font-size: 11pt;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    #enrolled_schedule_print_area .table-responsive {
+        overflow: visible !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}

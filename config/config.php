@@ -25,6 +25,7 @@ define('DATE_NOW', date('Y-m-d'));
 define('TIME_NOW', date('H:i:s'));
 define("DATE_TIME", DATE_NOW . " " . TIME_NOW);
 
+
 ## school info
 define('SCHOOL_NAME', 'City College of Calamba');
 define('SCHOOL_ACRONYM', 'CCC');

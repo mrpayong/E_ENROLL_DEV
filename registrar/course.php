@@ -18,35 +18,6 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
-## table
-$table_array = array();
-$select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked 
-FROM users WHERE user_id = '".      escape($db_connect, $s_user_id)     ."'";
-if ($query = call_mysql_query($select)) {
-    if ($num = mysqli_num_rows($query)) {
-        while ($data = call_mysql_fetch_array($query)) {
-            $data['name'] = get_full_name($data['f_name'],$data['m_name'],$data['l_name'],$data['suffix']);
-
-            $user_roles = [];
-            foreach (json_decode($data['roles']) as $role) {
-                if (isset(SYSTEM_ACCESS['E-ENROLL']['role'][$role])) {
-                    $user_roles[] = SYSTEM_ACCESS['E-ENROLL']['role'][$role];
-                }
-            }
-            $data['user_role'] = !empty($user_roles) ? implode(', ', $user_roles) : '';
-
-            if ($data['status'] == 1) {
-                $data['account_status'] = 'Deactivated';
-            } elseif ($data['locked'] == 1) {
-                $data['account_status'] = 'Locked';
-            } elseif ($data['status'] == 0 && $data['locked'] == 0) {
-                $data['account_status'] = 'Active';
-            }
-            array_push($table_array, $data);
-        }
-    }
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -56,8 +27,6 @@ if ($query = call_mysql_query($select)) {
     include_once DOMAIN_PATH . '/global/meta_data.php';
     include_once DOMAIN_PATH . '/global/include_top.php';
     ?>
-
-
 </head>
 
 <body>
@@ -78,9 +47,6 @@ if ($query = call_mysql_query($select)) {
                                     <section class="card shadow-sm  p-0" style="margin:auto;">
                                         <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                             <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Course Table</h1>
-                                            <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createCourseBtn" style="background:#173ea5;">
-                                                <i class="bi bi-plus-lg"></i> Create course
-                                            </button>
                                         </header>
                                         <div class="table-responsive px-3 pb-4 pt-1 mt-3 d-flex flex-column justify-content-between" style="min-height: 40rem;">
                                             <div class="table-bordered" id="courseTable"></div>
@@ -99,94 +65,30 @@ if ($query = call_mysql_query($select)) {
                         
                     </section>
                 
-
-                    <!-- create course -->
-                    <div class="modal fade" id="courseFormModal" tabindex="-1" aria-labelledby="courseFormLabel" aria-hidden="true">
+                    <div class="modal fade" id="updateCourse" tabindex="-1" aria-labelledby="updateLabel" aria-hidden="true">
                         <div class="modal-dialog">
-                            <form class="modal-content" id="courseForm" autocomplete="off">
+                            <form class="modal-content" id="updateForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
-                                    <h5 class="modal-title" id="courseFormLabel">Create course</h5>
+                                    <h5 class="modal-title fw-6 fw-bolder" id="updateLabel" autocomplete="off"></h5>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body">
-                                    <div class="row mb-3">
-                                        <div>
-                                            <label for="courseCode" class="form-label">Course Code</label>
-                                            <input type="text" class="form-control" id="courseCode" name="courseCode" required>
-                                        </div>
-                                        <div>
-                                            <label for="manual" class="form-label">Set as Manual Enroll</label>
-                                            <input type="checkbox" class="form-check-input" id="manual" name="manual">
-                                        </div>                        
-                                    </div>
-
-                                    <div class="mb-3" id="courseNameContainer">
-                                        <label for="courseName" class="form-label">Course title</label>
-                                        <input type="text" class="form-control" id="courseName" name="courseName[]" required>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="lec_units" class="form-label">Lecture</label>
-                                            <input type="number" class="form-control" id="lec_units" placeholder="No. of units" name="lec_units" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="lab_units" class="form-label">Laboratory</label>
-                                            <input type="number" class="form-control" id="lab_units" placeholder="No. of units" name="lab_units" required>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="unit" class="form-label">Unit</label>
-                                        <input type="number" class="form-control" id="unit" name="unit" required>
-                                    </div>
+                                <div action="" class="modal-body">
+                                    <label for="" class="form-label fw-bold">Course Limit</label>
+                                    <input type="number" name="" id="limit_course" class="form-control">
                                 </div>
+
                                 <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary">Create</button>
-                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm" name="submit">Confirm</button>
+                                    <button class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- update course -->
-                    <div class="modal fade" id="editCourseFormModal" tabindex="-1" aria-labelledby="editCourseFormLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <form class="modal-content" id="editCourseForm" autocomplete="off">
-                                <div class="modal-header bg-primary text-white py-2">
-                                    <h5 class="modal-title" id="editCourseFormLabel"></h5>
-                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label for="newCourseCode" class="form-label">Course Code</label>
-                                        <input type="text" class="form-control" id="newCourseCode" name="newCourseCode" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="newCourseName" class="form-label">Course Name</label>
-                                        <input type="text" class="form-control" id="newCourseName" name="newCourseName" required>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="newLec_units" class="form-label">Lecture</label>
-                                            <input type="number" class="form-control" id="newLec_units" name="newLec_units" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newLab_units" class="form-label">Laboratory</label>
-                                            <input type="number" class="form-control" id="newLab_units" name="newLab_units" required>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="newUnit" class="form-label">Unit</label>
-                                        <input type="number" class="form-control" id="newUnit" name="newUnit" required>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn-confirm btn btn-primary">Save</button>
-                                    <button type="button" class="btn-cancel btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
                 </div>
+
+
+
             </div>
             <?php include_once FOOTER_PATH; ?>
         </div>
@@ -196,17 +98,12 @@ if ($query = call_mysql_query($select)) {
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const openModalBtn = document.getElementById('createCourseBtn');
-
-    openModalBtn.addEventListener('click', function(){
-        $('#courseFormModal').modal('show')
-    })
 
     function actionsFormatter(cell) {
         const row = cell.getRow().getData();
 
         return `
-            <button data-id="${row.subject_id}" class="btn btn-sm btn-primary me-2 edit-section-btn fs-6" title="Edit"><i class="bi bi-pencil"></i> Update</button>
+            <button data-id="${row.subject_id}" class="btn btn-sm btn-warning me-2 update-course" title="Update"><i class="fas fa-edit"></i> Update</button>
         `;
     }
 
@@ -241,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
         responsiveLayout: "collapse",
         pagination: "remote",
         paginationSize: 10,
-        rowHeight:80,
         movableColumns: true,
         ajaxFiltering: true,
         ajaxSorting: true,
@@ -356,25 +252,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let subjectCodeDataList = []; // [{subject_code, lec, lab, unit}]
 
-    async function fetchSubjectCode_units(){
-        try {
-            const response = await $.ajax({
-                url: "<?php echo BASE_URL; ?>registrar/actions/subjectFormAutomate.php",
-                method: "GET",
-                dataType: "json",
-            })
-            subjectCodeDataList = response.data;
-        } catch (error) {
-            swal({
-                icon: "error",
-                title: "Error",
-                text: "Code detection and Auto-fill will not commence.",
-                button: true
-            })
-        }
-    }
+    // async function fetchSubjectCode_units(){
+    //     try {
+    //         const response = await $.ajax({
+    //             url: "<?php echo BASE_URL; ?>registrar/actions/subjectFormAutomate.php",
+    //             method: "GET",
+    //             dataType: "json",
+    //         })
+    //         subjectCodeDataList = response.data;
+    //     } catch (error) {
+    //         swal({
+    //             icon: "error",
+    //             title: "Error",
+    //             text: "Code detection and Auto-fill will not commence.",
+    //             button: true
+    //         })
+    //     }
+    // }
 
-    fetchSubjectCode_units();
+    // fetchSubjectCode_units();
 
     document.getElementById('course-download-csv').addEventListener('click', function() {
         courseTable.download("csv", "course_" + new Date().toISOString().slice(0,10) + ".csv", {
@@ -390,125 +286,125 @@ document.addEventListener('DOMContentLoaded', function() {
         courseTable.print(false, true);
     });
 
-    let newManual;
-    let isCourseNameMultiple = $('#manual').is(':checked');
+    // let newManual;
+    // let isCourseNameMultiple = $('#manual').is(':checked');
     let checkState = false;
 
 
 
-    function renderCourseNameFields(isManual) {
-        if (isCourseNameMultiple === isManual) return;
-        isCourseNameMultiple = isManual;
-        const container = $('#courseNameContainer');
-        container.empty();
+    // function renderCourseNameFields(isManual) {
+    //     if (isCourseNameMultiple === isManual) return;
+    //     isCourseNameMultiple = isManual;
+    //     const container = $('#courseNameContainer');
+    //     container.empty();
 
-        container.append('<label class="form-label">Course name</label>');
-        if (isManual) {
-            // Multiple input fields with Add/Remove
-            container.append(`
-                <div id="courseNameList">
-                    <div class="input-group mb-2 course-name-row">
-                        <input type="text" class="form-control" name="courseName[]" required>
-                        <button type="button" class="btn btn-success add-course-name">+</button>
-                    </div>
-                </div>
-            `);
-        } else {
-            // Single input field
-            container.append('<input type="text" class="form-control" id="courseName" name="courseName[]" required>');
-        }
-    }
+    //     container.append('<label class="form-label">Course name</label>');
+    //     if (isManual) {
+    //         // Multiple input fields with Add/Remove
+    //         container.append(`
+    //             <div id="courseNameList">
+    //                 <div class="input-group mb-2 course-name-row">
+    //                     <input type="text" class="form-control" name="courseName[]" required>
+    //                     <button type="button" class="btn btn-success add-course-name">+</button>
+    //                 </div>
+    //             </div>
+    //         `);
+    //     } else {
+    //         // Single input field
+    //         container.append('<input type="text" class="form-control" id="courseName" name="courseName[]" required>');
+    //     }
+    // }
     
     
-    function tryAutoFillCourseFields() {
-        const courseCode = $('#courseCode').val().trim();
+    // function tryAutoFillCourseFields() {
+    //     const courseCode = $('#courseCode').val().trim();
 
-        let match = null
-        if (courseCode) {
-            // Format subject_code
-            const subject_code = courseCode.toUpperCase();
+    //     let match = null
+    //     if (courseCode) {
+    //         // Format subject_code
+    //         const subject_code = courseCode.toUpperCase();
 
-            // Find matching subject_code in the array
-            match = subjectCodeDataList.find(item => item.subject_code === subject_code) || null;
+    //         // Find matching subject_code in the array
+    //         match = subjectCodeDataList.find(item => item.subject_code === subject_code) || null;
 
-            if (match) {
-                $('#lec_units').val(match.lec);
-                $('#lab_units').val(match.lab);
-                $('#unit').val(match.unit);
-                $('#lec_units').prop('readonly', true);
-                $('#lab_units').prop('readonly', true);
-                $('#unit').prop('readonly', true);
+    //         if (match) {
+    //             $('#lec_units').val(match.lec);
+    //             $('#lab_units').val(match.lab);
+    //             $('#unit').val(match.unit);
+    //             $('#lec_units').prop('readonly', true);
+    //             $('#lab_units').prop('readonly', true);
+    //             $('#unit').prop('readonly', true);
 
-                if (!$('#manual').is(':checked')) {
-                    $('#manual').prop('checked', true);
-                }
-                $('#manual').prop('disabled', true);
-                renderCourseNameFields(true);
-                newManual = match.manualEnroll;
+    //             if (!$('#manual').is(':checked')) {
+    //                 $('#manual').prop('checked', true);
+    //             }
+    //             $('#manual').prop('disabled', true);
+    //             renderCourseNameFields(true);
+    //             newManual = match.manualEnroll;
                 
-            } else {
-                $('#lec_units').val('').prop('readonly', false);
-                $('#lab_units').val('').prop('readonly', false);
-                $('#unit').val('').prop('readonly', false);
+    //         } else {
+    //             $('#lec_units').val('').prop('readonly', false);
+    //             $('#lab_units').val('').prop('readonly', false);
+    //             $('#unit').val('').prop('readonly', false);
 
-                // If user checked, keep checked and enable
-                if (checkState) {
-                    $('#manual').prop('checked', true);
-                    $('#manual').prop('disabled', false);
-                    renderCourseNameFields(true);
-                } else {
-                    $('#manual').prop('checked', false);
-                    $('#manual').prop('disabled', false);
-                    renderCourseNameFields(false);
-                }
-                newManual = match !== null ? 1 : 0;
+    //             // If user checked, keep checked and enable
+    //             if (checkState) {
+    //                 $('#manual').prop('checked', true);
+    //                 $('#manual').prop('disabled', false);
+    //                 renderCourseNameFields(true);
+    //             } else {
+    //                 $('#manual').prop('checked', false);
+    //                 $('#manual').prop('disabled', false);
+    //                 renderCourseNameFields(false);
+    //             }
+    //             newManual = match !== null ? 1 : 0;
            
                 
-            }
-        } else {
-            $('#lec_units').val('').prop('readonly', false);
-            $('#lab_units').val('').prop('readonly', false);
-            $('#unit').val('').prop('readonly', false);
+    //         }
+    //     } else {
+    //         $('#lec_units').val('').prop('readonly', false);
+    //         $('#lab_units').val('').prop('readonly', false);
+    //         $('#unit').val('').prop('readonly', false);
 
-            if (checkState) {
-                $('#manual').prop('checked', true);
-                $('#manual').prop('disabled', false);
-                renderCourseNameFields(true);
-            } else {
-                $('#manual').prop('checked', false);
-                $('#manual').prop('disabled', false);
-                renderCourseNameFields(false);
-            }
-            newManual = match !== null ? 1 : 0;
-        }
-    }
+    //         if (checkState) {
+    //             $('#manual').prop('checked', true);
+    //             $('#manual').prop('disabled', false);
+    //             renderCourseNameFields(true);
+    //         } else {
+    //             $('#manual').prop('checked', false);
+    //             $('#manual').prop('disabled', false);
+    //             renderCourseNameFields(false);
+    //         }
+    //         newManual = match !== null ? 1 : 0;
+    //     }
+    // }
 
     // Trigger when either field changes
-    $('#acronym, #courseCode').on('input', tryAutoFillCourseFields);
+    // $('#acronym, #courseCode').on('input', tryAutoFillCourseFields);
     
 
 
     // Initial render (unchecked by default)
-    renderCourseNameFields($('#manual').is(':checked'));
+    // renderCourseNameFields($('#manual').is(':checked'));
 
     // Toggle on checkbox change
-    $('#manual').on('change', function() {
-        checkState = this.checked;
-        renderCourseNameFields(this.checked);
-    });
+    // $('#manual').on('change', function() {
+    //     checkState = this.checked;
+    //     renderCourseNameFields(this.checked);
+    // });
 
     // Add/Remove logic for dynamic fields
-    $(document).on('click', '.add-course-name', function() {
-        $('#courseNameList').append(`
-            <div class="input-group mb-2 course-name-row">
-                <input type="text" class="form-control" name="courseName[]" required>
-                <button type="button" class="btn btn-danger remove-course-name">-</button>
-            </div>
-        `);
-    });
-    $(document).on('click', '.remove-course-name', function() {
-        $(this).closest('.course-name-row').remove();
-    });
+    // $(document).on('click', '.add-course-name', function() {
+    //     $('#courseNameList').append(`
+    //         <div class="input-group mb-2 course-name-row">
+    //             <input type="text" class="form-control" name="courseName[]" required>
+    //             <button type="button" class="btn btn-danger remove-course-name">-</button>
+    //         </div>
+    //     `);
+    // });
+    // $(document).on('click', '.remove-course-name', function() {
+    //     $(this).closest('.course-name-row').remove();
+    // });
 
     // create course
     $("#courseForm").on('submit', function(e){
@@ -521,10 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 name: "submitCourse",
                 value: "createCourse"
-            },
-            {
-                name: "newManual",
-                value: newManual
             }
         ]
 
@@ -550,8 +442,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             $('#courseFormModal').modal('hide');
                             $('#courseForm')[0].reset();
                             courseTable.setData();
-                            fetchSubjectCode_units();
-                            renderCourseNameFields(false); 
+                            // fetchSubjectCode_units();
+                            // renderCourseNameFields(false); 
                         })
                     }
                     if(data.status === false && data.code === 502){
@@ -591,147 +483,136 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     })
 
-    // edit course
-    let editId;
-    let currStatus;
-    let newStatus;
+
     document.querySelector('#courseTable').addEventListener('click', function(e){
         e.preventDefault();
-        const editBtn = e.target.closest('.edit-section-btn');
-        const archiveBtn = e.target.closest('.archive-section-btn');
-
-        if(editBtn){
-            const rowId = editBtn.getAttribute('data-id');
+        const update = e.target.closest('.update-course');
+        if(update){
+            const rowId = Number(update.getAttribute('data-id'));
             const row = courseTable.getRows().find(r => r.getData().subject_id == rowId);
-            const rowData = row.getData();
-
-
-            editId = rowData.subject_id;
-            document.getElementById('newCourseName').value = rowData.subject_title;
-            document.getElementById('newUnit').value = rowData.unit;
-            document.getElementById('editCourseFormLabel').innerHTML = rowData.flag_manual_enroll
-                ? `Update ${rowData.subject_title} <span class="badge bg-success">Manual Enroll</span>`
-                : `Update ${rowData.subject_title}`
             
-            document.getElementById('newCourseCode').value = rowData.subject_code;
-            document.getElementById('newLec_units').value = rowData.lec;
-            document.getElementById('newLab_units').value = rowData.lab;
-            newManual = rowData.flag_manual_enroll;
-            $("#editCourseFormModal").modal('show');
-        }
-        if(archiveBtn){
-            const rowId = archiveBtn.getAttribute('data-id');
-            const row = courseTable.getRows().find(r => r.getData().subject_id == rowId);
             const rowData = row.getData();
+            console.log('row: ', rowData);
 
-
-            editId = rowData.subject_id;
-            currStatus = rowData.status;
-            document.getElementById('archiveCourseFormLabel').textContent = `Archive ${rowData.subject_title}`;
-            document.getElementById('archiveDesc').textContent = `Are you sure you want to archive ${rowData.subject_title}?`;
-            $("#archiveCourseFormModal").modal('show');
+            document.getElementById('updateLabel').textContent = `${rowData.subject_code} — ${rowData.subject_title}`
+            $('#updateCourse').modal('show');
         }
     })
 
-    
-    // update course
-    $("#editCourseForm").on('submit', function(e){
+    $('#updateForm').on('submit', function(e){
         e.preventDefault();
 
-        const formData = jQuery('#editCourseForm').serializeArray();
-
-        const newData = [
-            {
-                name: "submitCourse",
-                value: "editCourse"
-            },
-            {
-                name: "editId",
-                value: editId
-            },
-            {
-                name: "newManual",
-                value: newManual
-            }
-        ]
+        const formData = jQuery('#updateForm').serializeArray();
+        const newData = [{
+            name: "submitCourse",
+            value: "updateCourse"
+        }]
 
         const postData = formData.concat(newData);
 
-        $.ajax({
-            url: "<?php echo BASE_URL; ?>registrar/actions/course_process.php",
-            method: "POST",
-            data: postData,
-            dataType: "json",
-            beforeSend: loadingAPIrequest(true),
-            complete: loadingAPIrequest(false),
-            success: function(data){
-                if(data){
-                    if(data.msg_status === true && data.code === 200){
-                        swal({
-                            icon: "success",
-                            title: "Course updated!",
-                            text: "Course has been updated.",
-                            timer: 3000,
-                            button: false
-                        }).then(function(){
-                            $('#editCourseFormModal').modal('hide');
-                            $('#editCourseForm')[0].reset();
-                            courseTable.setData();
-                            fetchSubjectCode_units();
-                        })
-                    }
-                    if(data.msg_status === false && data.code === 502){
-                        swal({
-                            icon: "error",
-                            title: "Failed to update course.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.msg_status === false && data.code === 504){
-                        swal({
-                            icon: "error",
-                            title: "Failed to update course.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.msg_status === false && data.code === 501){
-                        swal({
-                            icon: "error",
-                            title: "Failed to update course.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.msg_status === false && data.code === 505){
-                        swal({
-                            icon: "error",
-                            title: "Failed to update course.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.msg_status === false && data.code === 500){
-                        swal({
-                            icon: "error",
-                            title: "Failed to update course.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                }
-            },
-            error: function(){
-                swal({
-                    icon: "error",
-                    title: "Error",
-                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    button: true
-                })
-            }
-        })
-    })
+        console.log('form: ', postData)
+    });
+
+
+    
+    // update course
+    // $("#editCourseForm").on('submit', function(e){
+    //     e.preventDefault();
+
+    //     const formData = jQuery('#editCourseForm').serializeArray();
+
+    //     const newData = [
+    //         {
+    //             name: "submitCourse",
+    //             value: "editCourse"
+    //         },
+    //         {
+    //             name: "editId",
+    //             value: editId
+    //         },
+    //         {
+    //             name: "newManual",
+    //             value: newManual
+    //         }
+    //     ]
+
+    //     const postData = formData.concat(newData);
+
+    //     $.ajax({
+    //         url: "<?php echo BASE_URL; ?>registrar/actions/course_process.php",
+    //         method: "POST",
+    //         data: postData,
+    //         dataType: "json",
+    //         beforeSend: loadingAPIrequest(true),
+    //         complete: loadingAPIrequest(false),
+    //         success: function(data){
+    //             if(data){
+    //                 if(data.msg_status === true && data.code === 200){
+    //                     swal({
+    //                         icon: "success",
+    //                         title: "Course updated!",
+    //                         text: "Course has been updated.",
+    //                         timer: 3000,
+    //                         button: false
+    //                     }).then(function(){
+    //                         $('#editCourseFormModal').modal('hide');
+    //                         $('#editCourseForm')[0].reset();
+    //                         courseTable.setData();
+    //                         fetchSubjectCode_units();
+    //                     })
+    //                 }
+    //                 if(data.msg_status === false && data.code === 502){
+    //                     swal({
+    //                         icon: "error",
+    //                         title: "Failed to update course.",
+    //                         text: data.msg_response,
+    //                         button: true
+    //                     })
+    //                 }
+    //                 if(data.msg_status === false && data.code === 504){
+    //                     swal({
+    //                         icon: "error",
+    //                         title: "Failed to update course.",
+    //                         text: data.msg_response,
+    //                         button: true
+    //                     })
+    //                 }
+    //                 if(data.msg_status === false && data.code === 501){
+    //                     swal({
+    //                         icon: "error",
+    //                         title: "Failed to update course.",
+    //                         text: data.msg_response,
+    //                         button: true
+    //                     })
+    //                 }
+    //                 if(data.msg_status === false && data.code === 505){
+    //                     swal({
+    //                         icon: "error",
+    //                         title: "Failed to update course.",
+    //                         text: data.msg_response,
+    //                         button: true
+    //                     })
+    //                 }
+    //                 if(data.msg_status === false && data.code === 500){
+    //                     swal({
+    //                         icon: "error",
+    //                         title: "Failed to update course.",
+    //                         text: data.msg_response,
+    //                         button: true
+    //                     })
+    //                 }
+    //             }
+    //         },
+    //         error: function(){
+    //             swal({
+    //                 icon: "error",
+    //                 title: "Error",
+    //                 text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
+    //                 button: true
+    //             })
+    //         }
+    //     })
+    // })
 
 
 })

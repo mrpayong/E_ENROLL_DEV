@@ -1,0 +1,57 @@
+/* Keep card simple and consistent with User Management */
+.upload-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    color: #2563EB;
+}
+.file-icon {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+.file-size {
+    font-family: monospace;
+    color: #6c757d;
+}
+.role-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.file-actions {
+    white-space: nowrap;
+}
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+/* Simple pagination controls for Admin Uploads */
+#admin-upload-pagination {
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+}
+
+#admin-upload-pagination .page-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+#admin-upload-pagination .btn-pagination {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.4rem;
+}
+
+#admin-upload-pagination select.form-select-sm {
+    min-width: 70px;
+}

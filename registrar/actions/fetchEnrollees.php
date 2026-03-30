@@ -51,6 +51,10 @@ try {
         // final grade
         'fg.final_grade', 'fg.converted_grade',
 
+        // modify_units_students
+        'mus.ol_ul_flag',
+        'mus.modified_unit',
+
         "(SELECT COALESCE(SUM(cur.unit),0)
         FROM curriculum AS cur
         WHERE cur.curriculum_id = s.curriculum_id
@@ -89,18 +93,24 @@ try {
         'program'
     ];
 
-    if ($fy_id !== '') {
+    if ($fy_id > 0) {
         $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
                     "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
                     "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
                     "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id " .
-                    "INNER JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments WHERE school_year_id = '$fy_id') e 
+                    "LEFT JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments WHERE school_year_id = '$fy_id') e 
                         ON e.student_id_no = s.student_id_no " .
                     "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
-                    "INNER JOIN final_grade AS fg
+                    "LEFT JOIN final_grade AS fg
                         ON fg.student_id_text = s.student_id_no
                     AND fg.school_year = sy.school_year
-                    AND fg.sem = sy.sem ";
+                    AND fg.sem = sy.sem ".
+                    "LEFT JOIN modify_units_students AS mus
+                        ON TRIM(mus.student_id_no) = TRIM(s.student_id_no)
+                        AND mus.year_level = s.year_level
+                        AND UPPER(mus.semester) = UPPER(sy.sem)
+                        AND mus.curriculum_id = s.curriculum_id
+                        AND mus.school_year_id = sy.school_year_id";
     } else {
         $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
                     "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
@@ -109,11 +119,16 @@ try {
                     "LEFT JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments) e 
                         ON e.student_id_no = s.student_id_no " .
                     "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
-                    "INNER JOIN final_grade AS fg
+                    "LEFT JOIN final_grade AS fg
                         ON fg.student_id_text = s.student_id_no
                     AND fg.school_year = sy.school_year
-                    AND fg.sem = sy.sem ";
-                    
+                    AND fg.sem = sy.sem ".
+                    "LEFT JOIN modify_units_students AS mus
+                        ON TRIM(mus.student_id_no) = TRIM(s.student_id_no)
+                        AND mus.year_level = s.year_level
+                        AND UPPER(mus.semester) = UPPER(sy.sem)
+                        AND mus.curriculum_id = s.curriculum_id
+                        AND mus.school_year_id = sy.school_year_id";
     }
 
     // Filtering
@@ -148,10 +163,11 @@ try {
             }
         }
     }
-    $sql_where = '';
-    if (!empty($sql_where_array)) {
-        $sql_where = $sql_where ? ($sql_where . " AND e.school_year_id = '$fy_id'") : "e.school_year_id = '$fy_id'";
-    }
+$sql_where_parts = $sql_where_array;
+if ($fy_id > 0) {
+    $sql_where_parts[] = "e.school_year_id = '$fy_id'";
+}
+$sql_where = !empty($sql_where_parts) ? implode(" AND ", $sql_where_parts) : '';
 
     // Sorting
     $orderby = "s.student_id DESC";
@@ -223,9 +239,20 @@ try {
                 $data['final_grade'] = isset($data['final_grade']) ? intVal($data['final_grade']) : '';
                 $data['converted_grade'] = isset($data['converted_grade']) ? doubleval($data['converted_grade']) : '';
 
+                $modFlag = isset($data['ol_ul_flag']) ? intVal($data['ol_ul_flag']) : null;
+                $modUnit = isset($data['modified_unit']) ? intVal($data['modified_unit']) : 0;
+
+                $data['required_units_sem'] = isset($data['required_units_sem']) ? intVal($data['required_units_sem']) : '';
+                if ($modFlag !== null) {
+                    if ($modFlag === 0) {
+                        $data['required_units_sem'] = $data['required_units_sem'] + $modUnit;
+                    }
+                }
+
                 $required = isset($data['required_units_sem']) ? intVal($data['required_units_sem']) : 0;
                 $earned = isset($data['earned_units_sem']) ? intVal($data['earned_units_sem']) : 0;
-                $data['required_subject_codes'] = $data['required_subject_codes'] ?? '';
+                $data['required_subject_codes'] = isset($data['required_subject_codes']) ? $data['required_subject_codes'] : '';
+
 
                 if ($earned >= $required) {
                     $data['student_classification'] = "Regular";

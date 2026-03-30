@@ -119,6 +119,7 @@ $data_query = "SELECT $field_query FROM $table_name $sql_conds ORDER BY $orderby
 $to_encode = [];
 $lec = 0;
 $lab = 1;
+$finalSubjects = '';    
 if ($query = call_mysql_query($data_query)) {
     if ($num = call_mysql_num_rows($query)) {
         while ($data = call_mysql_fetch_array($query)) {

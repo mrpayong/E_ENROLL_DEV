@@ -11,68 +11,6 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
-## table
-$table_array = array();
-$select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked FROM users ORDER BY user_id DESC";
-if ($query = call_mysql_query($select)) {
-    if ($num = mysqli_num_rows($query)) {
-        while ($data = call_mysql_fetch_array($query)) {
-            $data['name'] = get_full_name($data['f_name'],$data['m_name'],$data['l_name'],$data['suffix']);
-
-            $user_roles = [];
-            foreach (json_decode($data['roles']) as $role) {
-                if (isset(SYSTEM_ACCESS['E-ENROLL']['role'][$role])) {
-                    $user_roles[] = SYSTEM_ACCESS['E-ENROLL']['role'][$role];
-                }
-            }
-            $data['user_role'] = !empty($user_roles) ? implode(', ', $user_roles) : '';
-
-            if ($data['status'] == 1) {
-                $data['account_status'] = 'Deactivated';
-            } elseif ($data['locked'] == 1) {
-                $data['account_status'] = 'Locked';
-            } elseif ($data['status'] == 0 && $data['locked'] == 0) {
-                $data['account_status'] = 'Active';
-            }
-            array_push($table_array, $data);
-        }
-    }
-}
-
-function departmentMini($dept) {
-    switch ($dept) {
-        case 'Department of Computing and Informatics':
-            return 'DCI';
-        case 'Department of Education':
-            return 'DTE';
-        case 'Department of Business and Accounting':
-        case 'Department of Business Administration':
-            return 'DBA';
-        default:
-            return 'Unknown Dept.';
-    }
-}
-
-$program = [
-    [
-        'code' => 'BSCS',
-        'name' => 'Bachelor of Science in Computer Science',
-        'department' => 'Department of Computing and Informatics',
-        'duration' => '4 Years',
-        'students' => 120,
-        'status' => 'Active',
-        'action' => "actions"
-    ],
-    [
-        'code' => 'BSIT',
-        'name' => 'Bachelor of Science in Information Technology',
-        'department' => 'Department of Computing and Informatics',
-        'duration' => '4 Years',
-        'students' => 220,
-        'status' => 'Active',
-        'action' => "actions"
-    ],
-]
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">

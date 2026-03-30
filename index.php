@@ -17,10 +17,10 @@ if (isset($g_user_role) || !empty($g_user_role)) {
 		header("Location: " . BASE_URL . "registrar/index.php");
 		exit();
 	} else if ($g_user_role == "DEAN") {
-		header("Location: " . BASE_URL . "app/main.php");
+		header("Location: " . BASE_URL . "dean/index.php");
 		exit();
 	} else if ($g_user_role == "STUDENT") {
-		header("Location: " . BASE_URL . "app/main.php");
+		header("Location: " . BASE_URL . "student/index.php");
 		exit();
 	} else {
 		header("Location: " . API_URL);

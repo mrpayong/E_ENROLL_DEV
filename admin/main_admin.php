@@ -7,602 +7,142 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
-## page header title
-$general_page_title = "Dashboard";
-$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
-$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
-$header_breadcrumbs = []; ## ['label' => $page_header_title, 'url' => '']
-
-## verify user access
-if (!($g_user_role == "ADMIN")) {
-    header("Location: " . BASE_URL . "index.php"); //balik sa login then sa login aalamain kung anung role at saang page landing dapat
+// Verify user access
+if ($g_user_role !== 'ADMIN') {
+    header('Location: ' . BASE_URL . 'index.php');
     exit();
 }
+
+// AJAX endpoint for user statistics
+if (isset($_GET['action']) && $_GET['action'] === 'fetch_stats') {
+    header('Content-Type: application/json');
+
+    $sex = !empty($_GET['sex']) ? strtolower(trim($_GET['sex'])) : null;
+    $target_role = !empty($_GET['target_role']) ? (int)$_GET['target_role'] : 0;
+
+    // Standardized role mapping
+    $roleLabels = [1 => 'Admin', 2 => 'Registrar', 3 => 'Dean', 4 => 'Faculty', 5 => 'Student'];
+    $roleCounts = array_fill_keys(array_keys($roleLabels), 0);
+
+    $conditions = [];
+    if ($sex) {
+        $first = substr($sex, 0, 1);
+        $conditions[] = "LEFT(LOWER(TRIM(u.sex)),1)='" . addslashes($first) . "'";
+    }
+
+    if ($target_role) {
+        $conditions[] = "JSON_CONTAINS(u.user_role, '\"$target_role\"')";
+    }
+
+    $condSql = count($conditions) ? (' WHERE ' . implode(' AND ', $conditions)) : '';
+    $sql = "SELECT u.user_role FROM users u $condSql";
+
+    if ($q = call_mysql_query($sql)) {
+        while ($row = call_mysql_fetch_array($q)) {
+            $roles = json_decode($row['user_role'], true);
+            if (is_array($roles)) {
+                foreach ($roles as $r) {
+                    if (isset($roleCounts[$r])) {
+                        $roleCounts[$r]++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Filter output based on focus role
+    $filteredData = ($target_role && isset($roleCounts[$target_role]))
+        ? [$target_role => $roleCounts[$target_role]]
+        : array_filter($roleCounts, function($v) { return $v >= 0; });
+
+    $labelsOut = [];
+    $dataOut = [];
+    foreach ($filteredData as $id => $count) {
+        if (isset($roleLabels[$id])) {
+            $labelsOut[] = $roleLabels[$id];
+            $dataOut[] = $count;
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'labels'  => $labelsOut,
+        'data'    => $dataOut,
+        'raw'     => $filteredData, // Keep IDs for color matching
+    ]);
+    exit();
+}
+
+// Page header title
+$general_page_title = "Admin Dashboard";
+$page_header_title = $general_page_title;
+$header_breadcrumbs = [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <?php
-    include_once DOMAIN_PATH . '/global/meta_data.php'; ## meta
-    include_once DOMAIN_PATH . '/global/include_top.php'; ## links
+    include_once DOMAIN_PATH . '/global/meta_data.php';
+    include_once DOMAIN_PATH . '/global/include_top.php';
     ?>
+    <style>
+        .filter-bar .form-select { min-width: 150px; }
+        .stat-card { border-left: 5px solid #2563EB; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-label { font-size: 0.85rem; color: #64748b; font-weight: 600; }
+    </style>
 </head>
-
 <body>
     <div class="wrapper">
-        <?php
-        include_once DOMAIN_PATH . '/global/sidebar.php'; ## sidebar
-        ?>
+        <?php include_once DOMAIN_PATH . '/global/sidebar.php'; ?>
 
         <div class="main-panel">
-            <?php
-            include_once DOMAIN_PATH . '/global/header.php'; ## header
-            ?>
+            <?php include_once DOMAIN_PATH . '/global/header.php'; ?>
 
             <div class="container">
                 <div class="page-inner">
-                    <?php
-                    include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
-                    ?>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center text-white" style="background:#2563EB;">
+                                    <span class="fw-bold"><i class="fas fa-chart-bar me-2"></i> User Overview</span>
+                                    <button class="btn btn-light btn-sm" id="refreshBtn">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
 
-                    <div class="row">
-                        <div class="col-sm-6 col-md-3">
-                            <div class="card card-stats card-round">
                                 <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-icon">
-                                            <div
-                                                class="icon-big text-center icon-primary bubble-shadow-small">
-                                                <i class="fas fa-users"></i>
-                                            </div>
+                                    <div class="row g-3 mb-4 align-items-end">
+                                        <div class="col-auto">
+                                            <label class="form-label small fw-bold">Sex</label>
+                                            <select id="sexFilter" class="form-select form-select-sm">
+                                                <option value="">All</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
                                         </div>
-                                        <div class="col col-stats ms-3 ms-sm-0">
-                                            <div class="numbers">
-                                                <p class="card-category">Visitors</p>
-                                                <h4 class="card-title">1,294</h4>
-                                            </div>
+                                        <div class="col-auto">
+                                            <label class="form-label small fw-bold">Focus Role</label>
+                                            <select id="roleFocus" class="form-select form-select-sm">
+                                                <option value="">All Roles</option>
+                                                <option value="1">Admin</option>
+                                                <option value="2">Registrar</option>
+                                                <option value="3">Dean</option>
+                                                <option value="4">Faculty</option>
+                                                <option value="5">Student</option>
+                                            </select>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <div class="card card-stats card-round">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-icon">
-                                            <div
-                                                class="icon-big text-center icon-info bubble-shadow-small">
-                                                <i class="fas fa-user-check"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col col-stats ms-3 ms-sm-0">
-                                            <div class="numbers">
-                                                <p class="card-category">Subscribers</p>
-                                                <h4 class="card-title">1303</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <div class="card card-stats card-round">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-icon">
-                                            <div
-                                                class="icon-big text-center icon-success bubble-shadow-small">
-                                                <i class="fas fa-luggage-cart"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col col-stats ms-3 ms-sm-0">
-                                            <div class="numbers">
-                                                <p class="card-category">Sales</p>
-                                                <h4 class="card-title">$ 1,345</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <div class="card card-stats card-round">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-icon">
-                                            <div
-                                                class="icon-big text-center icon-secondary bubble-shadow-small">
-                                                <i class="far fa-check-circle"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col col-stats ms-3 ms-sm-0">
-                                            <div class="numbers">
-                                                <p class="card-category">Order</p>
-                                                <h4 class="card-title">576</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="card card-round">
-                                <div class="card-header">
-                                    <div class="card-head-row">
-                                        <div class="card-title">User Statistics</div>
-                                        <div class="card-tools">
-                                            <a
-                                                href="#"
-                                                class="btn btn-label-success btn-round btn-sm me-2">
-                                                <span class="btn-label">
-                                                    <i class="fa fa-pencil"></i>
-                                                </span>
-                                                Export
-                                            </a>
-                                            <a href="#" class="btn btn-label-info btn-round btn-sm">
-                                                <span class="btn-label">
-                                                    <i class="fa fa-print"></i>
-                                                </span>
-                                                Print
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-container" style="min-height: 375px">
-                                        <canvas id="statisticsChart"></canvas>
-                                    </div>
-                                    <div id="myChartLegend"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card card-primary card-round">
-                                <div class="card-header">
-                                    <div class="card-head-row">
-                                        <div class="card-title">Daily Sales</div>
-                                        <div class="card-tools">
-                                            <div class="dropdown">
-                                                <button
-                                                    class="btn btn-sm btn-label-light dropdown-toggle"
-                                                    type="button"
-                                                    id="dropdownMenuButton"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                    Export
-                                                </button>
-                                                <div
-                                                    class="dropdown-menu"
-                                                    aria-labelledby="dropdownMenuButton">
-                                                    <a class="dropdown-item" href="#">Action</a>
-                                                    <a class="dropdown-item" href="#">Another action</a>
-                                                    <a class="dropdown-item" href="#">Something else here</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-category">March 25 - April 02</div>
-                                </div>
-                                <div class="card-body pb-0">
-                                    <div class="mb-4 mt-2">
-                                        <h1>$4,578.58</h1>
-                                    </div>
-                                    <div class="pull-in">
-                                        <canvas id="dailySalesChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card card-round">
-                                <div class="card-body pb-0">
-                                    <div class="h1 fw-bold float-end text-primary">+5%</div>
-                                    <h2 class="mb-2">17</h2>
-                                    <p class="text-muted">Users online</p>
-                                    <div class="pull-in sparkline-fix">
-                                        <div id="lineChart"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card card-round">
-                                <div class="card-header">
-                                    <div class="card-head-row card-tools-still-right">
-                                        <h4 class="card-title">Users Geolocation</h4>
-                                        <div class="card-tools">
-                                            <button
-                                                class="btn btn-icon btn-link btn-primary btn-xs">
-                                                <span class="fa fa-angle-down"></span>
-                                            </button>
-                                            <button
-                                                class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card">
-                                                <span class="fa fa-sync-alt"></span>
-                                            </button>
-                                            <button
-                                                class="btn btn-icon btn-link btn-primary btn-xs">
-                                                <span class="fa fa-times"></span>
+                                        <div class="col-auto">
+                                            <button class="btn btn-sm btn-primary px-3" id="applyFilters">
+                                                Apply
                                             </button>
                                         </div>
                                     </div>
-                                    <p class="card-category">
-                                        Map of the distribution of users around the world
-                                    </p>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="table-responsive table-hover table-sales">
-                                                <table class="table">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/id.png"
-                                                                        alt="indonesia" />
-                                                                </div>
-                                                            </td>
-                                                            <td>Indonesia</td>
-                                                            <td class="text-end">2.320</td>
-                                                            <td class="text-end">42.18%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/us.png"
-                                                                        alt="united states" />
-                                                                </div>
-                                                            </td>
-                                                            <td>USA</td>
-                                                            <td class="text-end">240</td>
-                                                            <td class="text-end">4.36%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/au.png"
-                                                                        alt="australia" />
-                                                                </div>
-                                                            </td>
-                                                            <td>Australia</td>
-                                                            <td class="text-end">119</td>
-                                                            <td class="text-end">2.16%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/ru.png"
-                                                                        alt="russia" />
-                                                                </div>
-                                                            </td>
-                                                            <td>Russia</td>
-                                                            <td class="text-end">1.081</td>
-                                                            <td class="text-end">19.65%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/cn.png"
-                                                                        alt="china" />
-                                                                </div>
-                                                            </td>
-                                                            <td>China</td>
-                                                            <td class="text-end">1.100</td>
-                                                            <td class="text-end">20%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <div class="flag">
-                                                                    <img
-                                                                        src="../assets/dashboard/img/flags/br.png"
-                                                                        alt="brazil" />
-                                                                </div>
-                                                            </td>
-                                                            <td>Brasil</td>
-                                                            <td class="text-end">640</td>
-                                                            <td class="text-end">11.63%</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mapcontainer">
-                                                <div
-                                                    id="world-map"
-                                                    class="w-100"
-                                                    style="height: 300px"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card card-round">
-                                <div class="card-body">
-                                    <div class="card-head-row card-tools-still-right">
-                                        <div class="card-title">New Customers</div>
-                                        <div class="card-tools">
-                                            <div class="dropdown">
-                                                <button
-                                                    class="btn btn-icon btn-clean me-0"
-                                                    type="button"
-                                                    id="dropdownMenuButton"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                    <i class="fas fa-ellipsis-h"></i>
-                                                </button>
-                                                <div
-                                                    class="dropdown-menu"
-                                                    aria-labelledby="dropdownMenuButton">
-                                                    <a class="dropdown-item" href="#">Action</a>
-                                                    <a class="dropdown-item" href="#">Another action</a>
-                                                    <a class="dropdown-item" href="#">Something else here</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-list py-4">
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <img
-                                                    src="../assets/dashboard/img/jm_denis.jpg"
-                                                    alt="..."
-                                                    class="avatar-img rounded-circle" />
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Jimmy Denis</div>
-                                                <div class="status">Graphic Designer</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <span
-                                                    class="avatar-title rounded-circle border border-white">CF</span>
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Chandra Felix</div>
-                                                <div class="status">Sales Promotion</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <img
-                                                    src="../assets/dashboard/img/talha.jpg"
-                                                    alt="..."
-                                                    class="avatar-img rounded-circle" />
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Talha</div>
-                                                <div class="status">Front End Designer</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <img
-                                                    src="../assets/dashboard/img/chadengle.jpg"
-                                                    alt="..."
-                                                    class="avatar-img rounded-circle" />
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Chad</div>
-                                                <div class="status">CEO Zeleaf</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <span
-                                                    class="avatar-title rounded-circle border border-white bg-primary">H</span>
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Hizrian</div>
-                                                <div class="status">Web Designer</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                        <div class="item-list">
-                                            <div class="avatar">
-                                                <span
-                                                    class="avatar-title rounded-circle border border-white bg-secondary">F</span>
-                                            </div>
-                                            <div class="info-user ms-3">
-                                                <div class="username">Farrah</div>
-                                                <div class="status">Marketing</div>
-                                            </div>
-                                            <button class="btn btn-icon btn-link op-8 me-1">
-                                                <i class="far fa-envelope"></i>
-                                            </button>
-                                            <button class="btn btn-icon btn-link btn-danger op-8">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card card-round">
-                                <div class="card-header">
-                                    <div class="card-head-row card-tools-still-right">
-                                        <div class="card-title">Transaction History</div>
-                                        <div class="card-tools">
-                                            <div class="dropdown">
-                                                <button
-                                                    class="btn btn-icon btn-clean me-0"
-                                                    type="button"
-                                                    id="dropdownMenuButton"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                    <i class="fas fa-ellipsis-h"></i>
-                                                </button>
-                                                <div
-                                                    class="dropdown-menu"
-                                                    aria-labelledby="dropdownMenuButton">
-                                                    <a class="dropdown-item" href="#">Action</a>
-                                                    <a class="dropdown-item" href="#">Another action</a>
-                                                    <a class="dropdown-item" href="#">Something else here</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <!-- Projects table -->
-                                        <table class="table align-items-center mb-0">
-                                            <thead class="thead-light">
-                                                <tr>
-                                                    <th scope="col">Payment Number</th>
-                                                    <th scope="col" class="text-end">Date & Time</th>
-                                                    <th scope="col" class="text-end">Amount</th>
-                                                    <th scope="col" class="text-end">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <button
-                                                            class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                            <i class="fa fa-check"></i>
-                                                        </button>
-                                                        Payment from #10231
-                                                    </th>
-                                                    <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                                    <td class="text-end">$250.00</td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-success">Completed</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+
+                                    <div class="row g-3 mb-4" id="statCards"></div>
+
+                                    <div style="position: relative; height:300px;">
+                                        <canvas id="usersChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -611,18 +151,93 @@ if (!($g_user_role == "ADMIN")) {
                 </div>
             </div>
 
-            <?php
-            include_once DOMAIN_PATH . '/global/footer.php'; ## footer
-            ?>
+            <?php include_once DOMAIN_PATH . '/global/footer.php'; ?>
         </div>
     </div>
+
+    <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        (function() {
+            const ctx = document.getElementById('usersChart').getContext('2d');
+            const colors = {
+                1: '#10b981', // Admin - Green
+                2: '#3b82f6', // Registrar - Blue
+                3: '#8b5cf6', // Dean - Purple
+                4: '#f59e0b', // Faculty - Orange
+                5: '#06b6d4'  // Student - Cyan
+            };
+            const roleLabels = { 1: 'Admin', 2: 'Registrar', 3: 'Dean', 4: 'Faculty', 5: 'Student' };
+
+            let chartRef = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+
+            function fetchStats() {
+                const sex = document.getElementById('sexFilter').value;
+                const roleFocus = document.getElementById('roleFocus').value;
+                
+                const params = new URLSearchParams({ action: 'fetch_stats' });
+                if (sex) params.append('sex', sex);
+                if (roleFocus) params.append('target_role', roleFocus);
+
+                fetch('main_admin.php?' + params.toString())
+                    .then(r => r.json())
+                    .then(res => {
+                        if (!res.success) return;
+
+                        // Update Chart
+                        chartRef.data.labels = res.labels;
+                        chartRef.data.datasets[0].data = res.data;
+                        
+                        // Map colors based on the raw IDs returned
+                        chartRef.data.datasets[0].backgroundColor = Object.keys(res.raw).map(id => colors[id] || '#cbd5e1');
+                        chartRef.update();
+
+                        // Update Cards
+                        renderCards(res.raw);
+                    });
+            }
+
+            function renderCards(raw) {
+                const container = document.getElementById('statCards');
+                container.innerHTML = '';
+                
+                Object.keys(raw).forEach(id => {
+                    if (raw[id] === 0 && document.getElementById('roleFocus').value === "") return; // Hide empty cards in "All" view
+                    
+                    const card = document.createElement('div');
+                    card.className = 'col-6 col-md-2';
+                    card.innerHTML = `
+                        <div class="card stat-card shadow-sm mb-0" style="border-left-color:${colors[id]}">
+                            <div class="card-body p-3 text-center">
+                                <div class="stat-label mb-1">${roleLabels[id] || 'Unknown'}</div>
+                                <div class="h4 mb-0 fw-bold" style="color:${colors[id]}">${raw[id]}</div>
+                            </div>
+                        </div>`;
+                    container.appendChild(card);
+                });
+            }
+
+            document.getElementById('applyFilters').addEventListener('click', fetchStats);
+            document.getElementById('refreshBtn').addEventListener('click', fetchStats);
+            fetchStats(); // Initial load
+        })();
+    </script>
 </body>
-
-<?php
-include_once DOMAIN_PATH . '/global/include_bottom.php'; ## sidebar
-?>
-
-<script>
-</script>
-
 </html>

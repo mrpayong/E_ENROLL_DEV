@@ -10,6 +10,7 @@
  Description : include all JS and OTHER SCRIPTS (FOR ADMINS UI).
  =================================================================
  **/
+include_once DOMAIN_PATH . '/global/fiscal_year_modal.php';
 ?>
 <!-- FONTS AND ICON JS Files -->
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/dashboard/js/plugin/webfont/webfont.min.js?v=<?php echo FILE_VERSION; ?>"></script>
@@ -31,6 +32,11 @@
             sessionStorage.fonts = true;
         },
     });
+</script>
+
+<script>
+    window.appConfig = window.appConfig || {};
+    window.appConfig.baseUrl = <?php echo json_encode(BASE_URL); ?>;
 </script>
 
 <!-- BOOTSRAP JS Files -->
@@ -66,6 +72,8 @@
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/dashboard/js/plugin/jsvectormap/jsvectormap.min.js?v=<?php echo FILE_VERSION; ?>"></script>
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/dashboard/js/plugin/jsvectormap/world.js?v=<?php echo FILE_VERSION; ?>"></script>
 <script type="text/javascript" src="<?php echo BASE_URL; ?>assets/dashboard/js/plugin/sweetalert/sweetalert.min.js?v=<?php echo FILE_VERSION; ?>"></script>
+
+<script type="text/javascript" src="<?php echo BASE_URL; ?>assets/js/fiscal_year.js?v=<?php echo FILE_VERSION; ?>"></script>
 
 <!-- SCRIPTS -->
 <script>

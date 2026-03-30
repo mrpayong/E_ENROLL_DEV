@@ -146,7 +146,10 @@ if($fetchSql = call_mysql_query($sql)){
                                         <p class="text-secondary">For this semester only</p>
                                     </div>
                                 </div>
-
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-md btn-primary">Submit</button>
+                                <button type="button" class="btn btn-md btn-danger" data-bs-dismiss="modal">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -165,6 +168,23 @@ if($fetchSql = call_mysql_query($sql)){
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script>
 (function(){
+    function loadingAPIrequest(status){
+        if(status === true){
+            swal({
+                title: "Loading",
+                icon: 'info',
+                text: "Please wait",
+                buttons:false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
+            });
+        }
+        if(status === false){
+            swal.close();
+        }
+
+    }
+
     const actionButtons = function(cell){
         const student_id = cell.getRow().getData().student_id;
         const stnd_class = cell.getRow().getData().student_classification;
@@ -265,12 +285,21 @@ if($fetchSql = call_mysql_query($sql)){
                 field: "earned_units_sem",
                 headerFilter:"input",
                 hozAlign: "center",
+                formatter: function(cell){
+                    const data = cell.getValue();
+                    return data !== null ? data : "No grade yet";
+                }
             },
             {
                 title:"Required Units", 
                 field: "required_units_sem",
                 headerFilter:"input",
                 hozAlign: "center",
+                formatter: function(cell){
+                    const data = cell.getValue();
+                    console.log('req uints', data)
+                    return data !== null ? data : "No assigned curriculum yet";
+                }
             },
             {
                 title:"Student Classification", 
@@ -302,7 +331,7 @@ if($fetchSql = call_mysql_query($sql)){
             if ($sy[0].selectize) $sy[0].selectize.destroy();
 
             $sy.empty();
-            $sy.append('<option value="" disabled>Select Fiscal Year</option>');
+            $sy.append('<option value="">Select Fiscal Year</option>');
             let defaultId = null;
 
             res.data.forEach(function(row) {
@@ -373,22 +402,21 @@ if($fetchSql = call_mysql_query($sql)){
         });
     });
 
-    let student_id = "";
+    let student_id_no = "";
     let yr_level = "";
-
-    function underOverLoad(dataMod){
-        console.log(dataMod)
-        if(dataMod !== null){
-            swal({
-                title: "Student Study Load",
-                text: "Should this student be underload or overload?",
-                buttons: {
-                    cancel: "Cancel",
-                    under: { text: "Underload", value: "under" },
-                    over: { text: "Overload", value: "over" }
-                }
-            })
-        }
+    let load_flag = "";
+    let sy_id = "";
+    let curr_id = "";
+    function underOverLoad(){
+        return swal({
+            title: "Student Study Load",
+            text: "Should this student be underload or overload?",
+            buttons: {
+                cancel: "Cancel",
+                under: { text: "Underload", value: "under" },
+                over: { text: "Overload", value: "over" }
+            }
+        })
     }
 
     document.querySelector('#enrollTable').addEventListener('click', function(e){
@@ -417,28 +445,133 @@ if($fetchSql = call_mysql_query($sql)){
             const row = enrollTable.getRows().find(r => r.getData().student_id == btn_id);
 
             const rowData = row.getData();
+            console.log('row: ', rowData);
 
-            underOverload(btn_id);
+            underOverLoad().then(function(loadStatus){
+                if(loadStatus === "over"){
+                    student_id_no = rowData.student_id_no;
+                    yr_level = rowData.year_level;
+                    load_flag = 0;
+                    sy_id = rowData.school_year_id;
+                    curr_id = rowData.curriculum_id;
+                    document.getElementById('addUnitLabel').textContent = `${rowData.name}`;
+                    document.getElementById('required_units').value = Number(rowData.required_units_sem)
+                    $('#addUnitsModal').modal('show');
+                }
+                if(loadStatus === "under"){
+                    student_id_no = rowData.student_id_no;
+                    yr_level = rowData.year_level;
+                    load_flag = 0;
+                    sy_id = rowData.school_year_id;
+                    curr_id = rowData.curriculum_id;
+                }
+            });
             return;
 
-            document.getElementById('addUnitLabel').textContent = `${rowData.name}`;
-            document.getElementById('required_units').value = Number(rowData.required_units_sem)
-            $('#addUnitsModal').modal('show');
+
         }
     })
 
 
-    // $('#AddUnitsForm').on('submit', function(e){
-    //     e.preventDefault();
-    //     const formData = jQuery("#AddUnitsForm").serializeArray();
+    $('#AddUnitsForm').on('submit', function(e){
+        e.preventDefault();
+        const formData = jQuery("#AddUnitsForm").serializeArray();
 
-    //     const newData = [
-    //         {
-    //             name: "student_id_no",
-    //             value:
-    //         }
-    //     ]
-    // })
+        const newData = [
+            {
+                name: "submitAddUnits",
+                value: "createUnits"
+            },
+            {
+                name: "student_id_no",
+                value: student_id_no
+            },
+            {
+                name: "yr_lvl",
+                value: yr_level
+            },
+            {
+                name: "load_flag",
+                value: load_flag
+            },
+            {
+                name: "school_year_id",
+                value: sy_id
+            },
+            {
+                name: "curriculum_id",
+                value: curr_id
+            }
+        ];
+        
+        const postData = formData.concat(newData);
+        $.ajax({
+            url:"<?php echo BASE_URL; ?>registrar/actions/enroll_process.php",
+            method: "POST",
+            data: postData,
+            dataType: "json",
+            beforeSend: loadingAPIrequest(true),
+            complete: loadingAPIrequest(false),
+            success: function(data){
+                if(data){
+                    if(data.code === 200 && data.msg_status === true){
+                        swal({
+                            title: "Success",
+                            icon: "success",
+                            text: data.msg_response,
+                            button:false,
+                            timer: 2000
+                        }).then(function(){
+                            $('#addUnitsModal').modal('hide');
+                            $('#AddUnitsForm')[0].reset();
+                            enrollTable.setData();
+                        })
+                    }
+                    if(data.code === 501 && data.msg_status === false){
+                        swal({
+                            title: "Failed to add units.",
+                            icon: "error",
+                            text: data.msg_response,
+                            button:true,
+                        })
+                    }
+                    if(data.code === 502 && data.msg_status === false){
+                        swal({
+                            title: "Failed to add units.",
+                            icon: "error",
+                            text: data.msg_response,
+                            button:true,
+                        })
+                    }
+                    if(data.code === 503 && data.msg_status === false){
+                        swal({
+                            title: "Failed to add units.",
+                            icon: "error",
+                            text: data.msg_response,
+                            button:true,
+                        })
+                    }
+                    if(data.code === 500 && data.msg_status === false){
+                        swal({
+                            title: "Failed to add units.",
+                            icon: "error",
+                            text: data.msg_response,
+                            button:true,
+                        })
+                    }
+                }
+            },
+            error: function(xhr, status, error){
+                swal.close();
+                swal({
+                    title: "Error",
+                    icon: "error",
+                    text: "Network/Server error occured",
+                    button:true
+                })
+            }
+        })
+    })
 })();
 </script>
 </html>

@@ -322,7 +322,7 @@ try {
                 );
                 $subjects = [];
                 while($fetchSched = call_mysql_fetch_array($result_sched)){
-                    var_dump($fetchSched);
+                    // var_dump($fetchSched);
                     $existingScheds = json_decode($fetchSched['schedule']);
                     $all_scheds['subject_id'] = trim($fetchSched['subject_id']);
                     foreach($existingScheds as $stored){

@@ -12,7 +12,8 @@ if (!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_RE
     include HTTP_401;
     exit();
 }
-
+$coin = "hil".$g_user_role."ary#"."?#prospectus".date('Ymd')."'7/19";
+define('COIN', $coin);
 if (!($g_user_role == "REGISTRAR")) {
     header("Location: " . BASE_URL);
     exit();

@@ -11,8 +11,6 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -35,7 +33,7 @@ if (!($g_user_role == "REGISTRAR")) {
             <div id="main" class="container">
                 <div class="row mx-4 m-4 flex justify-content-center card">
                     <header class="card-header bg-primary border-bottom-0 pb-0">
-                        <h2 class=" text-black fw-semibold fs-5">Annual Enrolled Students(still dummy)</h2>
+                        <h2 class=" text-black fw-semibold fs-5">Annual Enrolled Students</h2>
                     </header>
                     <div class="pt-2">
                         <canvas id="enrollmentAreaChart"></canvas>

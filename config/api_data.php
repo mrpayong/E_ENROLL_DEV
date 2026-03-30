@@ -1,5 +1,4 @@
 <?php
-
 $api_url =  api_base_url();
 define('API_BASE_URL', $api_url);
 define('SYSTEM_ACCES', '');
@@ -7,8 +6,6 @@ define('PUBLIC_KEY', 'e33ca47d44db3c2eccb71503eb777cfaf4408486e7603d41921a439a74
 define('SECRET_KEY', 'L1RMU3o2Vm5UcVRpZEVBRXBKY05MczFmUVRoWDNwUXBYZ29MWTRhaW9wbUErbVB4MWFNaFQ2UlpqbzhOZjBHM3VUZDRLVi8vRW9pdXNQclBINHYrSlhOcEVOaHUwMEwwTmtORTNzL09jNnc9OjqNtDI_PLUS_EWX2_SLASH_l6CF0G65qWs');
 define('JWT_ALG', 'HS256');
 define('API_URL_LOGIN', API_BASE_URL . 'auth-file/login-user.php'); // login, locked, reset password
-$coin = "hil".$g_user_role."ary#"."?#prospectus".date('Ymd')."'7/19";
-define('COIN', $coin);
 
 function curl_request($url, $system_access, $jwt_data)
 {

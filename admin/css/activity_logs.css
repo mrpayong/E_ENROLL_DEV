@@ -1,0 +1,14 @@
+.log-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+#registrar-log-table {
+    font-size: 0.9rem;
+}
+
+#admin-log-table,
+#dean-log-table,
+#user-log-table {
+	font-size: 0.9rem;
+}

@@ -18,35 +18,6 @@ if (!($g_user_role == "REGISTRAR")) {
     exit();
 }
 
-## table
-$table_array = array();
-$select = "SELECT user_id,general_id,f_name,m_name,l_name,suffix,birth_date,sex,user_role as roles,username,email_address,position,status,locked 
-FROM users WHERE user_id = '".      escape($db_connect, $s_user_id)     ."'";
-if ($query = call_mysql_query($select)) {
-    if ($num = mysqli_num_rows($query)) {
-        while ($data = call_mysql_fetch_array($query)) {
-            $data['name'] = get_full_name($data['f_name'],$data['m_name'],$data['l_name'],$data['suffix']);
-
-            $user_roles = [];
-            foreach (json_decode($data['roles']) as $role) {
-                if (isset(SYSTEM_ACCESS['E-ENROLL']['role'][$role])) {
-                    $user_roles[] = SYSTEM_ACCESS['E-ENROLL']['role'][$role];
-                }
-            }
-            $data['user_role'] = !empty($user_roles) ? implode(', ', $user_roles) : '';
-
-            if ($data['status'] == 1) {
-                $data['account_status'] = 'Deactivated';
-            } elseif ($data['locked'] == 1) {
-                $data['account_status'] = 'Locked';
-            } elseif ($data['status'] == 0 && $data['locked'] == 0) {
-                $data['account_status'] = 'Active';
-            }
-            array_push($table_array, $data);
-        }
-    }
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-100">
@@ -56,8 +27,6 @@ if ($query = call_mysql_query($select)) {
     include_once DOMAIN_PATH . '/global/meta_data.php';
     include_once DOMAIN_PATH . '/global/include_top.php';
     ?>
-
-
 </head>
 <style>
 .selectize-control.single .selectize-input {

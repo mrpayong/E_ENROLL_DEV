@@ -84,13 +84,13 @@ $json_table = output($table_array);
                                         <!-- <div class="card-title">User Management</div> -->
                                         <!-- remove if not needed -->
                                         <div class="card-tools">
-                                            <a href="#" class="btn btn-label-success btn-round btn-sm me-2">
+                                            <a href="#" id="toolbar-export" class="btn btn-label-success btn-round btn-sm me-2">
                                                 <span class="btn-label">
                                                     <i class="fa fa-pencil"></i>
                                                 </span>
                                                 Export
                                             </a>
-                                            <a href="#" class="btn btn-label-info btn-round btn-sm">
+                                            <a href="#" id="toolbar-print" class="btn btn-label-info btn-round btn-sm">
                                                 <span class="btn-label">
                                                     <i class="fa fa-print"></i>
                                                 </span>
@@ -268,20 +268,43 @@ include_once DOMAIN_PATH . '/global/include_bottom.php'; ## sidebar
             ],
         });
 
-        addListener(document.getElementById('download-csv'), "click", function() {
+        addListener(document.getElementById('download-csv'), "click", function(e) {
+            if (e && e.preventDefault) e.preventDefault();
             table.download("csv", "list_" + getFormattedTime() + ".csv", {
                 bom: true
             });
         });
-        addListener(document.getElementById('download-json'), "click", function() {
+        addListener(document.getElementById('download-json'), "click", function(e) {
+            if (e && e.preventDefault) e.preventDefault();
             table.download("json", "list_" + getFormattedTime() + ".json");
         });
-        addListener(document.getElementById('download-xlsx'), "click", function() {
+        addListener(document.getElementById('download-xlsx'), "click", function(e) {
+            if (e && e.preventDefault) e.preventDefault();
             table.download("xlsx", "list_" + getFormattedTime() + ".xlsx");
         });
-        addListener(document.getElementById('print-table'), "click", function() {
+        addListener(document.getElementById('print-table'), "click", function(e) {
+            if (e && e.preventDefault) e.preventDefault();
             table.print(false, true);
         });
+
+        // Top-right toolbar buttons: Export (CSV for Excel) and Print
+        var toolbarExport = document.getElementById('toolbar-export');
+        if (toolbarExport) {
+            addListener(toolbarExport, "click", function(e) {
+                if (e && e.preventDefault) e.preventDefault();
+                table.download("csv", "list_" + getFormattedTime() + ".csv", {
+                    bom: true
+                });
+            });
+        }
+
+        var toolbarPrint = document.getElementById('toolbar-print');
+        if (toolbarPrint) {
+            addListener(toolbarPrint, "click", function(e) {
+                if (e && e.preventDefault) e.preventDefault();
+                table.print(false, true);
+            });
+        }
 
     })();
 </script>
