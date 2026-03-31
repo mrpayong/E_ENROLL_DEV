@@ -277,3 +277,6 @@ ALTER TABLE `modify_units_students` CHANGE `mus_key` `mus_key` INT(100) NOT NULL
 -- mar 30, 2026
 ALTER TABLE `subject` ADD `limit` INT(50) NOT NULL DEFAULT '0' AFTER `description`;
 ALTER TABLE `class_section` ADD `school_year_id` INT(50) NOT NULL AFTER `program_id`;
+
+-- mar 31, 2026
+ALTER TABLE `class_section` ADD `year_level` INT(50) NOT NULL AFTER `program_id`;

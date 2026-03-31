@@ -24,11 +24,11 @@ $table_name = "subject as S";
 
 $dbfield = [
     's.subject_id', 's.subject_code', 's.subject_title',
-    's.unit', 's.status', 's.date_modified', 's.lec_lab', 's.flag_manual_enroll'
+    's.unit', 's.status', 's.date_modified', 's.lec_lab', 's.flag_manual_enroll', 's.limit'
 ];
 $dborig = [
     'subject_id', 'subject_code', 'subject_title',
-    'unit', 'status', 'date_modified'
+    'unit', 'status', 'date_modified', 'limit'
 ];
 
 // Filtering
@@ -125,6 +125,7 @@ if ($query = call_mysql_query($data_query)) {
         while ($data = call_mysql_fetch_array($query)) {
             $data = array_html($data);
             $data['subject_id'] = (int)$data['subject_id'];
+            $data['limit'] = (int)$data['limit'];
 
             $lec_labArr = json_decode(html_entity_decode($data['lec_lab']));
             $data['lec'] = $lec_labArr[$lec];

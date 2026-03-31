@@ -72,9 +72,9 @@ if (!($g_user_role == "REGISTRAR")) {
                                     <h5 class="modal-title fw-6 fw-bolder" id="updateLabel" autocomplete="off"></h5>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <div action="" class="modal-body">
-                                    <label for="" class="form-label fw-bold">Course Limit</label>
-                                    <input type="number" name="" id="limit_course" class="form-control">
+                                <div class="modal-body">
+                                    <label for="limit_course" class="form-label fw-bold">Course Limit</label>
+                                    <input type="number" name="limit_course" id="limit_course" class="form-control">
                                 </div>
 
                                 <div class="modal-footer">
@@ -211,6 +211,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         : limitData === 1
                             ? `${limitData} Unit`
                             : 'No unit';
+                }
+            },
+            {
+                title: "Course limit",
+                field: "limit",
+                headerFilter: "input",
+                hozAlign: "center",
+                headerHozAlign: "center",
+                formatter: function(cell){
+                    const limit = cell.getValue();
+                    return `${limit} Students`;
                 }
             },
             {
@@ -483,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     })
 
-
+    let courseId = "";
     document.querySelector('#courseTable').addEventListener('click', function(e){
         e.preventDefault();
         const update = e.target.closest('.update-course');
@@ -495,6 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('row: ', rowData);
 
             document.getElementById('updateLabel').textContent = `${rowData.subject_code} — ${rowData.subject_title}`
+            courseId = rowData.subject_id;
             $('#updateCourse').modal('show');
         }
     })
@@ -503,14 +515,93 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
 
         const formData = jQuery('#updateForm').serializeArray();
-        const newData = [{
-            name: "submitCourse",
-            value: "updateCourse"
-        }]
+        const newData = [
+            {
+                name: "submitCourse",
+                value: "updateCourse"
+            },
+            {
+                name:"editId",
+                value: courseId
+            }
+        ]
 
         const postData = formData.concat(newData);
 
         console.log('form: ', postData)
+        $.ajax({
+            url: "<?php echo BASE_URL; ?>registrar/actions/course_process.php",
+            method: "POST",
+            data: postData,
+            dataType: "json",
+            beforeSend: loadingAPIrequest(true),
+            complete: loadingAPIrequest(false),
+            success: function(data){
+                if(data){
+                    if(data.msg_status === true && data.code === 200){
+                        swal({
+                            icon: "success",
+                            title: "Course updated!",
+                            text: "Course has been updated.",
+                            timer: 3000,
+                            button: false
+                        }).then(function(){
+                            $('#updateCourse').modal('hide');
+                            $('#updateForm')[0].reset();
+                            courseTable.setData();
+                        })
+                    }
+                    if(data.msg_status === false && data.code === 501){
+                        swal({
+                            icon: "error",
+                            title: "Failed to update course.",
+                            text: data.msg_response,
+                            button: true
+                        })
+                    }
+                    if(data.msg_status === false && data.code === 502){
+                        swal({
+                            icon: "error",
+                            title: "Failed to update course.",
+                            text: data.msg_response,
+                            button: true
+                        })
+                    }
+                    if(data.msg_status === false && data.code === 500){
+                        swal({
+                            icon: "error",
+                            title: "Failed to update course.",
+                            text: data.msg_response,
+                            button: true
+                        })
+                    }
+                    if(data.msg_status === false && data.code === 404){
+                        swal({
+                            icon: "error",
+                            title: "Failed to update course.",
+                            text: data.msg_response,
+                            button: true
+                        })
+                    }
+                    if(data.msg_status === false && data.code === 400){
+                        swal({
+                            icon: "error",
+                            title: "Failed to update course.",
+                            text: data.msg_response,
+                            button: true
+                        })
+                    }
+                }
+            },
+            error: function(){
+                swal({
+                    icon: "error",
+                    title: "Error",
+                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
+                    button: true
+                })
+            }
+        })
     });
 
 

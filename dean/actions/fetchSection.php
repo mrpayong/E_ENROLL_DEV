@@ -28,13 +28,15 @@ $dbfield = [
     'cs.sem_limit',
     'p.program_id',
     'p.short_name',
+    'year_level'
 ];
 $dborig = [
     'class_id',
     'class_name',
     'sem_limit',
     'short_name',
-    'date_modified'
+    'date_modified',
+    'year_level'
 ];
 
 $left = "
@@ -155,7 +157,8 @@ if ($query = call_mysql_query($data_query)) {
                     'school_year_id' => $assoc_sy_id,
                     'sem_limit' => $limit_value,
                     'is_default' => $is_default,
-                    'date_modified' => $data['date_modified']
+                    'date_modified' => $data['date_modified'],
+                    'year_level' => intVal($data['year_level'])
                 ];
             }
             

@@ -95,8 +95,15 @@ if (!($g_user_role == "DEAN")) {
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="section_limit" class="form-label">Section Limit</label>
-                                    <input type="number" class="form-control" id="section_limit" name="section_limit" required>
+                                    <label for="yr_lvl" class="form-label">Year Level</label>
+                                    <select name="yr_lvl" id="yr_lvl" class="form-select">
+                                        <option disabled selected>Select Year Level</option>
+                                        <option value="1">1st Year</option>
+                                        <option value="2">2nd Year</option>
+                                        <option value="3">3rd Year</option>
+                                        <option value="4">4th Year</option>
+                                        <option value="5">5th Year</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -128,8 +135,15 @@ if (!($g_user_role == "DEAN")) {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="newLimit" class="form-label">Section Limit (for this section only)</label>
-                                    <input type="number" class="form-control" id="newLimit" name="newLimit" required>
+                                    <label for="new_yr_lvl" class="form-label">Year Level</label>
+                                    <select name="new_yr_lvl" id="new_yr_lvl" class="form-select">
+                                        <option disabled selected>Select Year Level</option>
+                                        <option value="1">1st Year</option>
+                                        <option value="2">2nd Year</option>
+                                        <option value="3">3rd Year</option>
+                                        <option value="4">4th Year</option>
+                                        <option value="5">5th Year</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -176,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button data-id="${row.class_id}" class="btn btn-sm btn-primary me-2 edit-section-btn fs-6" title="Edit"><i class="bi bi-pencil"></i> Update Section</button>
         `;
     }
-
+    let sy_id;
     (function populateSYDropdown() {
         $.ajax({
             url: "<?php echo BASE_URL; ?>dean/actions/fetchSemesterForForm.php",
@@ -186,7 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(response && response.data) {
                     const $syDropdown = $('#syDropdown');
                     $syDropdown.empty();
-                    $syDropdown.append('<option value="0">Default School Year/Sem</option>');
                     response.data.forEach(function(item) {
                         $syDropdown.append(
                             $('<option>', {
@@ -200,27 +213,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         create: false,
                         sortField: 'text'
                     });
+
+                    const selectize = $syDropdown[0].selectize;
+                    const defaultItem = response.data.find(item => Number(item.isDefault) === 1);
+                    if (defaultItem) {
+                        selectize.setValue(String(defaultItem.school_year_id), true);
+
+                        sectionTable.setData("<?php echo BASE_URL; ?>dean/actions/fetchSection.php", {
+                            school_year_id: defaultItem.school_year_id
+                        });
+                        sy_id = defaultItem.school_year_id;
+                        $('#createSectionBtn').prop('disabled', false);
+                    }
                 }
             }
         });
     })();
 
-    let sy_id;
+    
     document.getElementById('generateBtn').addEventListener('click', function() {
         // Get Selectize value
         const selectize = $('#syDropdown')[0].selectize;
         const schoolYearId = selectize.getValue();
 
         sy_id = schoolYearId;
-        if(schoolYearId !== undefined || schoolYearId !== null){
-            $('#createSectionBtn').prop('disabled', false);
-        }
 
         // Reload the Tabulator table with the selected school_year_id as a parameter
         sectionTable.setData("<?php echo BASE_URL; ?>dean/actions/fetchSection.php", {
             school_year_id: schoolYearId
         });
     });
+
 
 
     const sectionTable = new Tabulator("#sectionTable", {
@@ -286,6 +309,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 headerFilter: "input",
                 hozAlign: "center",
                 headerHozAlign: "center"
+            },
+            {
+                title: "Year Level",
+                field: "year_level",
+                headerFilter: "input",
+                hozAlign: "center",
+                headerHozAlign: "center",
+                formatter: function(cell){
+                    const year = Number(cell.getValue());
+                    switch (year) {
+                        case 1: return '1st Year';
+                        case 2: return '2nd Year';
+                        case 3: return '3rd Year';
+                        case 4: return '4th Year';
+                        case 5: return '5th Year';
+                        default: return year ? String(year) : '';
+                    }
+                }
             },
             {
                 title: "Last Updated",
@@ -414,6 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             $('#sectionFormModal').modal('hide');
                             $('#sectionForm')[0].reset();
                             sectionTable.setData();
+                            populateProgramDropdown("#program");
                         })
                     }
                     if(data.status === false && data.code === 502){
@@ -468,9 +510,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             editId = rowData.class_id;
             document.getElementById('newSectionName').value = rowData.class_name;
-            document.getElementById('newLimit').value = rowData.sem_limit;
             populateProgramDropdown("#newProgram", rowData.program_id);
-            document.getElementById('editSectionFormLabel').textContent = `Edit ${rowData.class_name}`
+            document.getElementById('new_yr_lvl').value = rowData.year_level;
+            document.getElementById('editSectionFormLabel').textContent = `Update ${rowData.class_name}`
             $("#editSectionFormModal").modal('show');
         }
     })
@@ -492,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 value: editId
             },
             {
-                name: "school_year_id",
+                name: 'school_year_id',
                 value: sy_id
             }
         ]
