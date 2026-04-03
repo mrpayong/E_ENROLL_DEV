@@ -346,6 +346,13 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
+                    <li class="nav-item <?php echo navigation_active("course_dean"); ?>">
+                        <a href="<?php echo BASE_URL; ?>dean/course_dean.php">
+                            <i class="fas fa-th"></i>
+                            <span>Course</span>
+                        </a>
+                    </li>
+
                 <?php } ?>
             </ul>
         </div>

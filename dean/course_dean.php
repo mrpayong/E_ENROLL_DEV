@@ -50,11 +50,11 @@ if (!($g_user_role == "DEAN")) {
 
                                             <div class="d-flex flex-row gap-1 align-items-center">
                                                 <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createCourseBtn" style="background:#173ea5;">
-                                                    <i class="fas fa-plus"></i> Create course
+                                                    <i class="fas fa-plus-circle"></i> Create course
                                                 </button>
 
                                                 <button class="btn btn-light fw-semibold px-4 py-2 rounded-3" id="bulkAdd" style="background:#173ea5;">
-                                                    <i class="fas fa-cloud-upload-alt"></i> Add Bulk Course
+                                                    <i class="fas fa-upload"></i> Upload Courses
                                                 </button>
                                             </div>
 
@@ -154,7 +154,7 @@ if (!($g_user_role == "DEAN")) {
                             <form class="modal-content" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
                                     <label id="bulkLabel" class="modal-title">
-                                        Bulk Upload
+                                        Upload Courses
                                     </label>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>

@@ -61,10 +61,17 @@ if (!($g_user_role == "DEAN")) {
                         <section class="card shadow-sm  p-0">
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                 <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Section Table</h1>
-                                <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
-                                id="createSectionBtn" style="background:#173ea5;" disabled>
-                                    <i class="bi bi-plus-lg"></i> Create Section
-                                </button>
+                                <div class="d-flex flex-row align-items-center gap-2">
+                                    <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
+                                    id="createSectionBtn" style="background:#173ea5;" disabled>
+                                        <i class="fas fa-plus-circle"></i> Create Section
+                                    </button>
+                                    <button class="btn btn-light fw-semibold px-4 py-2 rounded-3" 
+                                    id="bulkAdd" style="background:#173ea5;">
+                                        <i class="fas fa-upload"></i> Upload Sections
+                                    </button>
+                                </div>
+
                             </header>
                             <div class="table-responsive p-2" style="min-height: 40rem;">
                                 <div class="table-bordered" id="sectionTable"></div>
@@ -153,6 +160,33 @@ if (!($g_user_role == "DEAN")) {
                         </form>
                     </div>
                 </div>
+
+                <!-- bulk add -->
+                <div class="modal fade" id="bulkModal" tabindex="-1" aria-labelledby="bulkLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form class="modal-content" autocomplete="off">
+                            <div class="modal-header bg-primary text-white py-2">
+                                <label id="bulkLabel" class="modal-title">
+                                    Upload Sections
+                                </label>
+                                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="d-flex flex-row align-items-center justify-content-between">
+                                    <a href="<?php echo BASE_URL; ?>dean/download.php?attach=IMP_BLK_SCT" class="mb-2" target="_blank"><i class="fas fa-download"></i>&ensp;Download Section CSV Template</a>
+                                    <a href="#" class="mb-2"><i class="fas fa-list"></i>&ensp;View Upload Logs</a>
+                                </div>
+                                <input type="file" name="" id="file_courses" class="bulk_dropify" required>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                                <button type="button" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                
             </div>
         </div>
         <?php include_once FOOTER_PATH; ?>
@@ -288,20 +322,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 hozAlign: "center",
                 headerHozAlign: "center",
             },
+            // {
+            //     title: "Section Limit per Sem",
+            //     field: "sem_limit",
+            //     headerFilter: "input",
+            //     hozAlign: "center",
+            //     headerHozAlign: "center",
+            //     formatter: function(cell){
+            //         const rowData = cell.getRow().getData();
+            //         const row = cell.getValue();
+
+            //         return rowData.is_default === true
+            //             ? `${row} Students <span class="badge bg-warning">Default</span>` 
+            //             : `${row} Students`;
+            //     }
+            // },
             {
-                title: "Section Limit per Sem",
-                field: "sem_limit",
-                headerFilter: "input",
-                hozAlign: "center",
+                title: "Section Limit",
+                field: "sec_limit",
+                headerFilter: 'input',
+                hozAlign: 'center',
                 headerHozAlign: "center",
                 formatter: function(cell){
-                    const rowData = cell.getRow().getData();
-                    const row = cell.getValue();
-
-                    return rowData.is_default === true
-                        ? `${row} Students <span class="badge bg-warning">Default</span>` 
-                        : `${row} Students`;
+                    const limit = cell.getValue();
+                    return `${limit} Students`;
                 }
+            },
+            {
+                title: "Fiscal Year",
+                field: "fiscal",
+                headerFilter: 'input',
+                hozAlign: 'center',
+                headerHozAlign: "center",
             },
             {
                 title: "Program Code",
@@ -617,6 +669,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
     })
+
+    document.getElementById('bulkAdd').addEventListener('click', function(e){
+        e.preventDefault();
+
+        $('#bulkModal').modal('show');
+    })
+
+    $('.bulk_dropify').dropify({
+        messages: {
+            'default': 'Drag and drop your CSV file here.',
+            'replace': 'Drag and drop, or click to replace.',
+            'remove': 'Remove',
+            'error': 'Ooops, something wrong happended.'
+        }
+    });
 })
 
 

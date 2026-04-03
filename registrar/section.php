@@ -61,10 +61,10 @@ if (!($g_user_role == "REGISTRAR")) {
                         <section class="card shadow-sm  p-0">
                             <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                 <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Section Table</h1>
-                                <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
+                                <!-- <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" 
                                 id="createSectionBtn" style="background:#173ea5;" disabled>
                                     <i class="bi bi-plus-lg"></i> Create Section
-                                </button>
+                                </button> -->
                             </header>
                             <div class="table-responsive p-2" style="min-height: 40rem;">
                                 <div class="table-bordered" id="sectionTable"></div>
@@ -77,7 +77,7 @@ if (!($g_user_role == "REGISTRAR")) {
 
 
                 <!-- create -->
-                <div class="modal fade" id="sectionFormModal" tabindex="-1" aria-labelledby="sectionLabel" aria-hidden="true">
+                <!-- <div class="modal fade" id="sectionFormModal" tabindex="-1" aria-labelledby="sectionLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <form class="modal-content" id="sectionForm" autocomplete="off">
                             <div class="modal-header bg-primary text-white py-2">
@@ -105,7 +105,7 @@ if (!($g_user_role == "REGISTRAR")) {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- edit -->
                 <div class="modal fade" id="editSectionFormModal" tabindex="-1" aria-labelledby="sectionLabel" aria-hidden="true">
@@ -116,17 +116,6 @@ if (!($g_user_role == "REGISTRAR")) {
                                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="newSectionName" class="form-label">Section Name</label>
-                                    <input type="text" class="form-control" id="newSectionName" name="newSectionName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="newProgram" class="form-label">Program</label>
-                                    <select id="newProgram" name="newProgram" required>
-                                        <option value="">Select Program</option>
-                                    </select>
-                                </div>
-
                                 <div class="mb-3">
                                     <label for="newLimit" class="form-label">Section Limit (for this section only)</label>
                                     <input type="number" class="form-control" id="newLimit" name="newLimit" required>
@@ -149,11 +138,6 @@ if (!($g_user_role == "REGISTRAR")) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const openModalBtn = document.getElementById('createSectionBtn');
-
-    openModalBtn.addEventListener('click', function(){
-        $('#sectionFormModal').modal('show')
-    })
 
     function formatDate(dateCreated){
         if (!dateCreated) return "";
@@ -186,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(response && response.data) {
                     const $syDropdown = $('#syDropdown');
                     $syDropdown.empty();
-                    $syDropdown.append('<option value="0">Default School Year/Sem</option>');
                     response.data.forEach(function(item) {
                         $syDropdown.append(
                             $('<option>', {
@@ -200,6 +183,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         create: false,
                         sortField: 'text'
                     });
+
+                    const selectize = $syDropdown[0].selectize;
+                    const defaultItem = response.data.find(item => Number(item.isDefault) === 1);
+                    if (defaultItem) {
+                        selectize.setValue(String(defaultItem.school_year_id), true);
+
+                        sectionTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchSection.php", {
+                            school_year_id: defaultItem.school_year_id
+                        });
+                        sy_id = defaultItem.school_year_id;
+                    }
                 }
             }
         });
@@ -212,9 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const schoolYearId = selectize.getValue();
 
         sy_id = schoolYearId;
-        if(schoolYearId !== undefined || schoolYearId !== null){
-            $('#createSectionBtn').prop('disabled', false);
-        }
 
         // Reload the Tabulator table with the selected school_year_id as a parameter
         sectionTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchSection.php", {
@@ -266,26 +257,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 headerHozAlign: "center",
             },
             {
-                title: "Section Limit per Sem",
-                field: "sem_limit",
-                headerFilter: "input",
-                hozAlign: "center",
+                title: "Section Limit",
+                field: "sec_limit",
+                headerFilter: 'input',
+                hozAlign: 'center',
                 headerHozAlign: "center",
                 formatter: function(cell){
-                    const rowData = cell.getRow().getData();
-                    const row = cell.getValue();
-
-                    return rowData.is_default === true
-                        ? `${row} Students <span class="badge bg-warning">Default</span>` 
-                        : `${row} Students`;
+                    const limit = cell.getValue();
+                    return `${limit} Students`;
                 }
             },
+            {
+                title: "Fiscal Year",
+                field: "fiscal",
+                headerFilter: 'input',
+                hozAlign: 'center',
+                headerHozAlign: "center",
+            },
+            // {
+            //     title: "Section Limit per Sem",
+            //     field: "sem_limit",
+            //     headerFilter: "input",
+            //     hozAlign: "center",
+            //     headerHozAlign: "center",
+            //     formatter: function(cell){
+            //         const rowData = cell.getRow().getData();
+            //         const row = cell.getValue();
+
+            //         return rowData.is_default === true
+            //             ? `${row} Students <span class="badge bg-warning">Default</span>` 
+            //             : `${row} Students`;
+            //     }
+            // },
             {
                 title: "Program Code",
                 field: "short_name",
                 headerFilter: "input",
                 hozAlign: "center",
                 headerHozAlign: "center"
+            },
+            {
+                title: "Year Level",
+                field: "year_level",
+                headerFilter: "input",
+                hozAlign: "center",
+                headerHozAlign: "center",
+                formatter: function(cell){
+                    const year = Number(cell.getValue());
+                    switch (year) {
+                        case 1: return '1st Year';
+                        case 2: return '2nd Year';
+                        case 3: return '3rd Year';
+                        case 4: return '4th Year';
+                        case 5: return '5th Year';
+                        default: return year ? String(year) : '';
+                    }
+                }
             },
             {
                 title: "Last Updated",
@@ -313,145 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function populateProgramDropdown(selected, selectedId = null) {
-        $.ajax({
-            url: "<?php echo BASE_URL; ?>registrar/actions/fetchProgForSection.php",
-            method: "GET",
-            dataType: "json",
-            success: function(response) {
-                if (response.status && response.data) {
-                    const $programSelect = $(selected);
 
-                    // destroy existing selectize instance if present
-                    if ($programSelect[0].selectize) {
-                        $programSelect[0].selectize.destroy();
-                    }
-
-                    $programSelect.empty();
-                    $programSelect.append('<option value="" selected disabled>Select Program</option>');
-
-                    response.data.forEach(function(prog) {
-                        $programSelect.append(
-                            $('<option>', {
-                                value: prog.program_id,
-                                text: prog.program
-                            })
-                        );
-                    });
-
-                    // init selectize
-                    $programSelect.selectize({
-                        allowEmptyOption: true,
-                        create: false,
-                        sortField: 'text',
-                        placeholder: 'Select Program'
-                    });
-
-                    const selectize = $programSelect[0].selectize;
-                    selectize.clear(true); // prevent auto‑select
-
-                    if (selectedId !== null) {
-                        selectize.setValue(String(selectedId), true);
-                    }
-                }
-            },
-            error: function() {
-                swal({
-                    title: "Error",
-                    icon: "error",
-                    text: "Failed to load programs.",
-                    button: true
-                });
-            }
-        });
-    }
-
-
-    // Call this when the modal is shown
-    $('#sectionFormModal').on('show.bs.modal', function () {
-        populateProgramDropdown();
-    });
-
-    // create section
-    populateProgramDropdown("#program");
-    $("#sectionForm").on('submit', function(e){
-        e.preventDefault();
-
-        const formData = jQuery('#sectionForm').serializeArray();
-        console.log("form data: ", formData)
-
-        const newData = [
-            {
-                name: "submitSection",
-                value: "createSection"
-            },
-            {
-                name: "school_year_id",
-                value: sy_id
-            },
-        ];
-
-        const postData = formData.concat(newData);
-        console.log("post data: ", postData)
-
-        $.ajax({
-            url: "<?php echo BASE_URL; ?>registrar/actions/section_process.php",
-            method: "POST",
-            data: postData,
-            dataType: "json",
-            beforeSend: loadingAPIrequest(true),
-            complete: loadingAPIrequest(false),
-            success: function(data){
-                if(data){
-                    if(data.status === true && data.code === 200){
-                        swal({
-                            icon: "success",
-                            title: "Section created!",
-                            text: "Section has been created.",
-                            timer: 3000,
-                            button: false
-                        }).then(function(){
-                            $('#sectionFormModal').modal('hide');
-                            $('#sectionForm')[0].reset();
-                            sectionTable.setData();
-                        })
-                    }
-                    if(data.status === false && data.code === 502){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.status === false && data.code === 501){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.status === false && data.code === 500){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
-                            button: true
-                        })
-                    }
-                }
-            },
-            error: function(){
-                swal({
-                    icon: "error",
-                    title: "Error",
-                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    button: true
-                })
-            }
-        })
-    })
 
 
     let editId;
@@ -467,9 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('row data: ', rowData)
 
             editId = rowData.class_id;
-            document.getElementById('newSectionName').value = rowData.class_name;
             document.getElementById('newLimit').value = rowData.sem_limit;
-            populateProgramDropdown("#newProgram", rowData.program_id);
             document.getElementById('editSectionFormLabel').textContent = `Edit ${rowData.class_name}`
             $("#editSectionFormModal").modal('show');
         }

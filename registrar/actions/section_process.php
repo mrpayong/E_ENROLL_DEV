@@ -67,19 +67,10 @@ try {
     }
 
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitSection']) && $_POST['submitSection'] === "editSection"){
-        $section = isset($_POST['newSectionName']) ? trim($_POST['newSectionName']) : "";
-        $program_id = isset($_POST['newProgram']) ? trim($_POST['newProgram']) : '';
         $sectionLimit = isset($_POST['newLimit']) ? intVal(trim($_POST['newLimit'])) : '';
         $class_id = isset($_POST['editId']) ? trim($_POST['editId']) : "";
         $key_sy = isset($_POST['school_year_id']) ? intVal(trim($_POST['school_year_id'])) : "";
-        $fetched_program_id = "";
-        $sem_limit = array();
-        $school_year_id = '';
-        $current_date = date('y-m-d');
-        $new_sem_limit = array(
-            "key" => "",
-            "value" => ""
-        );
+        $edit_id = '';
 
         $output = array(
             'code' => 0,
@@ -92,104 +83,34 @@ try {
             return ($val === null || $val === '' || $val === 0);
         }
 
-        if(empty($section) || dataEmptyCheck($program_id) ||  dataEmptyCheck($sectionLimit) || dataEmptyCheck($class_id)){
+        if(dataEmptyCheck($sectionLimit)){
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
             echo json_encode($output);
             exit();
         }
 
-        $old_data = "";
-        $new_data = sha1($class_id . $section . $program_id . $sectionLimit);
-        $pair_limit = "";
-        $program_exist = "SELECT class_id, class_name, program_id, sem_limit FROM class_section WHERE 
-        class_id = '".    escape($db_connect, $class_id).   "' ";
-
-        if ($query = call_mysql_query($program_exist)){
-            if($data = call_mysql_fetch_array($query)){
-                $sem_limit = json_decode($data['sem_limit'], true);
-                // echo json_encode($sem_limit);
-                // exit();
-                if(array_key_exists($key_sy, $sem_limit)){
-                    $pair_limit = intVal($sem_limit[$key_sy]);
-                }
-                elseif(!(array_key_exists($key_sy, $sem_limit))){
-                    $pair_limit = intVal($sem_limit['0']);
-                }
-                $old_data = sha1($data['class_id'] . $data['class_name'] . $data['program_id'] . $pair_limit);
-            } else {
-                $output['code'] = 503;
-                $output['msg_response'] = "Connection failed";
-                echo json_encode($output);
-                exit();
+        $sql_section = "SELECT class_id FROM class_section WHERE class_id = '".     escape($db_connect, $class_id)    ."'
+        ";
+        if($fetch_sql = call_mysql_query($sql_section)){
+            if($data = call_mysql_fetch_array($fetch_sql)){
+                $edit_id = $data['class_id'];
             }
-        } else {
+        }
+
+        if(empty($edit_id)){
             $output['code'] = 502;
-            $output['msg_reponse'] = "It seems the information you are trying to update does not exist or you have unstable network.";
+            $output['msg_response'] = "Section you are trying to update does not exist.";
             echo json_encode($output);
             exit();
         }
-
-        if($new_data === $old_data){
-            $output['code'] = 504;
-            $output['msg_response'] = "You did not make any changes.";
-            echo json_encode($output);
-            exit();
-        }
-
-        $sql_program = "SELECT program_id, program FROM programs WHERE program_id = '".     escape($db_connect, $program_id).   "' ";
-        if($sqlProgram = call_mysql_query($sql_program)){
-            if($programData = call_mysql_fetch_array($sqlProgram)){
-                $fetched_program_id = $programData['program_id'];
-            } else {
-                $output['code'] = 503;
-                $output['msg_response'] = "Connection failed";
-                echo json_encode($output);
-                exit();
-            }
-        } else {
-            $output['code'] = 502;
-            $output['msg_reponse'] = "Can't find selected program or you have unstable network.";
-            echo json_encode($output);
-            exit();
-        }
-
-        $sql_Sy = "SELECT school_year_id FROM school_year 
-                WHERE '$current_date' BETWEEN date_from AND date_to";
-        if($sy_query = call_mysql_query($sql_Sy)){
-            while($data = call_mysql_fetch_array($sy_query)){
-                $school_year_id = $data['school_year_id'];
-            }
-        }
-
-        if(empty($school_year_id) || $school_year_id === ""){
-            $output['code'] = 505;
-            $output['msg_response'] = "No new fiscal year yet.";
-            echo json_encode($output);
-            exit();
-        }
-        // $new_sem_limit = [
-        //     "key" => $school_year_id,
-        //     "value" => strVal($sectionLimit)
-        // ];
-
-
-        if(array_key_exists(strVal($key_sy), $sem_limit)){
-            $sem_limit[strVal($key_sy)] = $sectionLimit;
-        }
-        if(!(array_key_exists(strVal($key_sy), $sem_limit))){
-            $sem_limit[strVal($key_sy)] = $sectionLimit;
-        }
-        $encoded_sem_limit = json_encode($sem_limit, JSON_FORCE_OBJECT);
 
         $db_connect->begin_transaction();
 
         $sql = "UPDATE class_section SET 
-        class_name =   '".     escape($db_connect, $section).      "',
-        program_id =   '".     escape($db_connect, $fetched_program_id).      "',
-        sem_limit =   '".     escape($db_connect, $encoded_sem_limit).      "',
+        sec_limit =   '".     escape($db_connect, $sectionLimit).      "',
         date_modified = NOW()
-        WHERE class_id = '".      escape($db_connect, $class_id)        ."'
+        WHERE class_id = '".      escape($db_connect, $edit_id)        ."'
         ";
         $result = call_mysql_query($sql);
         $db_connect->commit();

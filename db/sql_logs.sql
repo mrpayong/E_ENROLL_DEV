@@ -280,3 +280,6 @@ ALTER TABLE `class_section` ADD `school_year_id` INT(50) NOT NULL AFTER `program
 
 -- mar 31, 2026
 ALTER TABLE `class_section` ADD `year_level` INT(50) NOT NULL AFTER `program_id`;
+
+-- apr 3, 2026
+ALTER TABLE `class_section` ADD `sec_limit` INT(100) NOT NULL DEFAULT '0' AFTER `class_name`;

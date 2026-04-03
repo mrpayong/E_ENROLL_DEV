@@ -33,7 +33,7 @@ try {
         
 
         $fetch_program = "SELECT class_name FROM class_section 
-        WHERE class_name = '".escape($db_connect, $section)."'
+        WHERE class_name = '".escape($db_connect, $section)."' AND school_year_id = '". escape($db_connect, $key_sy)  ."'
         ";
         $query_table = call_mysql_query($fetch_program);
         $existing_program = call_mysql_fetch_array($query_table);

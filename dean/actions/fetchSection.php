@@ -28,7 +28,11 @@ $dbfield = [
     'cs.sem_limit',
     'p.program_id',
     'p.short_name',
-    'year_level'
+    'cs.year_level',
+    'cs.sec_limit',
+    'cs.school_year_id',
+    'sy.school_year',
+    'sy.sem',
 ];
 $dborig = [
     'class_id',
@@ -41,6 +45,7 @@ $dborig = [
 
 $left = "
     LEFT JOIN programs p ON cs.program_id = p.program_id
+    LEFT JOIN school_year sy ON cs.school_year_id = sy.school_year_id
 ";
 
 $sql_where_array = [];
@@ -115,53 +120,54 @@ if ($query = call_mysql_query($data_query)) {
             $is_default = false;
             $data = array_html($data);
             $data['class_id'] = intVal($data['class_id']);
-            $data['short_name'] = isset($data['short_name']) ? $data['short_name'] : null;
-            $data['program_id'] = isset($data['program_id']) ? intVal($data['program_id']) : null;
-            $data['date_modified'] = isset($data['date_modified']) ? formatterDateLong($data['date_modified']) : null;
+            $data['short_name'] = isset($data['short_name']) ? $data['short_name'] : '';
+            $data['program_id'] = isset($data['program_id']) ? intVal($data['program_id']) : '';
+            $data['sec_limit'] = isset($data['sec_limit']) ? intVal($data['sec_limit']) : '';
+            $data['date_modified'] = isset($data['date_modified']) ? formatterDateLong($data['date_modified']) : '';
 
-            $sem_limits = json_decode(html_entity_decode($data['sem_limit']),true);
+            // $sem_limits = json_decode(html_entity_decode($data['sem_limit']),true);
 
-            // checks if $school_year_id exists as key in the sem_limits array
-            // before assigngin value to variable
-            if (array_key_exists($school_year_id, $sem_limits)) {
-                $limit_value = $sem_limits[$school_year_id];
-                $assoc_sy_id = strVal(array_keys($sem_limits, $limit_value)[0]);
+            // // checks if $school_year_id exists as key in the sem_limits array
+            // // before assigngin value to variable
+            // if (array_key_exists($school_year_id, $sem_limits)) {
+            //     $limit_value = $sem_limits[$school_year_id];
+            //     $assoc_sy_id = strVal(array_keys($sem_limits, $limit_value)[0]);
 
-                if($assoc_sy_id === "0"){
-                    $is_default = true;
-                }
-            } 
+            //     if($assoc_sy_id === "0"){
+            //         $is_default = true;
+            //     }
+            // } 
 
-            // 2. If not found, try to get the default value (key "0")
-            elseif (!(array_key_exists($school_year_id, $sem_limits))) {
-                if(array_key_exists("0", $sem_limits)){
-                    $is_default = true;
-                    $limit_value = $sem_limits["0"];
-                    $assoc_sy_id = strVal(array_keys($sem_limits, $limit_value)[0]);                    
-                }
-                // if there is no "0" in the array, this is for sections with no default value with key "0"
-                // these are section made only for specific school year/sem
-                elseif(!(array_key_exists("0", $sem_limits))){
-                    $limit_value = null;
-                    $assoc_sy_id = null;  
-                } 
-            }
+            // // 2. If not found, try to get the default value (key "0")
+            // elseif (!(array_key_exists($school_year_id, $sem_limits))) {
+            //     if(array_key_exists("0", $sem_limits)){
+            //         $is_default = true;
+            //         $limit_value = $sem_limits["0"];
+            //         $assoc_sy_id = strVal(array_keys($sem_limits, $limit_value)[0]);                    
+            //     }
+            //     // if there is no "0" in the array, this is for sections with no default value with key "0"
+            //     // these are section made only for specific school year/sem
+            //     elseif(!(array_key_exists("0", $sem_limits))){
+            //         $limit_value = null;
+            //         $assoc_sy_id = null;  
+            //     } 
+            // }
 
-
-            if ($school_year_id !== null && $limit_value !== null) {
+            if(!empty($data['sem']) && !empty($data['school_year']) && intVal($data['school_year_id']) === intVal($school_year_id)){
                 $to_encode[] = [
                     'class_id' => $data['class_id'],
                     'class_name' => $data['class_name'],
                     'short_name' => $data['short_name'],
                     'program_id' => $data['program_id'],
-                    'school_year_id' => $assoc_sy_id,
-                    'sem_limit' => $limit_value,
-                    'is_default' => $is_default,
+                    'school_year_id' => $data['school_year_id'],
+                    // 'sem_limit' => $limit_value,
+                    // 'is_default' => $is_default,
                     'date_modified' => $data['date_modified'],
-                    'year_level' => intVal($data['year_level'])
+                    'year_level' => intVal($data['year_level']),
+                    'sec_limit' => $data['sec_limit'], 
+                    'fiscal' => $data['school_year']." ".$data['sem']
                 ];
             }
-            
         }
     }
 }
