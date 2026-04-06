@@ -164,7 +164,7 @@ if (!($g_user_role == "DEAN")) {
                 <!-- bulk add -->
                 <div class="modal fade" id="bulkModal" tabindex="-1" aria-labelledby="bulkLabel" aria-hidden="true">
                     <div class="modal-dialog">
-                        <form class="modal-content" autocomplete="off">
+                        <form class="modal-content" id="import_section_form" autocomplete="off">
                             <div class="modal-header bg-primary text-white py-2">
                                 <label id="bulkLabel" class="modal-title">
                                     Upload Sections
@@ -176,7 +176,7 @@ if (!($g_user_role == "DEAN")) {
                                     <a href="<?php echo BASE_URL; ?>dean/download.php?attach=IMP_BLK_SCT" class="mb-2" target="_blank"><i class="fas fa-download"></i>&ensp;Download Section CSV Template</a>
                                     <a href="#" class="mb-2"><i class="fas fa-list"></i>&ensp;View Upload Logs</a>
                                 </div>
-                                <input type="file" name="" id="file_courses" class="bulk_dropify" required>
+                                <input type="file" name="import_section_file" id="import_section_file" class="bulk_dropify" data-allowed-file-extensions="csv" accept=".csv"  required>
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-success btn-sm">Confirm</button>
@@ -683,6 +683,147 @@ document.addEventListener('DOMContentLoaded', function() {
             'remove': 'Remove',
             'error': 'Ooops, something wrong happended.'
         }
+    });
+
+    $("#import_section_form").on('submit', function(e){
+        e.preventDefault();
+        const newData = [
+            {
+                name: 'school_year_id',
+                value: sy_id
+            }
+        ];
+        const formData = new FormData(this);
+        formData.append('school_year_id', sy_id);
+        $.ajax({
+            type: "POST",
+            url: "<?php echo BASE_URL; ?>dean/actions/section_import_process.php",
+            data: formData,
+            dataType: "json",
+            contentType: false,
+            cache: false,
+            processData: false,
+            beforeSend: function(){
+                $("#btn_import_section_submit").attr("disabled", true).text("Loading...");
+            },
+            complete: function(){
+                $("#btn_import_section_submit").removeAttr("disabled").text("Submit");
+            },
+            success: function(output){
+                if (output.msg_status === true && output.code === 200) {
+                    const inserted = output.success_insert || 0;
+                    const updated  = output.success_update || 0;
+                    const skipped  = output.skipped || 0;
+                    const total    = output.total || 0;
+                    const errors   = Array.isArray(output.error_id) ? output.error_id.length : 0;
+
+                    let summary = `Total: ${total}\nInserted: ${inserted}\nUpdated: ${updated}\nSkipped: ${skipped}\nErrors: ${errors}`;
+
+                    swal({
+                        icon: "success",
+                        title: "Import Completed",
+                        text: summary,
+                        button: false,
+                        timer:2000
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                        sectionTable.setData();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 501) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 502) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 503) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 504) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 505) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 500) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_section_form')[0].reset();
+                    });
+                    return;
+                }
+            },
+            error: function(){
+                swal({
+                    title: "Error uploading",
+                    icon: "error",
+                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
+                    button: true
+                }).then(function(){
+                    $('#bulkModal').modal('hide');
+                    $('#import_section_form')[0].reset();
+                });
+                return;
+            }
+        });
     });
 })
 

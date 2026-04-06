@@ -12,13 +12,23 @@ require UPLOAD_HANDLER;
 $session_class->session_close();
 header("Content-type: application/json; charset=utf-8");
 
+try {
 if (!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
     include HTTP_404;
     exit();
 }
 
+$response = array(
+    'code' => 0,
+    'msg_status' => false,
+    'msg_response' => 'Request error, please try again.',
+    'msg_span' => '_system',
+);
+
 if ($g_user_role !== "DEAN") {
-    echo json_encode(["error" => "Invalid User"]);
+    $response['code'] = 501;
+    $response['msg_response'] = "Invalid User";
+    echo json_encode($response);
     exit();
 }
 
@@ -30,25 +40,27 @@ $uploader->inputFileName = "import_section_file";
 
 $result = $uploader->handleFileUpload();
 $result["uploadName"] = $uploader->getUploadName();
+$school_year_id = isset($_POST['school_year_id']) ? intVal($_POST['school_year_id']) : 0;
 
 if (!empty($result["error"])) {
-    $result['total'] = 0;
-    $result['success_insert'] = 0;
-    $result['success_update'] = 0;
-    $result['error_id'] = [];
-    unset($result['success']);
-    echo json_encode($result);
+    $response['code'] = 502;
+    $response['msg_response']  = $result["error"];
+    echo json_encode($response);
     exit();
 }
 
 if (!isset($result["success"]) && $result["uploadName"] == "") {
-    echo json_encode(["error" => "Upload failed"]);
+    $response['code'] = 503;
+    $response['msg_response']  = "Upload failed";
+    echo json_encode($response);
     exit();
 }
 
 $file = $uploader->getTargetFilePath();
 if (($handle = fopen($file, "r")) === false) {
-    echo json_encode(["error" => "Unable to read file"]);
+    $response['code'] = 504;
+    $response['msg_response']  = "Unable to read file";
+    echo json_encode($response);
     exit();
 }
 
@@ -89,13 +101,9 @@ while (($column = fgetcsv($handle, 0, ",")) !== false) {
 
         if ($error_header) {
             fclose($handle);
-            echo json_encode([
-                "error" => "FILE CSV HEADER INVALID - NOT FOUND [" . implode(",", $found_header_error) . "]",
-                "total" => $total_count,
-                "success_insert" => 0,
-                "success_update" => 0,
-                "error_id" => []
-            ]);
+            $response['code'] = 505;
+            $response['msg_response']  = "FILE CSV HEADER INVALID - NOT FOUND [" . implode(",", $found_header_error) . "]";
+            echo json_encode($response);
             exit();
         }
 
@@ -160,48 +168,40 @@ while (($column = fgetcsv($handle, 0, ",")) !== false) {
         continue;
     }
 
-    // Determine if section already exists
-    $exists = 0;
-    $check = "SELECT class_id FROM class_section
-              WHERE class_name = '" . escape($db_connect, $section_name) . "'
-                AND program_id = '" . escape($db_connect, $program_id) . "'
-                AND year_level = '" . escape($db_connect, $year_level) . "'
-              LIMIT 1";
-    if ($cq = call_mysql_query($check)) {
-        $exists = call_mysql_num_rows($cq);
-    }
-
-    if ($exists > 0) {
-        // UPDATE (only name/program/year_level)
-        $update = "UPDATE class_section SET
-            date_modified = NOW()
-            WHERE class_name = '" . escape($db_connect, $section_name) . "'
-              AND program_id = '" . escape($db_connect, $program_id) . "'
-              AND year_level = '" . escape($db_connect, $year_level) . "'";
-        if (call_mysql_query($update)) $success_update++;
-    } else {
-        // INSERT
-        $insert = "INSERT INTO class_section
-            (class_name, program_id, year_level, date_modified)
-            VALUES (
-                '" . escape($db_connect, $section_name) . "',
-                '" . escape($db_connect, $program_id) . "',
-                '" . escape($db_connect, $year_level) . "',
-                NOW()
-            )";
-        if (call_mysql_query($insert)) $success_insert++;
-    }
+    $db_connect->begin_transaction();
+    $insert = "INSERT INTO class_section
+        (class_name, program_id, year_level, school_year_id, date_modified)
+        VALUES (
+            '" . escape($db_connect, $section_name) . "',
+            '" . escape($db_connect, $program_id) . "',
+            '" . escape($db_connect, $year_level) . "',
+            '" . escape($db_connect, $school_year_id) . "',
+            NOW()
+        )";
+    if (call_mysql_query($insert)) $success_insert++;
+    $db_connect->commit();
+    
 
     $total_count++;
 }
-
 fclose($handle);
-
-echo json_encode([
-    "total" => $total_count - 1,
-    "skipped" => $skipped_count,
-    "success_insert" => $success_insert,
-    "success_update" => $success_update,
-    "error_id" => $return_error
-]);
+$response['msg_status'] = true;
+$response['code'] = 200;
+$response['msg_response']  = "Import completed.";
+$response['total'] = $total_count - 1;
+$response['skipped'] = $skipped_count;
+$response['success_insert'] = $success_insert;
+$response['success_update'] = $success_update;
+$response['error_id'] = $return_error;
+echo json_encode($response);
 exit();
+
+} catch (Throwable $th) {
+    if (isset($handle) && is_resource($handle)) fclose($handle);
+    $db_connect->rollback();
+    $response['code'] = 500;
+    $response['msg_response']  = "Import failed, unknown error. Please flag for IT Support.";
+    echo json_encode($response);
+    exit();
+}
+

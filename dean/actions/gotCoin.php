@@ -84,6 +84,7 @@ try {
     $output['msg_status'] = true;
     $output['msg_response'] = "Success";
     $output['curriculum_id'] = $payload['curriculum_id'] ?? '';
+    $output['program_id'] = $payload['program_id'] ?? '';
     echo json_encode($output);
     exit;
 

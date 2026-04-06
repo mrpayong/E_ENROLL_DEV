@@ -34,6 +34,7 @@ try {
     ];
 
     $curriculum_id = isset($_POST['curriculum_id']) ? trim($_POST['curriculum_id']) : '';
+    $program_id = isset($_POST['program']) ? intVal(trim($_POST['program'])) : '';
 
     if ($curriculum_id === '' || !ctype_digit((string)$curriculum_id)) {
         $output['code'] = 400;
@@ -52,9 +53,21 @@ try {
         }
     }
 
+    $sql_prog = "SELECT program FROM programs WHERE program_id = '" . escape($db_connect, $program_id) . "'
+    ";
+    if($sql = call_mysql_query($sql_prog)){
+        if(call_mysql_num_rows($sql) === 0){
+            $output['code'] = 404;
+            $output['msg_response'] = "Program not found.";
+            echo json_encode($output);
+            exit();
+        }
+    }
+
     // Create signed token (expires in 10 minutes)
     $payload = [
         "curriculum_id" => intVal($curriculum_id),
+        "program_id" => $program_id,
         "exp" => time() + 6000,
         "nonce" => bin2hex(random_bytes(8))
     ];

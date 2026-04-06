@@ -13,7 +13,7 @@ $header_breadcrumbs = [
     ['label' => $page_header_title, 'url' => '']
 ];
 
-if (!($g_user_role == "REGISTRAR")) {
+if (!($g_user_role == "DEAN")) {
     header("Location: " . BASE_URL);
     exit();
 }
@@ -81,14 +81,14 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
               <div class="modal-body">
 
                 <div class="mb-3">
-                  <label for="currTitle" class="form-label">Curriculum Title</label>
-                  <input placeholder="Curriculum Title" type="text" class="form-control" id="currTitle" name="currTitle" required/>
+                  <label for="curriculum" class="form-label">Curriculum</label>
+                  <input placeholder="Curriculum Title" type="text" class="form-control" id="curriculum" name="curriculum" required/>
                 </div>
 
-                <div class="mb-3">
+                <!-- <div class="mb-3">
                   <label for="currCode" class="form-label">Curriculum Code</label>
                   <input placeholder="Curriculum Code" type="text" class="form-control" id="currCode" name="currCode" required/>
-                </div>
+                </div> -->
 
                 <div class="mb-3">
                   <label for="program" class="form-label">Program</label>
@@ -226,26 +226,26 @@ document.addEventListener('DOMContentLoaded', function() {
             action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
           }
           if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;
           }
         }
         if(statusAllowable === 0){
           action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
           if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View</button>`;
+            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;
           }
           if(hasProspectus === false){
             action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
           }
         }
         if(hasProspectus === false && statusAllowable === 0){
-          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-plus-circle"></i> Add Prospectus</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-eye"></i> Add Curriculum</button>`;
         }
         return action;
     }
 
   const curriculumTable = new Tabulator("#curriculum-table", {
-    ajaxURL: "<?php echo BASE_URL;  ?>/registrar/actions/fetchCurriculum.php",
+    ajaxURL: "<?php echo BASE_URL;  ?>dean/actions/fetchCurriculum.php",
     ajaxConfig: "GET",
     layout: "fitDataStretch",
     pagination: "remote",
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
     minHeight:500,
     columns: [
         {
-          title: "Curriculum Title",
+          title: "Curriculum",
           field: "header",
           headerFilterLiveFilter: true,
           headerFilter: "input",
@@ -269,34 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
                   style: "height:2.5em;width:100%;"
               }
           },
-        },
-        {
-          title: "Curriculum Code",
-          field: "curriculum_code",
-          headerFilterLiveFilter: true,
-          headerFilter: "input",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          headerFilterParams: {
-              elementAttributes: {
-                  style: "height:2.5em;width:100%;"
-              }
-          },
-          formatter: function(cell){
-            const value = cell.getValue();
-            const row = cell.getRow().getData();
-            const status = Number(row.status_allowable);
-
-            let badgeClass = "";
-
-            if(status === 1){
-              badgeClass = "bg-danger";
-            }
-            if(status === 0){
-              badgeClass = "bg-success";
-            }
-            return `<span class="badge ${badgeClass}">${value}</span>`;
-          }
         },
         {
           title: "Required Units",
@@ -345,6 +317,19 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           },
         },
+        // {
+        //   title: "CHED Approved On",
+        //   field: "",
+        //   headerFilterLiveFilter: true,
+        //   headerFilter: "input",
+        //   hozAlign: "center",
+        //   headerHozAlign: "center",
+        //   headerFilterParams: {
+        //       elementAttributes: {
+        //           style: "height:2.5em;width:100%;"
+        //       }
+        //   }
+        // },
         {
           title: "Actions",
           field: "actions",
@@ -360,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function populateProgramDropdown(selected, selectedId = null) {
     $.ajax({
-      url: "<?php echo BASE_URL; ?>registrar/actions/fetchProgForSection.php",
+      url: "<?php echo BASE_URL; ?>dean/actions/fetchProgForSection.php",
       method: "GET",
       dataType: "json",
       success: function(data) {
@@ -652,18 +637,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (createProspectusBtn) {
       const curriculumId = createProspectusBtn.getAttribute('data-id');
+      const row = curriculumTable.getRows().find(r => r.getData().curriculum_id == curriculumId);
+
+      const rowData = row.getData();
       $.ajax({
         url: "<?php echo BASE_URL.URL_Prospectus; ?>",
         method:"POST",
         dataType: "json",
-        data: { curriculum_id: curriculumId},
+        data: { curriculum_id: curriculumId, program: rowData.program_id},
         beforeSend: loadingAPIrequest(true),
         success: function(data){
           loadingAPIrequest(false);
           if(data){
             if(data.code === 200 && data.msg_status === true){
-              const url = "<?php echo BASE_URL; ?>registrar/prospectus.php?coin=" + encodeURIComponent(data.token);
+              const url = "<?php echo BASE_URL; ?>dean/prospectus_dean.php?coin=" + encodeURIComponent(data.token);
               window.open(url, "_blank");
+            }
+            if(data.code === 404 && data.msg_status === false){
+              swal({
+                title: "Failed",
+                icon: "error",
+                text: data.msg_response,
+                button: true
+              });
+            }
+            if(data.code === 400 && data.msg_status === false){
+              swal({
+                title: "Failed",
+                icon: "error",
+                text: data.msg_response,
+                button: true
+              });
+            }
+            if(data.code === 500 && data.msg_status === false){
+              swal({
+                title: "Failed",
+                icon: "error",
+                text: data.msg_response,
+                button: true
+              });
             }
           }
         },
