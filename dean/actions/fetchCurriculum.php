@@ -26,19 +26,18 @@ $left_join = "
 
 $dbfield = [
     'c.curriculum_id',
-    'c.curriculum_code',
     'c.program_id',
     'c.header',
     'c.units',
     'c.status_allowable',
     'c.date_created',
+    'c.ched_aprrv_date',
     'p.program AS program_name',
     'p.short_name'
 ];
 
 $dborig = [
     'curriculum_id',
-    'curriculum_code',
     'program_id',
     'header',
     'units',
@@ -129,8 +128,9 @@ if ($query = call_mysql_query($data_query)) {
             $data['curriculum_id'] = intVal($data['curriculum_id']);
             $data['program_id'] = intVal($data['program_id']);
             $data['units'] = intVal($data['units']);
-            $data['status_allowable'] = intVal($data['status_allowable']);
+            $data['status_allowable'] = intVal($data['status_allowable']);	
             $data['date_created'] = isset($data['date_created']) ? formatterDateLong($data['date_created']) : "";
+            $data['ched_aprrv_date'] = isset($data['ched_aprrv_date']) ? formatterDateLong($data['ched_aprrv_date']) : "Not yet Approved";
             $to_encode[] = $data;
         }
     }

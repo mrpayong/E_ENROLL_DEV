@@ -8,8 +8,9 @@ header('Content-Type: application/json');
 try {
 
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitProspectus']) && $_POST['submitProspectus'] === "createProspectus"){
-        $prospectus = isset($_POST['prospectus_json']) ? json_decode($_POST['prospectus_json'], true) : '';
+        $prospectus = isset($_POST['table_Data']) ? json_decode(trim($_POST['table_Data']), true) : '';
         $curr_id   = isset($_POST['curriculum_id']) ? intVal(trim($_POST['curriculum_id'])) : '';
+        $program_id   = isset($_POST['program_id']) ? intVal(trim($_POST['program_id'])) : '';
         $units  = isset($_POST['required_units']) ? intVal(trim($_POST['required_units'])) : '';
         $output = array(
             'code' => 0,
@@ -25,16 +26,88 @@ try {
         $year_level = '';
         $subject_id = '';
 
+        $subjects_seen = [];
+        $rows = [];
+
         function dataEmptyCheck($val){
             return ($val === null || $val === '');
         }
         
-        if(empty($prospectus) || dataEmptyCheck($curr_id) || dataEmptyCheck($units)){
+        if(empty($prospectus) || dataEmptyCheck($curr_id) || dataEmptyCheck($units) || dataEmptyCheck($program_id)){
             $output['msg_response'] = 'All fields are required.';
             $output['code'] = 501;
             echo json_encode($output);
             exit();
         }
+
+        foreach ($prospectus as $semBlock) {
+            $subjects = json_decode($semBlock['table'], true);
+            if (!is_array($subjects)) {
+                $output['msg_response'] = 'No entered courses found.';
+                $output['code'] = 401;
+                echo json_encode($output);
+                exit();
+            };
+
+            foreach ($subjects as $subj) {
+                $code  = trim($subj['code'] ?? '');
+                $title = trim($subj['title'] ?? '');
+                $lec   = isset($subj['lec']) ? (int)$subj['lec'] : 0;
+                $lab   = isset($subj['lab']) ? (int)$subj['lab'] : 0;
+                $unit  = isset($subj['unit']) ? (int)$subj['unit'] : 0;
+
+                // Skip blank rows
+                if ($code === '' && $title === '' && $lec === 0 && $lab === 0 && $unit === 0) {
+                    continue;
+                }
+
+                // Optional de-dup in-memory
+                $key = strtoupper($code) . '|' . strtoupper($title);
+                if (isset($subjects_seen[$key])) continue;
+                $subjects_seen[$key] = true;
+
+                $rows[] = [
+                    'code' => $code,
+                    'title' => $title,
+                    'lec_lab' => json_encode([$lec, $lab]),
+                    'unit' => $unit,
+                    'status' => 0,
+                ];
+            }
+        }
+
+        // Nothing to insert
+        if (!empty($rows)) {
+            $values = [];
+            foreach ($rows as $r) {
+                $values[] = "(
+                    '".escape($db_connect, $r['code'])."',
+                    '".escape($db_connect, $r['title'])."',
+                    '".escape($db_connect, $r['lec_lab'])."',
+                    '".escape($db_connect, $r['unit'])."',
+                    '".escape($db_connect, $r['status'])."',
+                    NOW()
+                )";
+            }
+            var_dump(implode(',',$values));
+            exit();
+            $db_connect->begin_transaction();
+            $sql_insert = "INSERT INTO subject
+                (subject_code, subject_title, lec_lab, unit, status, date_modified)
+                VALUES ".implode(',', $values);
+
+            call_mysql_query($sql_insert);
+            $db_connect->commit();
+        } else {
+            $output['msg_response'] = 'No valid subjects to create.';
+            $output['code'] = 403;
+            echo json_encode($output);
+            exit();
+        }
+        var_dump($rows);
+        exit();
+
+
 
         foreach ($prospectus as $block) {
             $year_level = isset($block['year_level']) ? intVal($block['year_level']) : 0;

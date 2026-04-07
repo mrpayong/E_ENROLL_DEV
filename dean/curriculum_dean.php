@@ -118,19 +118,19 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
               <div class="modal-body">
 
                 <div class="mb-3">
-                  <label for="newCurrTitle" class="form-label">Curriculum Title</label>
+                  <label for="newCurrTitle" class="form-label">Curriculum</label>
                   <input  type="text" class="form-control" id="newCurrTitle" name="newCurrTitle" required/>
-                </div>
-
-                <div class="mb-3">
-                  <label for="newCurrCode" class="form-label">Curriculum Code</label>
-                  <input  type="text" class="form-control" id="newCurrCode" name="newCurrCode" required/>
                 </div>
 
                 <div class="mb-3">
                   <label for="newProgram" class="form-label">Program</label>
                   <select id="newProgram" name="newProgram" required>
                   </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="chedDate" class="form-label">Date Approve Date</label>
+                  <input type="date" name="chedDate" id="chedDate" class="form-control">
                 </div>
               </div>
 
@@ -144,6 +144,7 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
           </div>
         </div>
 
+        <!-- status -->
         <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <form class="modal-content" id="statusForm">
@@ -165,6 +166,7 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
           </div>
         </div>
 
+        <!-- view -->
         <div class="modal fade" id="viewCurr" tabindex="-1" aria-labelledby="" aria-hidden="true">
           <div class="modal-dialog modal-xl view-curriculum-modal">
             <div class="modal-content">
@@ -268,7 +270,22 @@ document.addEventListener('DOMContentLoaded', function() {
               elementAttributes: {
                   style: "height:2.5em;width:100%;"
               }
-          },
+          },          
+          formatter: function(cell){
+            const value = cell.getValue();
+            const row = cell.getRow().getData();
+            const status = Number(row.status_allowable);
+
+            let badgeClass = "";
+
+            if(status === 1){
+              badgeClass = "bg-danger";
+            }
+            if(status === 0){
+              badgeClass = "bg-success";
+            }
+            return `<span class="badge ${badgeClass}">${value}</span>`;
+          }
         },
         {
           title: "Required Units",
@@ -317,19 +334,19 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           },
         },
-        // {
-        //   title: "CHED Approved On",
-        //   field: "",
-        //   headerFilterLiveFilter: true,
-        //   headerFilter: "input",
-        //   hozAlign: "center",
-        //   headerHozAlign: "center",
-        //   headerFilterParams: {
-        //       elementAttributes: {
-        //           style: "height:2.5em;width:100%;"
-        //       }
-        //   }
-        // },
+        {
+          title: "CHED Approved On",
+          field: "ched_aprrv_date",
+          headerFilterLiveFilter: true,
+          headerFilter: "input",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          headerFilterParams: {
+              elementAttributes: {
+                  style: "height:2.5em;width:100%;"
+              }
+          }
+        },
         {
           title: "Actions",
           field: "actions",
@@ -409,6 +426,18 @@ document.addEventListener('DOMContentLoaded', function() {
   let editId;
   let currStatus;
   let newStatus;
+  function toDateInputValue(v) {
+    if (!v || v === "Not yet Approved") return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+    const d = new Date(v);
+    if (isNaN(d)) return "";
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
   document.querySelector('#curriculum-table').addEventListener('click', function(e){
     e.preventDefault();
@@ -436,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         editId = rowData.curriculum_id;
         console.log("rowData", rowData);
         document.getElementById('newCurrTitle').value = rowData.header;
-        document.getElementById('newCurrCode').value = rowData.curriculum_code;
+        document.getElementById('chedDate').value = rowData.ched_aprrv_date !== "Not yet Approved" ? toDateInputValue(rowData.ched_aprrv_date) : "";
         populateProgramDropdown('#newProgram', Number(rowData.program_id));
         document.getElementById('updateModalLabel').textContent = `Update ${rowData.header}`;
         $('#updateModal').modal('show');

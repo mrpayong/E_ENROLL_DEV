@@ -14,7 +14,6 @@ if (!($g_user_role == "DEAN")) {
 
 $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
-echo $preselectCurriculumId;
 
 ?>
 <!DOCTYPE html>
@@ -225,8 +224,6 @@ echo $preselectCurriculumId;
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const curr = <?php echo json_encode($preselectCurriculumId); ?>;
-    console.log('Preselected Curriculum ID:', curr);
     // const curriculumSelect = document.getElementById('curriculumSelect');
     // const requiredUnitsInput = document.getElementById('requiredUnits');
     // const blocksContainer = document.getElementById('prospectusBlocks');
@@ -684,6 +681,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // renderTotals();
     // loadCourseCatalog();
 
+    let curr_id = "";
+    let program_id = "";
     const coin = new URLSearchParams(window.location.search).get('coin');
     if(coin){
         $.ajax({
@@ -695,6 +694,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if(data){
                     if(data.code === 200 && data.msg_status === true){
                         console.log('Curriculum data fetched for coin:', data);
+                        curr_id = data.curriculum_id;
+                        program_id = data.program_id;
                         loadCurriculumOptions('#curriculum', data.curriculum_id);
                         loadCurriculumOptions('#program', data.program_id);
                     }
@@ -891,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             { 
                 title: "Title", 
-                field: "title", 
+                field: "title",
                 editor: "input" 
             },
             { 
@@ -1610,6 +1611,14 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 name: "submitProspectus",
                 value: "createProspectus"
+            },
+            {
+                name: "curriculum_id",
+                value: Number(curr_id)
+            },
+            {
+                name: "program_id",
+                value: Number(program_id)
             }
         ];
         const fsYr_1 = firstTable1.getData()
@@ -1695,57 +1704,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         postData = [
             {
-                name: "table Data",
+                name: "table_Data",
                 value : JSON.stringify(tableMap)
             }
         ]
 
         const send_data = postData.concat(formData);
         console.log('formData: ', send_data);
-
-        // Basic validation example
-        // const hasEmpty = rows.some(r => !r.code || !r.title);
-        // if (hasEmpty) {
-        //     swal({ icon: "warning", title: "Missing fields", text: "Code and Title are required." });
-        //     return;
-        // }
-
         
-        return;
 
-        // // basic validation
-        // for (const r of rows) {
-        //     if (!r.code || !r.title) {
-        //         swal({ title: "Missing fields", text: "Code and Title are required.", icon: "error" });
-        //         return;
-        //     }
-        // }
-
-        // const payload = {
-        //     curriculum_id: document.getElementById('curriculumSelect')?.value || '',
-        //     required_units: parseFloat(document.getElementById('requiredUnits')?.value || 0),
-        //     blocks: [
-        //         { year_level: 1, semester: 1, subjects: rows }
-        //     ]
-        // };
-
-        // $.ajax({
-        //     url: "<?php echo BASE_URL; ?>registrar/actions/prospectus_process.php",
-        //     method: "POST",
-        //     data: {
-        //         submitProspectus: "createProspectus",
-        //         curriculum_id: payload.curriculum_id,
-        //         required_units: payload.required_units,
-        //         prospectus_json: JSON.stringify(payload.blocks)
-        //     },
-        //     dataType: "json",
-        //     success: function (data) {
-        //         // handle response
-        //     },
-        //     error: function () {
-        //         swal({ title: "Error", text: "Request failed.", icon: "error" });
-        //     }
-        // });
+        $.ajax({
+            url: "<?php echo BASE_URL; ?>dean/actions/prospectus_process.php",
+            method: "POST",
+            data: send_data,
+            dataType: "json",
+            success: function (data) {
+                console.log('Response from server:', data);
+                return;
+                // handle response
+            },
+            error: function () {
+                swal({ title: "Error", text: "Request failed.", icon: "error" });
+            }
+        });
     });
 
 
