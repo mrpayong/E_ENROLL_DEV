@@ -287,3 +287,7 @@ ALTER TABLE `class_section` ADD `sec_limit` INT(100) NOT NULL DEFAULT '0' AFTER 
 -- apr 7, 2026
 ALTER TABLE `curriculum_master` ADD `ched_aprrv_date` DATE NULL COMMENT 'CHEDs approval date of curriculum' AFTER `status_allowable`;
 ALTER TABLE `curriculum` DROP `pre_req_id`;
+
+-- apr 8, 2026
+ALTER TABLE `subject` CHANGE `desciption` `program_id` INT(50) NOT NULL;
+ALTER TABLE `subject` ADD `curriculum_id` INT(50) NOT NULL AFTER `program_id`;

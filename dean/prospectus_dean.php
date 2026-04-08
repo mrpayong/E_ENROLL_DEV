@@ -541,6 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //     });
     // }
 
+    let currTitle = '';
     function loadCurriculumOptions(selector = '', selectedId = null) {
         const component = $(selector);
         console.log('selector:', selector, typeof selector, "ID:", selectedId);
@@ -553,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if(response.code === 200 && response.msg_status === true){
                         const data = response.data
                         const currData = data.find(d => d.curriculum_id === Number(selectedId));
-
+                        currTitle = currData.header;
                         document.getElementById('curriculum').textContent = currData.header;
                         
                     }
@@ -1619,6 +1620,10 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 name: "program_id",
                 value: Number(program_id)
+            },
+            {
+                name: "curr_title",
+                value: currTitle
             }
         ];
         const fsYr_1 = firstTable1.getData()
@@ -1721,7 +1726,6 @@ document.addEventListener('DOMContentLoaded', function () {
             success: function (data) {
                 console.log('Response from server:', data);
                 return;
-                // handle response
             },
             error: function () {
                 swal({ title: "Error", text: "Request failed.", icon: "error" });
