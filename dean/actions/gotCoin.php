@@ -65,6 +65,38 @@ try {
         exit;
     }
 
+
+    $update_status = 0;
+    $subjects = [];
+    $sql_curr = "SELECT curriculum_id, ched_aprrv_date FROM curriculum_master WHERE curriculum_id = '" . escape($db_connect, intVal($payload['curriculum_id'])) . "' LIMIT 1";
+    if($sql = call_mysql_query($sql_curr)){
+        if($curr_data = call_mysql_fetch_array($sql)){
+            if(!empty($curr_data['ched_aprrv_date'])){
+                $update_status = 1;
+            }
+            $sql_currSubjs = "SELECT subject_id, subject_code, subject_title, unit, lec_lab, pre_req, year_level, semester FROM curriculum WHERE curriculum_id = '" . escape($db_connect, intVal($curr_data['curriculum_id'])) . "'";
+            if($sqlSubjs = call_mysql_query($sql_currSubjs)){
+                while($row = call_mysql_fetch_array($sqlSubjs)){
+                    $lec_labData = json_decode($row['lec_lab'], true);
+                    $lec = intVal($lec_labData[0]) ?? 0;
+                    $lab = intVal($lec_labData[1]) ?? 0;
+                    $subjects[] = [
+                        "subject_id" => $row['subject_id'],
+                        "subject_code" => $row['subject_code'],
+                        "subject_title" => $row['subject_title'],
+                        "unit" => intVal($row['unit']),
+                        "lec" => $lec,
+                        "lab" => $lab,
+                        "pre_req" => $row['pre_req'],
+                        "year_level" => intVal($row['year_level']),
+                        "semester" => $row['semester']
+                    ];
+                }
+            }
+            
+        }
+    }
+
     $calcSig = rtrim(strtr(base64_encode(hash_hmac('sha256', $payloadJson, COIN, true)), '+/', '-_'), '=');
     if (!hash_equals($calcSig, $sigB64)) {
         $output['code'] = 401;
@@ -85,6 +117,8 @@ try {
     $output['msg_response'] = "Success";
     $output['curriculum_id'] = $payload['curriculum_id'] ?? '';
     $output['program_id'] = $payload['program_id'] ?? '';
+    $output['update_status'] = $update_status;
+    $output['courses'] = $subjects;
     echo json_encode($output);
     exit;
 

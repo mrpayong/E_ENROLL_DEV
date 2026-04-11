@@ -224,327 +224,9 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // const curriculumSelect = document.getElementById('curriculumSelect');
-    // const requiredUnitsInput = document.getElementById('requiredUnits');
-    // const blocksContainer = document.getElementById('prospectusBlocks');
-    // const encodedUnitsDisplay = document.getElementById('encodedUnitsDisplay');
-    // const requiredUnitsDisplay = document.getElementById('requiredUnitsDisplay');
-    // const unitsGapDisplay = document.getElementById('unitsGapDisplay');
-    // // const viewport = document.getElementById('prospectusBlocksViewport');
-    // const toggleBtn = document.getElementById('toggleProspectusViewportBtn');
-
-    // if (viewport && toggleBtn) {
-    // toggleBtn.addEventListener('click', function () {
-    //     const expanded = viewport.classList.toggle('is-expanded');
-    //     toggleBtn.textContent = expanded ? 'Shorten View' : 'View All Prospectus';
-    // });
-    // }
-
-    // if (!curriculumSelect || !requiredUnitsInput || !blocksContainer) return;
-
-    // const YEARS = [
-    //     { key: 1, label: 'FIRST YEAR', optional: false },
-    //     { key: 2, label: 'SECOND YEAR', optional: false },
-    //     { key: 3, label: 'THIRD YEAR', optional: false },
-    //     { key: 4, label: 'FOURTH YEAR', optional: false },
-    //     { key: 5, label: 'FIFTH YEAR', optional: true }
-    // ];
-
-    // function toNumber(v) {
-    //     const n = parseFloat(v);
-    //     return Number.isFinite(n) ? n : 0;
-    // }
-
-    // function formatUnits(v) {
-    //     return toNumber(v).toFixed(2);
-    // }
-
-    // function renderTotals() {
-    //     let encodedTotal = 0;
-    //     document.querySelectorAll('.subject-row-units').forEach(function (cell) {
-    //         encodedTotal += toNumber(cell.textContent);
-    //     });
-
-    //     const requiredTotal = toNumber(requiredUnitsInput.value);
-    //     const gap = requiredTotal - encodedTotal;
-
-    //     encodedUnitsDisplay.textContent = formatUnits(encodedTotal);
-    //     requiredUnitsDisplay.textContent = formatUnits(requiredTotal);
-    //     unitsGapDisplay.textContent = formatUnits(gap);
-
-    //     unitsGapDisplay.classList.remove('text-danger', 'text-success');
-    //     if (gap < 0) unitsGapDisplay.classList.add('text-danger');
-    //     if (gap > 0) unitsGapDisplay.classList.add('text-success');
-    // }
-
-    // let courseCatalog = [];
-    // function extractCourseList(res) {
-    //     if (Array.isArray(res)) return res;
-    //     if (Array.isArray(res?.data)) return res.data;
-    //     if (Array.isArray(res?.courses)) return res.courses;
-    //     return [];
-    // }
-    // function parseLecLab(raw) {
-    //     // raw example: "[3,2]"
-    //     if (Array.isArray(raw)) return [toNumber(raw[0]), toNumber(raw[1])];
-    //     if (typeof raw === 'string') {
-    //         try {
-    //             const parsed = JSON.parse(raw);
-    //             if (Array.isArray(parsed)) return [toNumber(parsed[0]), toNumber(parsed[1])];
-    //         } catch (_) {
-    //             const cleaned = raw.replace(/[\[\]\s]/g, '');
-    //             const parts = cleaned.split(',');
-    //             return [toNumber(parts[0]), toNumber(parts[1])];
-    //         }
-    //     }
-    //     return [0, 0];
-    // }
-    // function normalizeCourse(x) {
-    //     const [lec, lab] = parseLecLab(x.lec_lab);
-
-    //     return {
-    //         id: x.subject_id ?? x.id ?? '',
-    //         code: String(x.subject_code ?? x.code ?? '').trim(),
-    //         title: String(x.subject_title ?? x.title ?? '').trim(),
-    //         lec: lec,
-    //         lab: lab,
-    //         units: toNumber(x.unit ?? x.units ?? 0)
-    //     };
-    // }
-
-    // function escapeHtml(v) {
-    //     return String(v).replace(/[&<>"']/g, s => ({
-    //         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    //     }[s]));
-    // }
-
-    // function courseOptionsHtml(selected = '') {
-    //     let html = `<option value="">Select Course</option>`;
-    //     courseCatalog.forEach(function (c) {
-    //         const sel = String(c.id) === String(selected) ? 'selected' : '';
-    //         html += `<option value="${escapeHtml(c.id)}" ${sel}>${escapeHtml(c.code)} - ${escapeHtml(c.title)}</option>`;
-    //     });
-    //     return html;
-    // }
-    // function prereqOptionsHtml(selected = '') {
-    //     let html = `<option value="">Select Pre-req</option>`;
-    //     courseCatalog.forEach(function (c) {
-    //         const sel = String(c.id) === String(selected) ? 'selected' : '';
-    //         html += `<option value="${escapeHtml(c.id)}" ${sel}>${escapeHtml(c.code)} - ${escapeHtml(c.title)}</option>`;
-    //     });
-    //     return html;
-    // }
-
-    // function renderEntryRow(blockId, semester) {
-    //     const entryBody = document.getElementById(`entry-block-${blockId}-semester-${semester}`);
-    //     if (!entryBody) return;
-
-    //     entryBody.innerHTML = `
-    //         <tr class="semester-entry-row" data-block-id="${blockId}" data-semester="${semester}">
-    //             <td colspan="2"><select class="entry-course">${courseOptionsHtml()}</select></td>
-    //             <td><input style="min-width: 74px; text-align: center;" type="number" min="0" step="1" class="form-control form-control-sm entry-lec" value="0"></td>
-    //             <td><input style="min-width: 74px; text-align: center;" type="number" min="0" step="1" class="form-control form-control-sm entry-lab" value="0"></td>
-    //             <td><input style="min-width: 74px; text-align: center;" type="number" min="0" step="0.5" class="form-control form-control-sm entry-units" value="0"></td>
-    //             <td><select  style="min-width: 150px; text-align: center;" class="entry-prereq">${prereqOptionsHtml()}</select></td>
-    //             <td class="text-center"><button type="button" title="Clear entries" class="btn btn-sm btn-outline-secondary clear-entry-btn"><i class="fas fa-times"></i></button></td>
-    //         </tr>
-    //     `;
-    // }
-
-    // function addSubjectFromEntry(blockId, semester) {
-    //     const entryBody = document.getElementById(`entry-block-${blockId}-semester-${semester}`);
-    //     const rowsBody = document.getElementById(`rows-block-${blockId}-semester-${semester}`);
-    //     if (!entryBody || !rowsBody) return;
-
-    //     const row = entryBody.querySelector('tr');
-    //     if (!row) return;
-
-    //     const courseSel = row.querySelector('.entry-course');
-    //     const prereqSel = row.querySelector('.entry-prereq');
-    //     const lecEl = row.querySelector('.entry-lec');
-    //     const labEl = row.querySelector('.entry-lab');
-    //     const unitsEl = row.querySelector('.entry-units');
-
-    //     if (!courseSel.value) {
-    //         swal({ title: 'Please enter a course', icon: 'warning' });
-    //         return;
-    //     }
-
-    //     const chosen = courseCatalog.find(c => String(c.id) === String(courseSel.value));
-    //     const code = chosen ? chosen.code : '';
-    //     const title = chosen ? chosen.title : '';
-
-    //     const lec = toNumber(lecEl.value);
-    //     const lab = toNumber(labEl.value);
-    //     const units = toNumber(unitsEl.value);
-    //     const prereqCourse = courseCatalog.find(c => String(c.id) === String(prereqSel.value));
-    //     const prereqText = prereqCourse ? prereqCourse.code : '';
-        
-    //     const tr = document.createElement('tr');
-    //     tr.setAttribute('data-block-id', String(blockId));
-    //     tr.setAttribute('data-semester', String(semester));
-    //     tr.innerHTML = `
-    //         <td>${escapeHtml(code)}</td>
-    //         <td>${escapeHtml(title)}</td>
-    //         <td>${lec}</td>
-    //         <td>${lab}</td>
-    //         <td class="subject-row-units">${formatUnits(units)}</td>
-    //         <td>${escapeHtml(prereqText)}</td>
-    //         <td class="text-center"><button type="button" title="Remove row" class="btn btn-sm btn-outline-danger remove-subject-btn"><i class="fas fa-times"></i></button></td>
-    //     `;
-    //     rowsBody.appendChild(tr);
-
-    //     courseSel.value = '';
-    //     prereqSel.value = '';
-    //     lecEl.value = '0';
-    //     labEl.value = '0';
-    //     unitsEl.value = '0';
-
-    //     updateSemesterTotal(blockId, semester);
-
-    //     const courseSelObj = $(row).find('.entry-course')[0].selectize;
-    //     const prereqSelObj = $(row).find('.entry-prereq')[0].selectize;
-
-    //     courseSelObj.clear(true);
-    //     prereqSelObj.clear(true);
-        
-    //     tr.dataset.subjectId = chosen ? String(chosen.id) : '';
-    //     tr.dataset.prereqId = prereqCourse ? String(prereqCourse.id) : '';
-    // }
-
-    // function updateSemesterTotal(blockId, semester) {
-    //     let total = 0;
-    //     document.querySelectorAll(`#rows-block-${blockId}-semester-${semester} .subject-row-units`).forEach(function (el) {
-    //         total += toNumber(el.textContent);
-    //     });
-
-    //     const totalEl = document.getElementById(`total-block-${blockId}-semester-${semester}`);
-    //     if (totalEl) totalEl.textContent = formatUnits(total);
-
-    //     renderTotals();
-    // }
-
-    // function semesterTableHtml(blockId, semester, title) {
-    //     const isFirst = title.trim().toUpperCase() === 'FIRST SEMESTER';
-    //     const padStyle = isFirst ? 'pe-xl-0 border-end border-black' : 'ps-xl-0';
-    //     return `
-    //         <div class="col-12 col-xl-6 ${padStyle}">
-    //             <div class="semester-title d-flex justify-content-between align-items-center rounded-0">
-    //                 ${title}
-    //                 <button type="button" class="btn btn-sm btn-light add-subject-btn" data-block-id="${blockId}" data-semester="${semester}">
-    //                     <i class="fas fa-plus-circle"></i> Add Subject
-    //                 </button>
-    //             </div>
-    //             <div class="table-responsive">
-    //                 <table class="table semester-table mb-2">
-    //                     <thead>
-    //                         <tr>
-    //                             <th>Code</th>
-    //                             <th>Course Title</th>
-    //                             <th style="min-width: 74px; text-align: center;">Lec</th>
-    //                             <th style="min-width: 74px; text-align: center;">Lab</th>
-    //                             <th style="min-width: 74px; text-align: center;">Units</th>
-    //                             <th style="min-width: 170px;  width: 170px;">Pre-Req</th>
-    //                             <th class="text-center">Action</th>
-    //                         </tr>
-    //                     </thead>
-    //                     <tbody id="entry-block-${blockId}-semester-${semester}"></tbody>
-    //                     <tbody id="rows-block-${blockId}-semester-${semester}"></tbody>
-    //                     <tfoot>
-    //                         <tr>
-    //                             <th colspan="4" class="text-end">Total Units</th>
-    //                             <th id="total-block-${blockId}-semester-${semester}">0.00</th>
-    //                             <th colspan="2"></th>
-    //                         </tr>
-    //                     </tfoot>
-    //                 </table>
-    //             </div>
-    //         </div>
-    //     `;
-    // }
-
-    // function yearBlockHtml(y) {
-    //     return `
-    //         <section class="prospectus-block-card">
-    //             <div class="prospectus-block-header px-3 py-2 d-flex justify-content-center align-items-center">
-    //                 <h3 class="h5 mb-0">${y.label}</h3>
-    //                 ${y.optional ? '<span class="badge bg-warning text-dark">Optional</span>' : ''}
-    //             </div>
-    //             <div>
-    //                 <div class="row">
-    //                     ${semesterTableHtml(y.key, 1, 'FIRST SEMESTER')}
-    //                     ${semesterTableHtml(y.key, 2, 'SECOND SEMESTER')}
-    //                 </div>
-    //             </div>
-    //         </section>
-    //     `;
-    // }
-
-    // function renderFixedTemplate() {
-    //     blocksContainer.innerHTML = YEARS.map(yearBlockHtml).join('');
-    //     YEARS.forEach(function (y) {
-    //         renderEntryRow(y.key, 1);
-    //         renderEntryRow(y.key, 2);
-
-    //         const rowSem1 = document.querySelector(`#entry-block-${y.key}-semester-1 tr`);
-    //         const rowSem2 = document.querySelector(`#entry-block-${y.key}-semester-2 tr`);
-
-    //         if (rowSem1) initEntrySelectize(rowSem1);
-    //         if (rowSem2) initEntrySelectize(rowSem2);
-    //     });
-    // }
-    // function loadCourseCatalog() {
-    //     $.ajax({
-    //         url: '<?php echo BASE_URL; ?>registrar/actions/ferchCourseForForm.php',
-    //         type: 'GET',
-    //         dataType: 'json',
-    //         success: function (res) {
-    //             const raw = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-
-    //             courseCatalog = raw.map(function (x) {
-    //                 const lecLab = (() => {
-    //                     if (Array.isArray(x.lec_lab)) return x.lec_lab;
-    //                     if (typeof x.lec_lab === 'string') {
-    //                         try { return JSON.parse(x.lec_lab); } catch (_) { return [0, 0]; }
-    //                     }
-    //                     return [0, 0];
-    //                 })();
-
-    //                 return {
-    //                     id: String(x.subject_id ?? '').trim(),
-    //                     code: String(x.subject_code ?? '').trim(),
-    //                     title: String(x.subject_title ?? '').trim(),
-    //                     lec: Number(lecLab[0] ?? 0),
-    //                     lab: Number(lecLab[1] ?? 0),
-    //                     units: Number(x.unit ?? 0)
-    //                 };
-    //             });
-
-    //             YEARS.forEach(function (y) {
-    //                 renderEntryRow(y.key, 1);
-    //                 renderEntryRow(y.key, 2);
-
-    //                 const rowSem1 = document.querySelector(`#entry-block-${y.key}-semester-1 tr`);
-    //                 const rowSem2 = document.querySelector(`#entry-block-${y.key}-semester-2 tr`);
-
-    //                 if (rowSem1) initEntrySelectize(rowSem1);
-    //                 if (rowSem2) initEntrySelectize(rowSem2);
-    //             });
-    //         },
-    //         error: function (xhr) {
-    //             swal({ 
-    //                 title: 'Failed to load courses', 
-    //                 text:'An error occurred', 
-    //                 icon: 'error' 
-    //             });
-    //         }
-    //     });
-    // }
-
     let currTitle = '';
     function loadCurriculumOptions(selector = '', selectedId = null) {
         const component = $(selector);
-        console.log('selector:', selector, typeof selector, "ID:", selectedId);
         if(component.is("#curriculum")){
             $.ajax({
                 url: '<?php echo BASE_URL; ?>dean/actions/fetchCurrForPros.php',
@@ -554,17 +236,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     if(response.code === 200 && response.msg_status === true){
                         const data = response.data
                         const currData = data.find(d => d.curriculum_id === Number(selectedId));
-                        currTitle = currData.header;
-                        document.getElementById('curriculum').textContent = currData.header;
-                        
+                        console.log("curr data: ",selectedId)
+                        if(!currData){
+                            document.getElementById('curriculum').textContent = "Curriculum Title Unavailable";
+                        }
+                        if(currData){
+                            currTitle = currData.header; // <--- for saving prospectus process
+                            document.getElementById('curriculum').textContent = currData.header;
+                        }
                     }
                 }
             });
         }
 
-        console.log("fetch prog")
         if(component.is("#program")){
-            console.log('progr fetched')
             $.ajax({
                 url: '<?php echo BASE_URL; ?>dean/actions/fetchProgForSection.php',
                 type: 'GET',
@@ -573,8 +258,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     if(response.code === 200 && response.status === true){
                         const data = response.data
                         const currData = data.find(d => Number(d.program_id) === Number(selectedId));
-                        console.log('Selected program Data:', currData);
-
+                        if(!currData){
+                            document.getElementById('program').textContent = "Program not found";
+                        }
                         document.getElementById('program').textContent = currData.program;
 
                         
@@ -584,306 +270,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // function initEntrySelectize(row, selectedCourseId = null, selectedPrereqId = null) {
-    //     const $course = $(row).find('.entry-course');
-    //     const $prereq = $(row).find('.entry-prereq');
-
-    //     if ($course[0].selectize) $course[0].selectize.destroy();
-    //     if ($prereq[0].selectize) $prereq[0].selectize.destroy();
-
-    //     $course.empty().append('<option value="" selected disabled>Select Course</option>');
-    //     $prereq.empty().append('<option value="" selected disabled>Select Pre-req</option>');
-
-    //     courseCatalog.forEach(function (c) {
-    //         $course.append($('<option>', {
-    //             value: c.id,
-    //             text: `${c.code} - ${c.title}`
-    //         }));
-    //         $prereq.append($('<option>', {
-    //             value: c.id,
-    //             text: `${c.code} - ${c.title}`
-    //         }));
-    //     });
-
-    //     $course.selectize({
-    //         allowEmptyOption: true,
-    //         create: false,
-    //         sortField: 'text',
-    //         placeholder: 'Select Course'
-    //     });
-
-    //     $prereq.selectize({
-    //         allowEmptyOption: true,
-    //         create: false,
-    //         sortField: 'text',
-    //         placeholder: 'Select Pre-req'
-    //     });
-
-    //     const courseSel = $course[0].selectize;
-    //     const prereqSel = $prereq[0].selectize;
-
-    //     courseSel.clear(true);
-    //     prereqSel.clear(true); // keeps "None"/empty
-
-    //     if (selectedCourseId) courseSel.setValue(String(selectedCourseId), true);
-    //     if (selectedPrereqId) prereqSel.setValue(String(selectedPrereqId), true);
-
-    //     courseSel.on('change', function (value) {
-    //         const picked = courseCatalog.find(c => String(c.id) === String(value));
-    //         if (!picked) return;
-    //         row.querySelector('.entry-lec').value = picked.lec;
-    //         row.querySelector('.entry-lab').value = picked.lab;
-    //         row.querySelector('.entry-units').value = picked.units;
-    //     });
-    // }
-
-
-
-    // blocksContainer.addEventListener('click', function (e) {
-    //     const addBtn = e.target.closest('.add-subject-btn');
-    //     const removeRowBtn = e.target.closest('.remove-subject-btn');
-    //     const clearEntryBtn = e.target.closest('.clear-entry-btn');
-
-    //     if (addBtn) {
-    //         addSubjectFromEntry(addBtn.getAttribute('data-block-id'), addBtn.getAttribute('data-semester'));
-    //         return;
-    //     }
-
-    //     if (removeRowBtn) {
-    //         const row = removeRowBtn.closest('tr');
-    //         if (!row) return;
-    //         const blockId = row.getAttribute('data-block-id');
-    //         const semester = row.getAttribute('data-semester');
-    //         row.remove();
-    //         updateSemesterTotal(blockId, semester);
-    //         return;
-    //     }
-
-    //     if (clearEntryBtn) {
-    //         const row = clearEntryBtn.closest('tr');
-    //         if (!row) return;
-
-    //         const courseSelObj = $(row).find('.entry-course')[0]?.selectize;
-    //         const prereqSelObj = $(row).find('.entry-prereq')[0]?.selectize;
-
-    //         if (courseSelObj) courseSelObj.clear(true);
-    //         if (prereqSelObj) prereqSelObj.clear(true);
-
-    //         row.querySelector('.entry-lec').value = '0';
-    //         row.querySelector('.entry-lab').value = '0';
-    //         row.querySelector('.entry-units').value = '0';
-    //     }
-    // });
-
-    // requiredUnitsInput.addEventListener('input', renderTotals);
-
-    // const preselectCurriculumId = <?php echo json_encode($preselectCurriculumId); ?>;
-    // renderFixedTemplate();
-    // renderTotals();
-    // loadCourseCatalog();
-
-    let curr_id = "";
-    let program_id = "";
-    const coin = new URLSearchParams(window.location.search).get('coin');
-    if(coin){
-        $.ajax({
-            url: "<?php echo BASE_URL.URL_FROMCURR; ?>",
-            method: "POST",
-            data: { coin: coin },
-            dataType: "json",
-            success: function(data){
-                if(data){
-                    if(data.code === 200 && data.msg_status === true){
-                        console.log('Curriculum data fetched for coin:', data);
-                        curr_id = data.curriculum_id;
-                        program_id = data.program_id;
-                        loadCurriculumOptions('#curriculum', data.curriculum_id);
-                        loadCurriculumOptions('#program', data.program_id);
-                    }
-                }
-            },
-            error: function(){
-                swal({
-                    title: "Error",
-                    text: "Could not find curriculum. You may manually select it.",
-                    icon: "error"
-                });
-            }
-        })
-    }
-
-
-
-    // function getCurriculumValue() {
-    //     const sel = $('#curriculumSelect')[0];
-    //     if (sel && sel.selectize) return sel.selectize.getValue();
-    //     return $('#curriculumSelect').val();
-    // }
-
-    // function collectProspectusPayload() {
-    //     const payload = {
-    //         curriculum_id: getCurriculumValue(),
-    //         required_units: toNumber($('#requiredUnits').val()),
-    //         blocks: []
-    //     };
-
-    //     YEARS.forEach(function (y) {
-    //         [1, 2].forEach(function (semester) {
-    //             const rows = [];
-    //             document.querySelectorAll(`#rows-block-${y.key}-semester-${semester} tr`).forEach(function (tr) {
-    //                 rows.push({
-    //                     subject_id: tr.dataset.subjectId || '',
-    //                     subject_code: tr.children[0].textContent.trim(),
-    //                     subject_title: tr.children[1].textContent.trim(),
-    //                     lec: toNumber(tr.children[2].textContent),
-    //                     lab: toNumber(tr.children[3].textContent),
-    //                     units: toNumber(tr.children[4].textContent),
-    //                     prereq_subject_id: tr.dataset.prereqId || '',
-    //                     prereq_code: tr.children[5].textContent.trim()
-    //                 });
-    //             });
-
-    //             if(y.key === 5 && rows.length === 0) return;
-    //             payload.blocks.push({
-    //                 year_level: y.key,
-    //                 semester: semester,
-    //                 subjects: rows
-    //             });
-    //         });
-    //     });
-
-    //     return payload;
-    // }
-
-    // function loadingAPIrequest(status){
-    //     if(status === true){
-    //         swal({
-    //             title: "Loading",
-    //             icon: 'info',
-    //             text: "Please wait",
-    //             button: false,
-    //             closeOnClickOutside: false,
-    //             closeOnEsc: false
-    //         });
-    //     }
-    //     if(status === false){
-    //         swal.close();
-    //     }
-
-    // }
-
-    // // $('#saveProspectusBtn').on('click', function () {
-    // //     const payload = collectProspectusPayload();
-
-    // //     const postData = [
-    // //         { name: 'submitProspectus', value: 'createProspectus' },
-    // //         { name: 'curriculum_id', value: payload.curriculum_id },
-    // //         { name: 'required_units', value: payload.required_units },
-    // //         { name: 'prospectus_json', value: JSON.stringify(payload.blocks) }
-    // //     ];
-
-    // //     console.log('Payload to submit:', postData);
-
-    // //     document.getElementById('saveDescLabel').textContent = 'Saving Prospectus';
-    // //     document.getElementById('saveDesc').textContent = "Are you sure you want to save this prospectus? Once created it cannot be updated or deleted.";
-    // //     $('#saveProspectusModal').modal('show');
-
-
-    // //     $('#confirmSaveProspectusBtn').off('click').on('click', function (e) {
-    // //         e.preventDefault();
-
-    // //         $.ajax({
-    // //             url: "<?php echo BASE_URL; ?>registrar/actions/prospectus_process.php",
-    // //             method: "POST",
-    // //             data: postData,
-    // //             dataType: "json",
-    // //             beforeSend: loadingAPIrequest(true),
-    // //             complete: loadingAPIrequest(false),
-    // //             success: function (data) {
-    // //                 if(data){
-    // //                     if(data.code === 200 && data.msg_status === true){
-    // //                         swal({
-    // //                             title: "Success",
-    // //                             icon: "success",
-    // //                             text: data.msg_response,
-    // //                             button: false,
-    // //                             timer:3000,
-    // //                         }).then(function () {
-    // //                             $('#saveProspectusModal').modal('hide');
-    // //                             if(window.opener && !window.opener.closed){
-    // //                                 window.opener.location.href = "<?php echo BASE_URL; ?>registrar/curriculum.php";
-    // //                             }
-    // //                             window.close();
-    // //                             setTimeout(function() {
-    // //                                 window.location.href = "<?php echo BASE_URL; ?>registrar/curriculum.php";
-    // //                             }, 500);
-    // //                         })
-    // //                     }
-    // //                     if(data.code === 501 && data.msg_status === false){
-    // //                         $('#saveProspectusModal').modal('hide');
-    // //                         swal({
-    // //                             title: "Failed to create",
-    // //                             icon: "error",
-    // //                             text: data.msg_response,
-    // //                             button: true,
-    // //                         })
-    // //                     }
-    // //                     if(data.code === 502 && data.msg_status === false){
-    // //                         $('#saveProspectusModal').modal('hide');
-    // //                         swal({
-    // //                             title: "Failed to create",
-    // //                             icon: "error",
-    // //                             text: data.msg_response,
-    // //                             button: true,
-    // //                         })
-    // //                     }
-    // //                     if(data.code === 500 && data.msg_status === false){
-    // //                         $('#saveProspectusModal').modal('hide');
-    // //                         swal({
-    // //                             title: "Failed to create",
-    // //                             icon: "error",
-    // //                             text: data.msg_response,
-    // //                             button: true,
-    // //                         })
-    // //                     }
-    // //                 }
-    // //             },
-    // //             error: function () {
-    // //                 $('#saveProspectusModal').modal('hide');
-    // //                 swal({
-    // //                     title: "Error",
-    // //                     text: "An error occurred while saving the prospectus.",
-    // //                     icon: "error"
-    // //                 });
-    // //             }
-    // //         });
-    // //     })
-    // // });
     function sumUnitsFromTable(table) {
-    return table.getData().reduce((sum, r) => {
-        return sum + (parseFloat(r.unit) || 0);
-    }, 0);
+        return table.getData().reduce((sum, r) => {
+            return sum + (parseFloat(r.unit) || 0);
+        }, 0);
     }
     
     function updateOverallUnits() {
-    const total =
-        sumUnitsFromTable(firstTable1) +
-        sumUnitsFromTable(firstTable2) +
-        sumUnitsFromTable(secondTable1) +
-        sumUnitsFromTable(secondTable2) +
-        sumUnitsFromTable(thirdTable1) +
-        sumUnitsFromTable(thirdTable2) +
-        sumUnitsFromTable(fourthTable1) +
-        sumUnitsFromTable(fourthTable2) +
-        sumUnitsFromTable(fifthTable1) +
-        sumUnitsFromTable(fifthTable2);
+        const total =
+            sumUnitsFromTable(firstTable1) +
+            sumUnitsFromTable(firstTable2) +
+            sumUnitsFromTable(secondTable1) +
+            sumUnitsFromTable(secondTable2) +
+            sumUnitsFromTable(thirdTable1) +
+            sumUnitsFromTable(thirdTable2) +
+            sumUnitsFromTable(fourthTable1) +
+            sumUnitsFromTable(fourthTable2) +
+            sumUnitsFromTable(fifthTable1) +
+            sumUnitsFromTable(fifthTable2);
 
-    document.getElementById('units').textContent = `Units to be Earned: ${total}`;
+        document.getElementById('units').textContent = `Units to be Earned: ${total}`;
     }
 
     // 1ST YEAR
     const firstTable1 = new Tabulator("#first_1sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -899,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
             },
             { 
                 title: "Lab", 
@@ -950,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     const firstTable2 = new Tabulator("#first_2sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1018,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2ND YEAR
     const secondTable1 = new Tabulator("#second_1sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1084,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     const secondTable2 = new Tabulator("#second_2sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1152,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 3RD YEAR
     const thirdTable1 = new Tabulator("#third_1sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1218,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     const thirdTable2 = new Tabulator("#third_2sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1286,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4th year
     const fourthTable1 = new Tabulator("#fourth_1sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1352,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     const fourthTable2 = new Tabulator("#fourth_2sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1420,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 5TH YEAR
     const fifthTable1 = new Tabulator("#fifth_1sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1486,7 +897,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     const fifthTable2 = new Tabulator("#fifth_2sem", {
-        layout: "fitColumns",
+        layout: "fitDataStretch",
         reactiveData: true,
         columns: [
             { 
@@ -1551,6 +962,125 @@ document.addEventListener('DOMContentLoaded', function () {
             updateOverallUnits();
         }
     });
+    // Map year+semester to the correct table
+    const tablesByKey = {
+        "1|1st Semester": firstTable1,
+        "1|2nd Semester": firstTable2,
+        "2|1st Semester": secondTable1,
+        "2|2nd Semester": secondTable2,
+        "3|1st Semester": thirdTable1,
+        "3|2nd Semester": thirdTable2,
+        "4|1st Semester": fourthTable1,
+        "4|2nd Semester": fourthTable2,
+        "5|1st Semester": fifthTable1,
+        "5|2nd Semester": fifthTable2,
+    };
+
+    function normalizeCourse(c) {
+        return {
+            subject_id: c.subject_id || "",
+            code: c.subject_code || "",
+            title: c.subject_title || "",
+            lec: Number(c.lec || 0),
+            lab: Number(c.lab || 0),
+            unit: Number(c.unit || 0),
+            prereq: c.pre_req || ""
+        };
+    }
+
+    function populateTablesFromPayload(payload) {
+        if (!payload || !Array.isArray(payload)) return;
+
+        const grouped = {};
+        payload.forEach((c) => {
+            const year = Number(c.year_level);
+            const key = `${year}|${c.semester}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(normalizeCourse(c));
+        });
+
+        Object.keys(tablesByKey).forEach((key) => {
+            const table = tablesByKey[key];
+            const rows = grouped[key] || [];
+            if (table) {
+                table.setData(rows.length ? rows : [{ code:"", title:"", lec:0, lab:0, unit:0, prereq:"" }]);
+            }
+        });
+
+        if (typeof updateOverallUnits === "function") updateOverallUnits();
+    }
+
+    let curr_id = "";
+    let program_id = "";
+    const allTables = [
+    firstTable1, firstTable2,
+    secondTable1, secondTable2,
+    thirdTable1, thirdTable2,
+    fourthTable1, fourthTable2,
+    fifthTable1, fifthTable2
+    ];
+
+    const addButtons = [
+    btn_add_row1, btn_add_row2,
+    scdYr_tb1, scdYr_tb2,
+    trdYr_tb1, trdYr_tb2,
+    frtYr_tb1, frtYr_tb2,
+    fthYr_tb1, fthYr_tb2
+    ];
+    const coin = new URLSearchParams(window.location.search).get('coin');
+    if(coin){
+        $.ajax({
+            url: "<?php echo BASE_URL.URL_FROMCURR; ?>",
+            method: "POST",
+            data: { coin: coin },
+            dataType: "json",
+            success: function(data){
+                if(data){
+                    if(data.code === 200 && data.msg_status === true){
+                        curr_id = data.curriculum_id;
+                        program_id = data.program_id;
+                        loadCurriculumOptions('#curriculum', data.curriculum_id);
+                        loadCurriculumOptions('#program', data.program_id);
+                        if(data.update_status === 1){
+                            addButtons.forEach(btn => {
+                                if(btn){
+                                    btn.hidden = true;
+                                }
+                            });
+
+                            allTables.forEach(table => {
+                                if(!table) return;
+
+                                table.getColumns().forEach(col => {
+                                    const def = col.getDefinition();
+                                    const field = col.getField();
+
+
+                                    if(field === "code" || field === "title" || field === "lec" || field === "lab" || field === "unit" || field === "prereq"){
+                                        col.updateDefinition({
+                                            editor: false
+                                        });
+                                    }
+
+                                    if(def.title === "Action"){
+                                        col.hide();
+                                    }
+                                });
+                            });
+                        }
+                        populateTablesFromPayload(data.courses);
+                    }
+                }
+            },
+            error: function(){
+                swal({
+                    title: "Error",
+                    text: "Could not find curriculum. You may manually select it.",
+                    icon: "error"
+                });
+            }
+        })
+    }
 
     // updateOverallUnits();
 
@@ -1689,8 +1219,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-        // const collData = JSON.stringify(fsYr_1) + JSON.stringify(fsYr_2) + JSON.stringify(scYr_1) + JSON.stringify(scYr_2) + JSON.stringify(trYr_1) + JSON.stringify(trYr_2) + JSON.stringify(frYr_1) + JSON.stringify(frYr_2);
-
         if (ftYr_1_clean.length > 0) {
             tableMap.push({
                 year_level: 5,
@@ -1732,7 +1260,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-
 
 });
 </script>

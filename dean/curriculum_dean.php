@@ -215,33 +215,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
+
     function actionsFormatter(cell) {
         const row = cell.getRow().getData();
         const statusAllowable = Number(row.status_allowable);
-        const hasProspectus = proscData.some(item => Number(item.curriculum_id) === Number(row.curriculum_id));
 
         let action = ``;
 
         if(statusAllowable === 1){
-          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;
-          if(hasProspectus === false){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-          }
-          if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;
-          }
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-success me-2 text-black disallow-btn" title="Disallow"><i class="far fa-check-circle"></i> Allow</button>`;                    
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Update"><i class="fas fa-pencil-alt"></i> Update</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="View Curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;          
         }
+
         if(statusAllowable === 0){
           action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-primary me-2 text-black allow-btn" title="Allow"><i class="far fa-times-circle"></i> Disallow</button>`;
-          if(hasProspectus === true){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="view curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;
-          }
-          if(hasProspectus === false){
-            action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Edit"><i class="fas fa-pencil-alt"></i> Update</button>`;
-          }
-        }
-        if(hasProspectus === false && statusAllowable === 0){
-          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 create-prospectus-btn" style="color:black !important;" title="create prospectus"><i class="fas fa-eye"></i> Add Curriculum</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-warning me-2 text-black edit-btn" title="Update"><i class="fas fa-pencil-alt"></i> Update</button>`;
+          action += `<button data-id="${row.curriculum_id}" class="btn btn-sm btn-info me-2 view-btn" style="color:black !important;"  title="View Curriculum"><i class="fas fa-eye"></i> View Curriculum</button>`;
         }
         return action;
     }
@@ -439,13 +430,13 @@ document.addEventListener('DOMContentLoaded', function() {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  let program_id = '';
   document.querySelector('#curriculum-table').addEventListener('click', function(e){
     e.preventDefault();
     const editBtn = e.target.closest('.edit-btn');
     const allow = e.target.closest('.allow-btn');
     const disallow = e.target.closest('.disallow-btn');
     const view = e.target.closest('.view-btn');
-    const createProspectusBtn = e.target.closest('.create-prospectus-btn');
     let viewCurrOpen = false;
 
     document.addEventListener('keydown', function (e) {
@@ -468,6 +459,16 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('chedDate').value = rowData.ched_aprrv_date !== "Not yet Approved" ? toDateInputValue(rowData.ched_aprrv_date) : "";
         populateProgramDropdown('#newProgram', Number(rowData.program_id));
         document.getElementById('updateModalLabel').textContent = `Update ${rowData.header}`;
+        program_id = rowData.program_id;
+        const hasProspectus = proscData.some(item => Number(item.curriculum_id) === Number(rowData.curriculum_id));
+        if(hasProspectus === true){
+          document.getElementById('newCurrTitle').readOnly = true;
+          document.getElementById('newProgram').disabled = true;
+        }
+        if(hasProspectus === false){
+          document.getElementById('newCurrTitle').readOnly = false;
+          document.getElementById('newProgram').disabled = false;
+        }
         $('#updateModal').modal('show');
     }
     if(allow || disallow){
@@ -482,191 +483,9 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#statusModal').modal('show');
     }
     if(view){
-      // I AM TRYING TO APPEND NEW CONTENT HERE
       const curriculumId = view.getAttribute('data-id');
-      const rowData = curriculumTable.getRows().find(r => r.getData().curriculum_id == curriculumId).getData();
-      $.ajax({
-          url: "<?php echo BASE_URL; ?>registrar/actions/fetchProspectus.php",
-          method: "GET",
-          data: { curriculum_id: curriculumId },
-          dataType: "json",
-          beforeSend: loadingAPIrequest(true),
-          success: function (data) {
-            loadingAPIrequest(false);
-            if(data){
-              if(data.msg_status === true && data.code === 200){
-                const rows = Array.isArray(data.data) ? data.data : [];
-                const totalUnits = rows.reduce((sum, r) => sum + Number(r.unit || 0), 0);
-                const $container = $('#curriculum-contents');
-                $container.empty();
-
-                if (rows.length === 0) {
-                    $container.html('<div class="text-muted">No prospectus data found.</div>');
-                    return;
-                }
-
-                // Helper: escape HTML
-                const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({
-                    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-                }[m]));
-
-                // Header info from first row
-                const headerTitle = esc(rows[0].curriculum_title || '');
-                const headerCode  = esc(rows[0].curriculum_code || '');
-
-                // Normalize semester to 1 or 2 and label
-                function semIndex(semStr) {
-                    const s = (semStr || '').toString().toLowerCase();
-                    if (s.includes('1')) return 1;
-                    if (s.includes('2')) return 2;
-                    if (s.includes('first')) return 1;
-                    if (s.includes('second')) return 2;
-                    return 0;
-                }
-                function semLabel(idx) {
-                    return idx === 1 ? 'FIRST SEMESTER' : 'SECOND SEMESTER';
-                }
-
-                // Group rows by year -> semester
-                const grouped = {};
-                rows.forEach(r => {
-                    const yr_lvl = parseInt(r.year_level, 10) || 0;
-                    const sIdx = semIndex(r.semester);
-                    if (!grouped[yr_lvl]) grouped[yr_lvl] = {1: [], 2: []};
-                    if (sIdx === 1 || sIdx === 2) grouped[yr_lvl][sIdx].push(r);
-                });
-
-                // console.log('group keys: ',Object.keys(grouped) ,typeof Object.keys(grouped));
-                const hasIncomplete = Object.keys(grouped).some(yr_lvl => {
-                  return grouped[yr_lvl][1].length === 0 || grouped[yr_lvl][2].length === 0;
-                });
-
-                if (hasIncomplete) {
-                  swal({
-                    title: "Failed",
-                    icon: "error",
-                    text: "Cannot view prospectus. Incomplete data.",
-                    button: true
-                  });
-                  return;
-                }
-
-                function renderSemesterTable(semRows, semIdx) {
-                    let totalUnits = 0;
-                    if(semRows.length === 0) return;
-                    const body = semRows.map(r => {
-                        const units = Number(r.unit || 0);
-                        totalUnits += units;
-                        return `
-                            <tr>
-                              <td>${esc(r.subject_code)}</td>
-                              <td>${esc(r.subject_title)}</td>
-                              <td class="text-center">${esc(r.lec)}</td>
-                              <td class="text-center">${esc(r.lab)}</td>
-                              <td class="text-center">${esc(units)}</td>
-                              <td>${esc(r.pre_req || '')}</td>
-                            </tr>
-                        `;
-                    }).join('');
-
-                    const padStyle = semRows[0].semester === '1st Semester' ? 'pe-xl-0 border-end border-black' : 'ps-xl-0';
-                    return `
-                        <div class="col-12 col-xl-6 ${padStyle}">
-                            <div class="semester-title align-items-center text-center fw-bold rounded-0">
-                                ${semLabel(semIdx)}
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-sm semester-table mb-2">
-                                    <thead>
-                                        <tr>
-                                            <th>Code</th>
-                                            <th>Course Title</th>
-                                            <th class="text-center">Lec</th>
-                                            <th class="text-center">Lab</th>
-                                            <th class="text-center">Units</th>
-                                            <th>Pre-Req</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>${body}</tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th colspan="4" class="text-end">Total Units</th>
-                                            <th class="text-center">${totalUnits.toFixed(2)}</th>
-                                            <th></th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Build final HTML
-                let html = `
-                  <div class="mb-3 d-flex flex-column flex-md-row justify-content-between gap-2">
-                      <div>
-                          <h4 class="mb-1">${headerTitle}</h4>
-                          <div class="text-muted">Curriculum Code: ${headerCode}</div>
-                      </div>
-                      <div class="text-md-end d-flex flex-column align-items-md-end">
-                          <span class="fw-semibold fs-5">Total Units Required: ${rowData.units.toFixed(2)}</span>
-                          <span class="fw-semibold fs-5">Total Units Shown: ${totalUnits.toFixed(2)}</span>
-                      </div>
-                  </div>
-                `;
-
-
-                Object.keys(grouped).sort((a,b)=>a-b).forEach(yr_lvl => {
-                    html += `
-                        <section class="prospectus-block-card mb-4 border border-1 border-secondary-subtle">
-                            <div class="prospectus-block-header px-3 py-2 d-flex justify-content-center align-items-center">
-                                <h3 class="h5 mb-0 fw-bolder">${esc(['','FIRST','SECOND','THIRD','FOURTH','FIFTH'][yr_lvl])} YEAR</h3>
-                            </div>
-                            <div>
-                                <div class="row">
-                                    ${renderSemesterTable(grouped[yr_lvl][1], 1)}
-                                    ${renderSemesterTable(grouped[yr_lvl][2], 2)}
-                                </div>
-                            </div>
-                        </section>
-                    `;
-                });
-
-                $('#viewCurr').modal('show');
-                $container.html(html);
-              }
-              if(data.msg_status === false && data.code === 500){
-                swal({
-                  title: "Falied to load curriculum",
-                  text: data.msg_response,
-                  icon: "error",
-                  button: true
-                })
-              }
-              if(data.msg_status === false && data.code === 404){
-                swal({
-                  title: "Falied to load curriculum",
-                  text: data.msg_response,
-                  icon: "error",
-                  button: true
-                })
-              }
-            }
-          },
-          error: function (xhr, status, error) {
-              swal({
-                  title: "Error",
-                  icon: "error",
-                  text: "Failed to load curriculum details.",
-                  button: true
-              });
-          }
-      });
-
-    }
-    if (createProspectusBtn) {
-      const curriculumId = createProspectusBtn.getAttribute('data-id');
       const row = curriculumTable.getRows().find(r => r.getData().curriculum_id == curriculumId);
+
 
       const rowData = row.getData();
       $.ajax({
@@ -734,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const postData = formData.concat(newData);
 
     $.ajax({
-      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>dean/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",
@@ -806,19 +625,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const formData = jQuery('#updateForm').serializeArray();
     const newData = [
         {
-        name: 'submitCurriculum',
-        value: "updateCurriculum"
+          name: 'submitCurriculum',
+          value: "updateCurriculum"
         },
         {
-            name: 'editId',
-            value: editId
+          name: 'editId',
+          value: editId
+        },
+        {
+          name: "program",
+          value: program_id
         }
     ];
 
     const postData = formData.concat(newData);
 
     $.ajax({
-      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>dean/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",
@@ -935,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     $.ajax({
-      url: "<?php echo BASE_URL; ?>registrar/actions/curriculum_process.php",
+      url: "<?php echo BASE_URL; ?>dean/actions/curriculum_process.php",
       method: "POST",
       data: postData,
       dataType: "json",

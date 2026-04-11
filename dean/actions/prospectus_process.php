@@ -150,7 +150,6 @@ try {
                 while ($row = call_mysql_fetch_array($res)) {
                     $key = strtoupper($row['subject_code']).'|'.strtoupper($row['subject_title']);
                     $subjectMap[$key] = $row['subject_id'];
-                    echo "row: ";var_dump($row);
                 }
             }
 
@@ -189,8 +188,6 @@ try {
                 call_mysql_query($create_sql);
                 $db_connect-> commit();
             }
-            
-
         }
 
         $output['code'] = 200;

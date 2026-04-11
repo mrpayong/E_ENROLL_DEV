@@ -10,8 +10,7 @@ header('Content-Type: application/json');
 try {
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitCurriculum']) && $_POST['submitCurriculum'] === "createCurriculum"){
         $program_id = isset($_POST['program']) ? trim($_POST['program']) : '';
-        $curriculum_title = isset($_POST['currTitle']) ? strtoupper(trim($_POST['currTitle'])) : '';
-        $curriculum_code = isset($_POST['currCode']) ? strtoupper(trim($_POST['currCode'])) : '';
+        $curriculum_title = isset($_POST['curriculum']) ? strtoupper(trim($_POST['curriculum'])) : '';
 
         $output = array(
             'code' => 0,
@@ -20,7 +19,7 @@ try {
             'msg_span' => '_system'
         );
        
-        if(empty($program_id) || empty($curriculum_title) || empty($curriculum_code)){
+        if(empty($program_id) || empty($curriculum_title)){
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
             echo json_encode($output);
@@ -28,20 +27,14 @@ try {
         }
 
         
-        $fetch_curriculum = "SELECT header, curriculum_code FROM curriculum_master 
-        WHERE header = '".escape($db_connect, $curriculum_title)."' OR curriculum_code = '".escape($db_connect, $curriculum_code)."'
+        $fetch_curriculum = "SELECT header FROM curriculum_master 
+        WHERE header = '".escape($db_connect, $curriculum_title)."'
         ";
         if($query_table = call_mysql_query($fetch_curriculum)){
             while($data = call_mysql_fetch_array($query_table)){
                 if($data['header'] === $curriculum_title){
                     $output['code'] = 504;
                     $output['msg_response'] = "Curriculum title already exist.";
-                    echo json_encode($output);
-                    exit();
-                }
-                if($data['curriculum_code'] === $curriculum_code){
-                    $output['code'] = 504;
-                    $output['msg_response'] = "Curriculum code already exist.";
                     echo json_encode($output);
                     exit();
                 }
@@ -55,10 +48,9 @@ try {
 
 
         $db_connect->begin_transaction();
-        $new_curriculum = "INSERT INTO curriculum_master (program_id, header, curriculum_code) VALUES (
+        $new_curriculum = "INSERT INTO curriculum_master (program_id, header) VALUES (
             '".escape($db_connect, $program_id)."',
-            '".escape($db_connect, $curriculum_title)."',
-            '".escape($db_connect, $curriculum_code)."'
+            '".escape($db_connect, $curriculum_title)."'
         )";
 
         call_mysql_query($new_curriculum);
@@ -73,10 +65,15 @@ try {
     }
 
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitCurriculum']) && $_POST['submitCurriculum'] === "updateCurriculum"){
-        $program_id = isset($_POST['newProgram']) ? trim($_POST['newProgram']) : '';
+        $program_id = isset($_POST['newProgram']) 
+            ? intVal(trim($_POST['newProgram']))
+            : (isset($_POST['program'])
+                ? intVal(trim($_POST['program']))
+                : ''
+            );
         $curriculum_title = isset($_POST['newCurrTitle']) ? strtoupper(trim($_POST['newCurrTitle'])) : '';
-        $curriculum_code = isset($_POST['newCurrCode']) ? strtoupper(trim($_POST['newCurrCode'])) : '';
         $curriculum_id = isset($_POST['editId']) ? trim($_POST['editId']) : '';
+        $approve_date = isset($_POST['chedDate']) ? trim($_POST['chedDate']) : '';
         $to_edit = '';
 
         $output = array(
@@ -86,7 +83,8 @@ try {
             'msg_span' => '_system'
         );
 
-        if(empty($program_id) || empty($curriculum_title) || empty($curriculum_code)){
+        if(empty($program_id) || empty($curriculum_title)){
+            echo $program_id ." ___ ".$curriculum_title;
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
             echo json_encode($output);
@@ -94,13 +92,13 @@ try {
         }
 
         $old_data = "";
-        $new_data = sha1($program_id . $curriculum_title .  $curriculum_code);
-        $curr_exist = "SELECT program_id, header, curriculum_id, curriculum_code FROM curriculum_master WHERE 
+        $new_data = sha1($program_id . $curriculum_title . $approve_date);
+        $curr_exist = "SELECT program_id, header, curriculum_id, ched_aprrv_date FROM curriculum_master WHERE 
         curriculum_id = '".    escape($db_connect, $curriculum_id).   "' ";
 
         if ($query = call_mysql_query($curr_exist)){
             if($data = call_mysql_fetch_array($query)){
-                $old_data = sha1($data['program_id'] . $data['header'] . $data['curriculum_code']);
+                $old_data = sha1($data['program_id'] . $data['header'] . $data['ched_aprrv_date']);
                 $to_edit = $data['curriculum_id'];
             } else {
                 $output['code'] = 502;
@@ -122,9 +120,8 @@ try {
             exit();
         }
 
-        $fetch_curriculum = "SELECT header, curriculum_code FROM curriculum_master 
-        WHERE (header = '".escape($db_connect, $curriculum_title)."' 
-        OR curriculum_code = '".escape($db_connect, $curriculum_code)."')
+        $fetch_curriculum = "SELECT header FROM curriculum_master 
+        WHERE header = '".escape($db_connect, $curriculum_title)."'
         AND NOT (curriculum_id = '".escape($db_connect, $to_edit)."')
         ";
         if($query_table = call_mysql_query($fetch_curriculum)){
@@ -132,12 +129,6 @@ try {
                 if($data['header'] === $curriculum_title){
                     $output['code'] = 504;
                     $output['msg_response'] = "Curriculum title already exist.";
-                    echo json_encode($output);
-                    exit();
-                }
-                if($data['curriculum_code'] === $curriculum_code){
-                    $output['code'] = 504;
-                    $output['msg_response'] = "Curriculum code already exist.";
                     echo json_encode($output);
                     exit();
                 }
@@ -151,14 +142,25 @@ try {
 
 
         $db_connect->begin_transaction();
-        $sql = "UPDATE curriculum_master SET 
-        program_id =   '".     escape($db_connect, $program_id).      "',
-        header =   '".     escape($db_connect, $curriculum_title).      "',
-        curriculum_code =   '".     escape($db_connect, $curriculum_code).      "'
-        WHERE curriculum_id = '".      escape($db_connect, $to_edit)        ."'
-        ";
-        $result = call_mysql_query($sql);
-        $db_connect->commit();
+        if(!empty($approve_date)){
+            $sql = "UPDATE curriculum_master SET 
+            program_id =   '".     escape($db_connect, $program_id).      "',
+            header =   '".     escape($db_connect, $curriculum_title).      "',
+            ched_aprrv_date =   '".     escape($db_connect, $approve_date).      "'
+            WHERE curriculum_id = '".      escape($db_connect, $to_edit)        ."'
+            ";
+            $result = call_mysql_query($sql);
+            $db_connect->commit();
+        }
+        if(empty($approve_date)){
+            $sql = "UPDATE curriculum_master SET 
+            program_id =   '".     escape($db_connect, $program_id).      "',
+            header =   '".     escape($db_connect, $curriculum_title).      "'
+            WHERE curriculum_id = '".      escape($db_connect, $to_edit)        ."'
+            ";
+            $result = call_mysql_query($sql);
+            $db_connect->commit();
+        }
 
 
         $output['code'] = 200;
