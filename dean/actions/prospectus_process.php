@@ -19,6 +19,9 @@ try {
             'msg_response' => 'Request error, please try again.',
             'msg_span' => '_system'
         );
+        $delete_id = isset($_POST['deleted_subject_ids']) ? json_decode(trim($_POST['deleted_subject_ids'])) : '';
+
+
         $values = [];
         $sem = '';
         $lec_units = '';
@@ -105,6 +108,19 @@ try {
         if (!empty($subjectRows)) {
             $values = [];
             foreach ($subjectRows as $r) {
+                $sql_exists = "SELECT subject_code, subject_id
+                FROM subject
+                WHERE program_id = '".escape($db_connect,$program_id)."'
+                    AND curriculum_id = '".escape($db_connect,$curr_id)."'
+                    AND subject_title = '".escape($db_connect, $r['title'])."'
+                    AND subject_code = '".escape($db_connect, $r['code'])."'
+                ";
+
+                if ($res = call_mysql_query($sql_exists)) {
+                    if(call_mysql_num_rows($res) !== 0){
+                        continue;
+                    }
+                }
                 $values[] = "(
                     '".escape($db_connect, $r['code'])."',
                     '".escape($db_connect, $r['title'])."',
@@ -117,22 +133,24 @@ try {
                 )";
             }
             
-            $db_connect->begin_transaction();
-            $sql_insert = "INSERT INTO subject
-                (subject_code, subject_title, lec_lab, unit, program_id, curriculum_id, status, date_modified)
-                VALUES ".implode(',', $values);
+            if(!empty($values)){
+                $db_connect->begin_transaction();
+                $sql_insert = "INSERT INTO subject
+                    (subject_code, subject_title, lec_lab, unit, program_id, curriculum_id, status, date_modified)
+                    VALUES ".implode(',', $values);
 
-            if(call_mysql_query($sql_insert)){
-                $result = 1;
+                if(call_mysql_query($sql_insert)){
+                    $result = 1;
+                }
+                $db_connect->commit();
             }
-            $db_connect->commit();
         } else {
             $output['msg_response'] = 'No valid subjects to create.';
             $output['code'] = 403;
             echo json_encode($output);
             exit();
         }
-
+        
         $pairs = [];
         foreach ($subjectRows as $r) {
             $pairs[] = "('".escape($db_connect, $r['code'])."','".escape($db_connect, $r['title'])."')";
@@ -153,7 +171,9 @@ try {
                 }
             }
 
+
             $currValues = [];
+
             foreach ($currRows as $r) {
                 $key = strtoupper($r['code']).'|'.strtoupper($r['title']);
                 if (!isset($subjectMap[$key])) {
@@ -162,6 +182,7 @@ try {
                     echo json_encode($output);
                     exit();
                 }
+
 
                 $currValues[] = "(
                     '".escape($db_connect, $curr_id)."',
@@ -178,6 +199,10 @@ try {
                 )";
             }
 
+
+
+
+
             if(!empty($currValues)){
                 $db_connect->begin_transaction();
                 $create_sql = "INSERT INTO curriculum
@@ -188,6 +213,7 @@ try {
                 call_mysql_query($create_sql);
                 $db_connect-> commit();
             }
+
         }
 
         $output['code'] = 200;

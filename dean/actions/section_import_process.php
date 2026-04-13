@@ -32,6 +32,9 @@ if ($g_user_role !== "DEAN") {
     exit();
 }
 
+$school_year_id = isset($_POST['school_year_id']) ? intVal($_POST['school_year_id']) : 0;
+
+
 $uploader = new UploaderHandler();
 $uploader->allowedExtensions = ['csv'];
 $uploader->sizeLimit = CSV_SIZE;
@@ -40,7 +43,6 @@ $uploader->inputFileName = "import_section_file";
 
 $result = $uploader->handleFileUpload();
 $result["uploadName"] = $uploader->getUploadName();
-$school_year_id = isset($_POST['school_year_id']) ? intVal($_POST['school_year_id']) : 0;
 
 if (!empty($result["error"])) {
     $response['code'] = 502;

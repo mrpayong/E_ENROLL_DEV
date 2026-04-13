@@ -48,16 +48,6 @@ if (!($g_user_role == "DEAN")) {
                                         <header class="d-flex bg-primary flex-column py-2 px-3 rounded-top flex-md-row justify-content-between align-items-start align-items-md-center">
                                             <h1 class="fw-semibold mb-3 mb-md-0 fs-4 text-white">Course Table</h1>
 
-                                            <div class="d-flex flex-row gap-1 align-items-center">
-                                                <button class="btn btn-info fw-semibold px-4 py-2 rounded-3" id="createCourseBtn" style="background:#173ea5;">
-                                                    <i class="fas fa-plus-circle"></i> Create course
-                                                </button>
-
-                                                <button class="btn btn-light fw-semibold px-4 py-2 rounded-3" id="bulkAdd" style="background:#173ea5;">
-                                                    <i class="fas fa-upload"></i> Upload Courses
-                                                </button>
-                                            </div>
-
                                         </header>
                                         <div class="table-responsive px-3 pb-4 pt-1 mt-3 d-flex flex-column justify-content-between" style="min-height: 40rem;">
                                             <div class="table-bordered" id="courseTable"></div>
@@ -76,60 +66,6 @@ if (!($g_user_role == "DEAN")) {
                         
                     </section>
                 
-
-                    <!-- create course -->
-                    <div class="modal fade" id="courseFormModal" tabindex="-1" aria-labelledby="courseFormLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <form class="modal-content" id="courseForm" autocomplete="off">
-                                <div class="modal-header bg-primary text-white py-2">
-                                    <h5 class="modal-title" id="courseFormLabel">Create course</h5>
-                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row mb-3">
-                                        <div>
-                                            <label for="courseCode" class="form-label">Course Code</label>
-                                            <input type="text" class="form-control" id="courseCode" name="courseCode" required>
-                                        </div>
-                                        <div>
-                                            <label for="manual" class="form-label">Set as Manual Enroll</label>
-                                            <input type="checkbox" class="form-check-input" id="manual" name="manual">
-                                        </div>                        
-                                    </div>
-
-                                    <div class="mb-3" id="courseNameContainer">
-                                        <label for="courseName" class="form-label">Course title</label>
-                                        <input type="text" class="form-control" id="courseName" name="courseName[]" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="course_limit" class="form-label">Course Limit</label>
-                                        <input type="number" class="form-control" id="course_limit" name="course_limit" required>
-                                    </div>
-
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="lec_units" class="form-label">Lecture</label>
-                                            <input type="number" class="form-control" id="lec_units" placeholder="No. of units" name="lec_units" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="lab_units" class="form-label">Laboratory</label>
-                                            <input type="number" class="form-control" id="lab_units" placeholder="No. of units" name="lab_units" required>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="unit" class="form-label">Unit</label>
-                                        <input type="number" class="form-control" id="unit" name="unit" required>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary">Create</button>
-                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
                     <!-- void course -->
                     <div class="modal fade" id="arcModal" tabindex="-1" aria-labelledby="arcModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -149,26 +85,6 @@ if (!($g_user_role == "DEAN")) {
                         </div>
                     </div>
 
-                    <div class="modal fade" id="bulkModal" tabindex="-1" aria-labelledby="bulkLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <form class="modal-content" autocomplete="off">
-                                <div class="modal-header bg-primary text-white py-2">
-                                    <label id="bulkLabel" class="modal-title">
-                                        Upload Courses
-                                    </label>
-                                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <input type="file" name="" id="file_courses" class="bulk_dropify" required>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-success btn-sm">Confirm</button>
-                                    <button type="button" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
 
                 </div>
             </div>
@@ -180,11 +96,6 @@ if (!($g_user_role == "DEAN")) {
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const openModalBtn = document.getElementById('createCourseBtn');
-
-    openModalBtn.addEventListener('click', function(){
-        $('#courseFormModal').modal('show')
-    })
 
     function actionsFormatter(cell) {
         const row = cell.getRow().getData();
@@ -491,103 +402,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     $(document).on('click', '.remove-course-name', function() {
         $(this).closest('.course-name-row').remove();
-    });
-
-    // create course
-    $("#courseForm").on('submit', function(e){
-        e.preventDefault();
-
-        
-        const formData = jQuery('#courseForm').serializeArray();
-
-        const newData = [
-            {
-                name: "submitCourse",
-                value: "createCourse"
-            },
-            {
-                name: "newManual",
-                value: newManual
-            }
-        ]
-
-        const postData = formData.concat(newData);
-        console.log('post: ', postData)
-        
-        $.ajax({
-            url: "<?php echo BASE_URL; ?>dean/actions/course_process_dean.php",
-            method: "POST",
-            data: postData,
-            dataType: "json",
-            beforeSend: loadingAPIrequest(true),
-            complete: loadingAPIrequest(false),
-            success: function(data){
-                if(data){
-                    if(data.status === true && data.code === 200){
-                        swal({
-                            icon: "success",
-                            title: "Course created!",
-                            text: "Course has been created.",
-                            timer: 3000,
-                            button:false,
-                        }).then(function(){
-                            $('#courseFormModal').modal('hide');
-                            $('#courseForm')[0].reset();
-                            courseTable.setData();
-                            fetchSubjectCode_units();
-                            renderCourseNameFields(false); 
-                        })
-                    }
-                    if(data.status === false && data.code === 502){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.status === false && data.code === 501){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: data.msg_response,
-                            button: true
-                        })
-                    }
-                    if(data.status === false && data.code === 500){
-                        swal({
-                            icon: "error",
-                            title: "Failed to create section.",
-                            text: "You're good, unkown error that needs consulting has occured. Consult support at MISD is advised.",
-                            button: true
-                        })
-                    }
-                }
-            },
-            error: function(){
-                swal({
-                    icon: "error",
-                    title: "Error",
-                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
-                    button: true
-                })
-            }
-        })
-    })
-
-    document.getElementById('bulkAdd').addEventListener('click', function(e){
-        e.preventDefault();
-
-        $('#bulkModal').modal('show');
-    })
-
-    $('.bulk_dropify').dropify({
-        messages: {
-            'default': 'Drag and drop your CSV file here.',
-            'replace': 'Drag and drop, or click to replace.',
-            'remove': 'Remove',
-            'error': 'Ooops, something wrong happended.'
-        }
     });
 
     document.querySelector('#courseTable').addEventListener('click', function(e){

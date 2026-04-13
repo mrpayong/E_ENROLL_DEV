@@ -172,7 +172,7 @@ try {
         //     $sem_limit[strVal($key_sy)] = $sectionLimit;
         // }
         // $encoded_sem_limit = json_encode($sem_limit, JSON_FORCE_OBJECT);
-// exit();
+
         $db_connect->begin_transaction();
 
         $sql = "UPDATE class_section SET 

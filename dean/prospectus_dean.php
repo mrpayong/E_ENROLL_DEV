@@ -31,9 +31,14 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
         <?php include_once DOMAIN_PATH . '/global/header.php';?>
         <div class="container">
             <section class="card m-2 border">
-                <header class="card-header bg-primary text-white rounded-2 rounded-bottom-0" 
+                <header class="card-header bg-primary text-white rounded-2 rounded-bottom-0 
+                d-flex flex-row justify-content-between" 
                     style="padding:0.75rem; padding-left:1.25em; padding-bottom:0.5rem;">
                     <label class="fs-2 text-white fw-bolder">Curriculum Builder</label>
+
+                    <button class="btn btn-light btn-sm fw-semibold px-4 py-2 rounded-3" id="bulkUpload" style="background:#173ea5;">
+                        <i class="fas fa-upload"></i> Upload Courses
+                    </button>
                 </header>
                 <div class="card-body pt-1" style="padding-right: 0.5rem;padding-left: 0.5rem;">
                     <div class="row">
@@ -216,6 +221,31 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                     </div>
                 </div>
             </div>
+
+            <!-- bulk add -->
+            <div class="modal fade" id="bulkModal" tabindex="-1" aria-labelledby="bulkLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form class="modal-content" id="import_course_form" autocomplete="off">
+                        <div class="modal-header bg-primary text-white py-2">
+                            <label id="bulkLabel" class="modal-title">
+                                Upload Courses
+                            </label>
+                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex flex-row align-items-center justify-content-between">
+                                <a href="<?php echo BASE_URL; ?>dean/download_course.php?attach=IMP_BLK_CRS" class="mb-2" target="_blank"><i class="fas fa-download"></i>&ensp;Download Courses CSV Template</a>
+                                <a href="#" class="mb-2"><i class="fas fa-list"></i>&ensp;View Upload Logs</a>
+                            </div>
+                            <input type="file" name="import_course_file" id="import_course_file" class="bulk_dropify" data-allowed-file-extensions="csv" accept=".csv"  required>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                            <button type="button" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         <?php include_once FOOTER_PATH; ?>
     </div>
@@ -225,6 +255,7 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     let currTitle = '';
+    const subject_id_delete = [];
     function loadCurriculumOptions(selector = '', selectedId = null) {
         const component = $(selector);
         if(component.is("#curriculum")){
@@ -236,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     if(response.code === 200 && response.msg_status === true){
                         const data = response.data
                         const currData = data.find(d => d.curriculum_id === Number(selectedId));
-                        console.log("curr data: ",selectedId)
                         if(!currData){
                             document.getElementById('curriculum').textContent = "Curriculum Title Unavailable";
                         }
@@ -267,6 +297,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             });
+        }
+    }
+
+    function loadingAPIrequest(status){
+        if(status === true){
+            swal({
+                title: "Loading",
+                icon: 'info',
+                text: "Please wait",
+                button: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
+            });
+        }
+        if(status === false){
+            swal.close();
         }
     }
 
@@ -342,6 +388,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -409,6 +459,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -477,6 +531,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -543,6 +601,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -611,6 +673,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -677,6 +743,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -745,6 +815,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -811,6 +885,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -879,6 +957,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -945,6 +1027,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formatter: "buttonCross",
                 width: 40,
                 cellClick: function(e, cell) {
+                    const rowData = cell.getRow().getData();
+                    if (rowData.subject_id) {
+                        subject_id_delete.push(Number(rowData.subject_id));
+                    }
                     cell.getRow().delete();
                 }
             },
@@ -975,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', function () {
         "5|1st Semester": fifthTable1,
         "5|2nd Semester": fifthTable2,
     };
+
 
     function normalizeCourse(c) {
         return {
@@ -1075,11 +1162,36 @@ document.addEventListener('DOMContentLoaded', function () {
             error: function(){
                 swal({
                     title: "Error",
-                    text: "Could not find curriculum. You may manually select it.",
+                    text: "Could not find curriculum.",
                     icon: "error"
                 });
             }
         })
+    }
+
+    function refreshCourses(){
+        if(coin){
+            $.ajax({
+                url: "<?php echo BASE_URL.URL_FROMCURR; ?>",
+                method: "POST",
+                data: { coin: coin },
+                dataType: "json",
+                success: function(data){
+                    if(data){
+                        if(data.code === 200 && data.msg_status === true){
+                            populateTablesFromPayload(data.courses);
+                        }
+                    }
+                },
+                error: function(){
+                    swal({
+                        title: "Error",
+                        text: "Could not find curriculum.",
+                        icon: "error"
+                    });
+                }
+            })
+        }
     }
 
     // updateOverallUnits();
@@ -1239,6 +1351,10 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 name: "table_Data",
                 value : JSON.stringify(tableMap)
+            },
+            {
+                name: "deleted_subject_ids",
+                value : JSON.stringify(subject_id_delete)
             }
         ]
 
@@ -1257,6 +1373,162 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             error: function () {
                 swal({ title: "Error", text: "Request failed.", icon: "error" });
+            }
+        });
+    });
+
+    document.getElementById('bulkUpload').addEventListener('click', function(e){
+        e.preventDefault();
+
+        $('#bulkModal').modal('show');
+    })
+
+    $('.bulk_dropify').dropify({
+        messages: {
+            'default': 'Drag and drop your CSV file here.',
+            'replace': 'Drag and drop, or click to replace.',
+            'remove': 'Remove',
+            'error': 'Ooops, something wrong happended.'
+        }
+    });
+
+
+    $("#import_course_form").on('submit', function(e){
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        formData.append('curriculum_id', curr_id);
+        formData.append('program_id', program_id);
+
+        $.ajax({
+            type: "POST",
+            url: "<?php echo BASE_URL; ?>dean/actions/import_course_process.php",
+            data: formData,
+            dataType: "json",
+            contentType: false,
+            cache: false,
+            processData: false,
+            beforeSend: function(){
+                loadingAPIrequest(true);
+                $("#btn_import_section_submit").attr("disabled", true);
+            },
+            complete: function(){
+                loadingAPIrequest(false);
+                $("#btn_import_section_submit").removeAttr("disabled");
+            },
+            success: function(output){
+                if (output.msg_status === true && output.code === 200) {
+                    const inserted = output.success_insert || 0;
+                    const updated  = output.success_update || 0;
+                    const skipped  = output.skipped || 0;
+                    const total    = output.total || 0;
+                    const errors   = Array.isArray(output.error_id) ? output.error_id.length : 0;
+
+                    let summary = `Total: ${total}\nInserted: ${inserted}\nUpdated: ${updated}\nSkipped: ${skipped}\nErrors: ${errors}`;
+
+                    swal({
+                        icon: "success",
+                        title: "Import Completed",
+                        text: summary,
+                        button: false,
+                        timer:2000
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                        refreshCourses();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 501) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 502) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 503) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 504) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 505) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+
+                if (output.msg_status === true && output.code === 500) {
+                    swal({
+                        title: "Error uploading",
+                        icon: "error",
+                        text: output.msg_response,
+                        button: true
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        $('#import_course_form')[0].reset();
+                    });
+                    return;
+                }
+            },
+            error: function(){
+                swal({
+                    title: "Error uploading",
+                    icon: "error",
+                    text: "You're good, possible network interruption. Check your internet connection. Consult support at MISD is advised.",
+                    button: true
+                }).then(function(){
+                    $('#bulkModal').modal('hide');
+                    $('#import_course_form')[0].reset();
+                });
+                return;
             }
         });
     });
