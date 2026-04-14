@@ -385,14 +385,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
             
@@ -456,14 +457,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -528,14 +530,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -598,14 +601,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -670,14 +674,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -740,14 +745,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -812,14 +818,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -882,14 +889,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -954,14 +962,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -1024,14 +1033,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 minWidth: 200,
                 width: 200,
                 sorter: false,
-                formatter: "buttonCross",
+                formatter: function(cell){
+                    const data = cell.getRow().getData();
+                    console.log('data: ', data);
+                    return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
+                },
                 width: 40,
                 cellClick: function(e, cell) {
                     const rowData = cell.getRow().getData();
-                    if (rowData.subject_id) {
-                        subject_id_delete.push(Number(rowData.subject_id));
-                    }
-                    cell.getRow().delete();
+                    return Number(rowData.subject_id) ? '' : cell.getRow().delete();
                 }
             },
         ],
@@ -1091,6 +1101,27 @@ document.addEventListener('DOMContentLoaded', function () {
             const rows = grouped[key] || [];
             if (table) {
                 table.setData(rows.length ? rows : [{ code:"", title:"", lec:0, lab:0, unit:0, prereq:"" }]);
+            }
+        });
+
+        if (typeof updateOverallUnits === "function") updateOverallUnits();
+    }
+
+    function appendCoursesToTables(courses){
+        if (!courses || !Array.isArray(courses)) return;
+
+        const grouped = {};
+        courses.forEach(c => {
+            const year = Number(c.year_level);
+            const key = `${year}|${c.semester}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(normalizeCourse(c));
+        });
+
+        Object.keys(grouped).forEach(key => {
+            const table = tablesByKey[key];
+            if (table) {
+                table.addData(grouped[key], true); // append only
             }
         });
 
@@ -1351,10 +1382,6 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 name: "table_Data",
                 value : JSON.stringify(tableMap)
-            },
-            {
-                name: "deleted_subject_ids",
-                value : JSON.stringify(subject_id_delete)
             }
         ]
 
@@ -1435,7 +1462,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }).then(function(){
                         $('#bulkModal').modal('hide');
                         $('#import_course_form')[0].reset();
-                        refreshCourses();
+                        
+                        appendCoursesToTables(output.courses_upload); 
                     });
                     return;
                 }

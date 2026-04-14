@@ -94,6 +94,7 @@ try {
     $success_insert = 0;
     $skipped_count = 0;
     $return_error = [];
+    $parsed_courses = [];
 
     $required_header = [
         'COURSE TITLE',
@@ -115,7 +116,6 @@ try {
         foreach ($column as $index => $value) {
             $column[$index] = trim($value);
         }
-        echo "column: ";var_dump($column);
 
         // Header row
         if ($total_count == 1) {
@@ -169,7 +169,6 @@ try {
             $total_count++;
             continue;
         }
-        var_dump($row);
 
         $course_title = $row['COURSE TITLE'];
         $course_code  = $row['COURSE CODE'];
@@ -191,28 +190,40 @@ try {
 
         $lec_lab = json_encode([$lec, $lab]);
 
-        $db_connect->begin_transaction();
-        $insert = "INSERT INTO curriculum
-            (curriculum_id, program_id, curriculum_title, year_level, semester,
-             subject_id, subject_code, subject_title, description, unit, lec_lab, pre_req, status, createdAt)
-            VALUES (
-                '".escape($db_connect, $curriculum_id)."',
-                '".escape($db_connect, $program_id)."',
-                '".escape($db_connect, $curriculum_title)."',
-                '".escape($db_connect, $year_level)."',
-                '".escape($db_connect, $semester)."',
-                NULL,
-                '".escape($db_connect, $course_code)."',
-                '".escape($db_connect, $course_title)."',
-                '',
-                '".escape($db_connect, $unit)."',
-                '".escape($db_connect, $lec_lab)."',
-                '".escape($db_connect, $pre_req)."',
-                0,
-                NOW()
-            )";
-        if (call_mysql_query($insert)) $success_insert++;
-        $db_connect->commit();
+        // $db_connect->begin_transaction();
+        // $insert = "INSERT INTO curriculum
+        //     (curriculum_id, program_id, curriculum_title, year_level, semester,
+        //      subject_id, subject_code, subject_title, description, unit, lec_lab, pre_req, status, createdAt)
+        //     VALUES (
+        //         '".escape($db_connect, $curriculum_id)."',
+        //         '".escape($db_connect, $program_id)."',
+        //         '".escape($db_connect, $curriculum_title)."',
+        //         '".escape($db_connect, $year_level)."',
+        //         '".escape($db_connect, $semester)."',
+        //         NULL,
+        //         '".escape($db_connect, $course_code)."',
+        //         '".escape($db_connect, $course_title)."',
+        //         '',
+        //         '".escape($db_connect, $unit)."',
+        //         '".escape($db_connect, $lec_lab)."',
+        //         '".escape($db_connect, $pre_req)."',
+        //         0,
+        //         NOW()
+        //     )";
+        // if (call_mysql_query($insert)) $success_insert++;
+        // $db_connect->commit();
+        $parsed_courses[] = [
+            "subject_id" => "", // empty because not saved yet
+            "subject_code" => $course_code,
+            "subject_title" => $course_title,
+            "unit" => $unit,
+            "lec" => $lec,
+            "lab" => $lab,
+            "pre_req" => $pre_req,
+            "year_level" => $year_level,
+            "semester" => $semester
+        ];
+        $success_insert++;
 
         $total_count++;
     }
@@ -221,6 +232,7 @@ try {
 
     $response['msg_status'] = true;
     $response['code'] = 200;
+    $response['courses_upload'] = $parsed_courses;
     $response['msg_response'] = "Import completed.";
     $response['total'] = $total_count - 1;
     $response['skipped'] = $skipped_count;

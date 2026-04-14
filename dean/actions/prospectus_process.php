@@ -19,8 +19,6 @@ try {
             'msg_response' => 'Request error, please try again.',
             'msg_span' => '_system'
         );
-        $delete_id = isset($_POST['deleted_subject_ids']) ? json_decode(trim($_POST['deleted_subject_ids'])) : '';
-
 
         $values = [];
         $sem = '';
