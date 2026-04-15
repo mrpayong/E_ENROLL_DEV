@@ -255,7 +255,6 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     let currTitle = '';
-    const subject_id_delete = [];
     function loadCurriculumOptions(selector = '', selectedId = null) {
         const component = $(selector);
         if(component.is("#curriculum")){
@@ -1396,10 +1395,64 @@ document.addEventListener('DOMContentLoaded', function () {
             dataType: "json",
             success: function (data) {
                 console.log('Response from server:', data);
-                return;
+                if(data.code === 200 && data.msg_status === true){
+                    swal({ 
+                        title: "Success", 
+                        text: "Saved Successfully.", 
+                        icon: "success",
+                        button: false, 
+                        timer: 3000
+                    }).then(function(){
+                        $('#bulkModal').modal('hide');
+                        document.getElementById('import_course_form').reset();
+                        refreshCourses();
+                        const dropify = $('#import_course_file').data('dropify');
+                        if (dropify) {
+                            dropify.resetPreview();
+                            dropify.clearElement();
+                        }
+                    });
+                }
+                if(data.code === 501 && data.msg_status === false){
+                    swal({ 
+                        title: "Error", 
+                        text: data.msg_response, 
+                        icon: "error",
+                        button: true 
+                    });
+                }
+                if(data.code === 401 && data.msg_status === false){
+                    swal({ 
+                        title: "Error", 
+                        text: data.msg_response, 
+                        icon: "error",
+                        button: true 
+                    });
+                }
+                if(data.code === 403 && data.msg_status === false){
+                    swal({ 
+                        title: "Error", 
+                        text: data.msg_response, 
+                        icon: "error",
+                        button: true 
+                    });
+                }
+                if(data.code === 500 && data.msg_status === false){
+                    swal({ 
+                        title: "Error", 
+                        text: data.msg_response, 
+                        icon: "error",
+                        button: true 
+                    });
+                }
             },
             error: function () {
-                swal({ title: "Error", text: "Request failed.", icon: "error" });
+                swal({ 
+                    title: "Error", 
+                    text: "Request failed.", 
+                    icon: "error",
+                    button: true 
+                });
             }
         });
     });

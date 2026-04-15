@@ -68,13 +68,16 @@ try {
 
     $update_status = 0;
     $subjects = [];
-    $sql_curr = "SELECT curriculum_id, ched_aprrv_date FROM curriculum_master WHERE curriculum_id = '" . escape($db_connect, intVal($payload['curriculum_id'])) . "' LIMIT 1";
+    $sql_curr = "SELECT curriculum_id, ched_aprrv_date FROM curriculum_master WHERE curriculum_id = '" . escape($db_connect, intVal($payload['curriculum_id'])) . "'
+    AND program_id = '".escape($db_connect, $payload["program_id"])."' LIMIT 1";
     if($sql = call_mysql_query($sql_curr)){
         if($curr_data = call_mysql_fetch_array($sql)){
             if(!empty($curr_data['ched_aprrv_date'])){
                 $update_status = 1;
             }
-            $sql_currSubjs = "SELECT subject_id, subject_code, subject_title, unit, lec_lab, pre_req, year_level, semester FROM curriculum WHERE curriculum_id = '" . escape($db_connect, intVal($curr_data['curriculum_id'])) . "'";
+            $sql_currSubjs = "SELECT subject_id, subject_code, subject_title, unit, lec_lab, pre_req, year_level, semester FROM curriculum WHERE curriculum_id = '" . escape($db_connect, intVal($curr_data['curriculum_id'])) . "'
+            AND program_id = '".escape($db_connect, $payload["program_id"])."'
+            ";
             if($sqlSubjs = call_mysql_query($sql_currSubjs)){
                 while($row = call_mysql_fetch_array($sqlSubjs)){
                     $lec_labData = json_decode($row['lec_lab'], true);

@@ -65,7 +65,7 @@ try {
                 $pre_req = isset($subj['prereq']) ? trim($subj['prereq']) : '';
 
                 // Skip blank rows
-                if ($code === '' && $title === '' && $unit === 0) {
+                if ($code === '' && $title === '') {
                     continue;
                 }
 
@@ -153,6 +153,7 @@ try {
         foreach ($subjectRows as $r) {
             $pairs[] = "('".escape($db_connect, $r['code'])."','".escape($db_connect, $r['title'])."')";
         }
+        // echo "pair: ";var_dump($pairs);
 
         if($result === 1){
             $sql_map = "SELECT subject_code, subject_title, subject_id AS subject_id
@@ -162,25 +163,34 @@ try {
                         AND (subject_code, subject_title) IN (".implode(',', $pairs).")";
 
             $subjectMap = [];
+            $skip = array();
             if ($res = call_mysql_query($sql_map)) {
                 while ($row = call_mysql_fetch_array($res)) {
-                    $key = strtoupper($row['subject_code']).'|'.strtoupper($row['subject_title']);
-                    $subjectMap[$key] = $row['subject_id'];
+                    // echo "rows from subjects: \n";var_dump($row);
+                    $sql_curr = "SELECT prospectus_id FROM curriculum 
+                    WHERE subject_id = '".escape($db_connect, intVal($row['subject_id']))."'
+                    AND program_id = '".escape($db_connect, $program_id)."'
+                    AND curriculum_id = '".escape($db_connect, $curr_id)."'
+                    ";
+                    if($fetch_sql = call_mysql_query($sql_curr)){
+                        if(call_mysql_num_rows($fetch_sql) === 0){
+                            $key = strtoupper($row['subject_code']).'|'.strtoupper($row['subject_title']);
+                            $subjectMap[$key] = $row['subject_id'];
+                        }
+                    }
                 }
             }
 
 
             $currValues = [];
 
+            // echo "subject map: ";var_dump($subjectMap);
+            // echo "\n curr rows: ";var_dump($currRows);
             foreach ($currRows as $r) {
                 $key = strtoupper($r['code']).'|'.strtoupper($r['title']);
                 if (!isset($subjectMap[$key])) {
-                    $output['msg_response'] = 'A course was not found: '.$r['code'].' title: '.$r['title'];
-                    $output['code'] = 404;
-                    echo json_encode($output);
-                    exit();
+                    continue;
                 }
-
 
                 $currValues[] = "(
                     '".escape($db_connect, $curr_id)."',
@@ -197,9 +207,8 @@ try {
                 )";
             }
 
-
-
-
+            // var_dump($currValues);
+            // exit();
 
             if(!empty($currValues)){
                 $db_connect->begin_transaction();
