@@ -64,23 +64,23 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
                     <!-- 1ST YEAR -->
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button id="btn_add_row1" type="button" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">1st Year, 1st Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">1st Year, 1st Semester</label>
                             </div>
                           </div>
                          <div id="first_1sem"></div>
                     </div>
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button id="btn_add_row2" type="button" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">1st Year, 2nd Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">1st Year, 2nd Semester</label>
                             </div>
                           </div>
                          <div id="first_2sem"></div>
@@ -88,23 +88,23 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
                     <!-- 2ND YEAR -->
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button id="scdYr_tb1" type="button" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">2nd Year, 1st Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">2nd Year, 1st Semester</label>
                             </div>
                           </div>
                          <div id="second_1sem"></div>
                     </div>
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button id="scdYr_tb2" type="button" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">2nd Year, 2nd Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">2nd Year, 2nd Semester</label>
                             </div>
                           </div>
                          <div id="second_2sem"></div>
@@ -112,23 +112,23 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
                     <!-- 3RD YEAR -->
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="trdYr_tb1" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">3rd Year, 1st Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">3rd Year, 1st Semester</label>
                             </div>
                           </div>
                          <div id="third_1sem"></div>
                     </div>
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="trdYr_tb2" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">3rd Year, 2nd Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">3rd Year, 2nd Semester</label>
                             </div>
                           </div>
                          <div id="third_2sem"></div>
@@ -136,23 +136,23 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
                     <!-- 4TH YEAR -->
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="frtYr_tb1" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">4th Year, 1st Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">4th Year, 1st Semester</label>
                             </div>
                           </div>
                          <div id="fourth_1sem"></div>
                     </div>
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="frtYr_tb2" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">4th Year, 2nd Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">4th Year, 2nd Semester</label>
                             </div>
                           </div>
                          <div id="fourth_2sem"></div>
@@ -160,12 +160,12 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
 
                     <!-- 5TH YEAR -->
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="fthYr_tb1" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">5th Year, 1st Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">5th Year, 1st Semester</label>
                             </div>
                             <div class="col-md-4 text-end">
                                 <span class="badge text-bg-warning fw-bold">Optional</span>
@@ -174,12 +174,12 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                          <div id="fifth_1sem"></div>
                     </div>
                     <div class="border-0">
-                         <div class="row m-0 rounded-bottom-0 rounded-top-1 p-2 bg-primary align-items-center">
+                         <div class="row m-0 rounded-bottom-0 p-2 align-items-center" style="background: black;">
                             <div class="col-md-4 ps-0">
                                 <button type="button" id="fthYr_tb2" class="btn btn-light btn-sm" style="padding: 6px 12px !important; "><i class="fas fa-plus"></i> Add Subject</button>
                             </div>
                             <div class="col-md-4 text-center">
-                                <label class="form-label text-black mb-0 fw-bold fs-5">5th Year, 2nd Semester</label>
+                                <label class="form-label text-white mb-0 fw-bold fs-5">5th Year, 2nd Semester</label>
                             </div>
                             <div class="col-md-4 text-end">
                                 <span class="badge text-bg-warning fw-bold">Optional</span>
@@ -206,7 +206,7 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
             <div class="modal fade" id="saveProspectusModal" tabindex="-1" aria-labelledby="saveDescLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header bg-primary text-white">
+                        <div class="modal-header text-white">
                             <h5 class="modal-title" id="saveDescLabel"></h5>
                             <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -345,27 +345,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                }
             },
             { 
                 title: "Title", 
                 field: "title",
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -376,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
             },
             {
                 title: "Action",
@@ -386,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -417,27 +436,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -448,7 +487,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -458,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -490,27 +533,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -521,7 +584,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -531,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -561,27 +628,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -592,7 +679,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -602,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -634,27 +725,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -665,7 +776,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -675,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -705,27 +820,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -736,7 +871,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -746,7 +885,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -778,27 +917,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -809,7 +968,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -819,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -849,27 +1012,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -880,7 +1063,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -890,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -922,27 +1109,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -953,7 +1160,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -963,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -993,27 +1204,47 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Code", 
                 field: "code", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Title", 
                 field: "title", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             { 
                 title: "Lec", 
                 field: "lec", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Lab", 
                 field: "lab", 
-                editor: "number" 
+                editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                }
             },
             { 
                 title: "Unit", 
                 field: "unit", 
                 editor: "number",
+                editable: function(cell){
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
+                },
                 bottomCalc: function(values){
                     return values.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
                 },
@@ -1024,7 +1255,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 title: "Pre-req", 
                 field: "prereq", 
-                editor: "input" 
+                editor: "input",
+                editable: function(cell){
+                    const value = cell.getValue();
+                    return value === null || value === undefined || String(value).trim() === "";
+                } 
             },
             {
                 title: "Action",
@@ -1034,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sorter: false,
                 formatter: function(cell){
                     const data = cell.getRow().getData();
-                    console.log('data: ', data);
+                    
                     return !data.subject_id ? "<button class='tabulator-delete-btn'>✖</button>" : "";
                 },
                 width: 40,
@@ -1277,6 +1512,39 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
+    function negativeChecker(data, level){
+        for (const datum of data){
+            if (datum?.code === "" && datum?.title === "") {
+                continue;
+            }
+            if(Math.sign(Number(datum?.lab)) === -1){
+                return swal({
+                    title:"Failed to Save",
+                    text:  `A lab unit is negative in ${level}`,
+                    button: true,
+                    icon: "error"
+                })
+            }
+            if(Math.sign(Number(datum?.lec)) === -1){
+                return swal({
+                    title:"Failed to Save",
+                    text: `A lecture unit is negative in ${level}`,
+                    button: true,
+                    icon: "error"
+                })
+            }
+            if(Math.sign(Number(datum?.unit)) === -1){
+                return swal({
+                    title:"Failed to Save",
+                    text: `A unit is negative in ${level}`,
+                    button: true,
+                    icon: "error"
+                })
+            }
+        }
+        return data;
+    } 
+
     document.getElementById('saveProspectusBtn').addEventListener('click', function (e) {
         e.preventDefault();
 
@@ -1298,20 +1566,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 value: currTitle
             }
         ];
-        const fsYr_1 = firstTable1.getData()
-        const fsYr_2 = firstTable2.getData();
+        const fsYr_1 = negativeChecker(firstTable1.getData(), "1st Year, 1st Semester");
+        const fsYr_2 = negativeChecker(firstTable2.getData(), "1st Year, 2nd Semester");
 
-        const scYr_1 = secondTable1.getData();
-        const scYr_2 = secondTable2.getData();
+        const scYr_1 = negativeChecker(secondTable1.getData(), "2nd Year, 1st Semester");
+        const scYr_2 = negativeChecker(secondTable2.getData(), "2nd Year, 2nd Semester");
 
-        const trYr_1 = thirdTable1.getData();
-        const trYr_2 = thirdTable2.getData();
+        const trYr_1 = negativeChecker(thirdTable1.getData(), "3rd Year, 1st Semester");
+        const trYr_2 = negativeChecker(thirdTable2.getData(), "3rd Year, 2nd Semester");
 
-        const frYr_1 = fourthTable1.getData();
-        const frYr_2 = fourthTable2.getData();
+        const frYr_1 = negativeChecker(fourthTable1.getData(), "4th Year, 2nd Semester");
+        const frYr_2 = negativeChecker(fourthTable2.getData(), "4th Year, 1st Semester");
 
-        const ftYr_1 = fifthTable1.getData();
-        const ftYr_2 = fifthTable2.getData();
+        const ftYr_1 = negativeChecker(fifthTable1.getData(), "5th Year, 1st Semester");
+        const ftYr_2 = negativeChecker(fifthTable2.getData(), "5th Year, 2nd Semester");
 
         const tableMap = [
             { 
