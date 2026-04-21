@@ -21,14 +21,16 @@ if ($g_user_role !== "REGISTRAR") {
 
 $query_limit = QUERY_LIMIT;
 $table_name = "subject as S";
+$left_join = "LEFT JOIN programs p ON p.program_id = s.program_id
+LEFT JOIN curriculum_master cm ON cm.curriculum_id = s.curriculum_id";
 
 $dbfield = [
-    's.subject_id', 's.subject_code', 's.subject_title',
-    's.unit', 's.status', 's.date_modified', 's.lec_lab', 's.flag_manual_enroll', 's.limit'
+    's.subject_id', 's.subject_code', 's.subject_title', 's.program_id', 'p.short_name', 's.curriculum_id',
+    's.unit', 's.status', 's.date_modified', 's.lec_lab', 's.flag_manual_enroll', 's.limit', 'cm.header'
 ];
 $dborig = [
     'subject_id', 'subject_code', 'subject_title',
-    'unit', 'status', 'date_modified', 'limit'
+    'unit', 'status', 'date_modified', 'limit', 'short_name'
 ];
 
 // Filtering
@@ -45,12 +47,10 @@ if (isset($_GET['filters'])) {
     foreach ($dborig as $id) {
         if (isset($sort_filters[$id])) {
             $value = escape($db_connect, $sort_filters[$id]);
-            if ($id == 'program') {
-                $sql_where_array[] = "p.program LIKE '%$value%'";
-            } elseif ($id == 'sem') {
-                $sql_where_array[] = "sy.sem LIKE '%$value%'";
-            } elseif (in_array($id, ['program_id', 'school_year_id', 'unit', 'status', 'excepted'])) {
-                $sql_where_array[] = "s.$id = '$value'";
+            if ($id == 'short_name') {
+                $sql_where_array[] = "p.short_name LIKE '%$value%'";
+            } elseif ($id == 'header') {
+                $sql_where_array[] = "cm.header LIKE '%$value%'";
             } else {
                 $sql_where_array[] = "s.$id LIKE '%$value%'";
             }
@@ -70,10 +70,10 @@ if (isset($_GET['sorters'])) {
     $sort_field = $sorters[0]['field'];
     $sort_dir = $sorters[0]['dir'];
     if (in_array($sort_field, $dborig) && in_array($sort_dir, $tag)) {
-        if ($sort_field == 'program') {
-            $orderby = "p.program $sort_dir";
-        } elseif ($sort_field == 'sem') {
-            $orderby = "sy.sem $sort_dir";
+        if ($sort_field == 'short_name') {
+            $orderby = "p.short_name $sort_dir";
+        } elseif ($sort_field == 'header') {
+            $orderby = "cm.header $sort_dir";
         } else {
             $orderby = "s.$sort_field $sort_dir";
         }
@@ -97,7 +97,7 @@ if (empty($sql_where)) {
 } else {
     $sql_conds = "WHERE s.status = 0 AND $sql_where";
 }
-$count_query = "SELECT $field_query FROM $table_name $sql_conds";
+$count_query = "SELECT $field_query FROM $table_name $left_join $sql_conds";
 $total_query = 0;
 if ($query = call_mysql_query($count_query)) {
     if ($num = call_mysql_num_rows($query)) {
@@ -114,7 +114,7 @@ if (empty($sql_where)) {
 } else {
     $sql_conds = "WHERE s.status = 0 AND $sql_where";
 }
-$data_query = "SELECT $field_query FROM $table_name $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
+$data_query = "SELECT $field_query FROM $table_name $left_join $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
 
 $to_encode = [];
 $lec = 0;
@@ -139,38 +139,38 @@ if ($query = call_mysql_query($data_query)) {
             $to_encode[] = $data;
         }
 
-        $manualEnrollMap = [];
-        $regularSubjects = [];
+        // $manualEnrollMap = [];
+        // $regularSubjects = [];
 
-        foreach ($to_encode as $subject) {
-            if ($subject['flag_manual_enroll']) {
-                // Group by subject_code
-                $code = $subject['subject_code'];
-                if (!isset($manualEnrollMap[$code])) {
-                    $manualEnrollMap[$code] = [];
-                }
-                $manualEnrollMap[$code][] = $subject;
-            } else {
-                $regularSubjects[] = $subject;
-            }
-        }
+        // foreach ($to_encode as $subject) {
+        //     if ($subject['flag_manual_enroll']) {
+        //         // Group by subject_code
+        //         $code = $subject['subject_code'];
+        //         if (!isset($manualEnrollMap[$code])) {
+        //             $manualEnrollMap[$code] = [];
+        //         }
+        //         $manualEnrollMap[$code][] = $subject;
+        //     } else {
+        //         $regularSubjects[] = $subject;
+        //     }
+        // }
 
-        // Flatten manual enroll groups for consecutive rows
-        $manualEnrollSubjects = [];
-        foreach ($manualEnrollMap as $code => $subjects) {
-            foreach ($subjects as $subject) {
-                $manualEnrollSubjects[] = $subject;
-            }
-        }
+        // // Flatten manual enroll groups for consecutive rows
+        // $manualEnrollSubjects = [];
+        // foreach ($manualEnrollMap as $code => $subjects) {
+        //     foreach ($subjects as $subject) {
+        //         $manualEnrollSubjects[] = $subject;
+        //     }
+        // }
 
-        // Merge manual enroll subjects first (for consecutive rows), then regular subjects
-        $finalSubjects = array_merge($manualEnrollSubjects, $regularSubjects);
+        // // Merge manual enroll subjects first (for consecutive rows), then regular subjects
+        // $finalSubjects = array_merge($manualEnrollSubjects, $regularSubjects);
     }
 }
 
 echo json_encode([
     "last_page" => $pages,
-    "data" => $finalSubjects,
+    "data" => $to_encode,
     "total_record" => $total_query,
 ]);
 exit();

@@ -191,20 +191,6 @@ $encoded_departments = json_encode($departments);
                                             <input type="text" class="form-control" id="major" name="major">
                                         </div>
                                     </div>
-                                    
-                                    <div class="row" >
-                                        <div class="col-md-6 mb-3">
-                                            <label for="emergency" class="form-label">Emergency</label>
-                                            <textarea type="text" class="form-control" id="emergency" name="emergency" required>
-                                            </textarea>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="additional_data" class="form-label">Additional Info</label>
-                                            <textarea type="text" class="form-control" id="additional_data" name="additional_data" required>
-                                            </textarea>
-                                        </div>
-                                    </div>
-
                                 </div>
 
                                 <div class="modal-footer">
@@ -298,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         dropdown.append(
                             $('<option>', {
                                 value: item.curriculum_id,
-                                text: item.header + " (" + item.curriculum_code + ")"
+                                text: item.header
                             })
                         );
                     });
@@ -535,8 +521,6 @@ document.addEventListener('DOMContentLoaded', function () {
             populateProgramDropdown('#program', rowData.program_id);
             populateDepartment('#department', rowData.department_id);
             populateCurriculumDropdown('#curriculum', rowData.curriculum_id);
-            document.getElementById('emergency').value = Number(rowData.emergency_data) !== 0 ? rowData.emergency_data : '';
-            document.getElementById('additional_data').value = Number(rowData.additional_data) !== "" ? rowData.additional_data : '';
 
             $('#updateModal').modal('show');
         }

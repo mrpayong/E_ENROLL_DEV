@@ -5,7 +5,11 @@ require CL_SESSION_PATH;
 require CONNECT_PATH;
 require ISLOGIN;
 
-header('Content-Type: application/json');
+header('Content-Type: application/json')
+function upload_log($file_path, $log)
+{
+    file_put_contents($file_path, $log, FILE_APPEND);
+};
 
 try {
     if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['submitCourse']) && $_POST['submitCourse'] === "createCourse"){
@@ -96,6 +100,14 @@ try {
         array_push($lec_lab, $lab_units);
         $capped_code = strtoupper($subject_code);
         
+        $time_id = "IMPORT_COURSE_" . time();
+        $file_path = TEXT_LOGS_PATH . $time_id . ".txt";
+        $summary_path = DOMAIN_PATH . "/upload/logs/summary_import_course.log";
+        $new_line = "\r\n";
+        $file_logs = "";
+        $success_insert = 0;
+        $return_error = [];
+
         $encoded_lec_lab = json_encode($lec_lab);
         $db_connect->begin_transaction();
         if(is_array($subject_title)){

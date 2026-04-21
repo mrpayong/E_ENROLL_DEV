@@ -195,9 +195,9 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                             <button id="saveProspectusBtn" type="button" class="text-black btn btn-success">
                                 <i class="bi bi-save me-1"></i> Save Prospectus
                             </button>
-                            <button id="toggleProspectusViewportBtn" type="button" class="text-black btn btn-secondary me-2">
+                            <!-- <button id="toggleProspectusViewportBtn" type="button" class="text-black btn btn-secondary me-2">
                                 View All Prospectus
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                 </div>
@@ -234,14 +234,15 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                         </div>
                         <div class="modal-body">
                             <div class="d-flex flex-row align-items-center justify-content-between">
-                                <a href="<?php echo BASE_URL; ?>dean/download_course.php?attach=IMP_BLK_CRS" class="mb-2" target="_blank"><i class="fas fa-download"></i>&ensp;Download Courses CSV Template</a>
-                                <a href="#" class="mb-2"><i class="fas fa-list"></i>&ensp;View Upload Logs</a>
+                                <a href="<?php echo BASE_URL; ?>dean/download_course.php?attach=IMP_BLK_CRS" class="mb-2" target="_blank">
+                                    <i class="fas fa-download"></i>&ensp;Download Courses CSV Template
+                                </a>
                             </div>
                             <input type="file" name="import_course_file" id="import_course_file" class="bulk_dropify" data-allowed-file-extensions="csv" accept=".csv"  required>
                         </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-success btn-sm">Confirm</button>
-                            <button type="button" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" id="cancelUpload" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -299,6 +300,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    $('#cancelUpload').on('click', function(){
+        $('#bulkModal').modal('hide');
+        $('#import_course_form')[0].reset();
+        document.getElementById('import_course_file').value = '';
+        const dropify = $('#import_course_file').data('dropify');
+        if (dropify) {
+            dropify.resetPreview();
+            dropify.clearElement();
+        }
+    })
+
     function loadingAPIrequest(status){
         if(status === true){
             swal({
@@ -347,8 +359,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 }
             },
             { 
@@ -356,8 +368,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title",
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -438,8 +450,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -447,8 +459,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -489,8 +501,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -535,8 +547,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -544,8 +556,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -586,8 +598,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -630,8 +642,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -639,8 +651,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -681,8 +693,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -727,8 +739,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -736,8 +748,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -778,8 +790,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -822,8 +834,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -831,8 +843,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -873,8 +885,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -919,8 +931,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -928,8 +940,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -970,8 +982,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -1014,8 +1026,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1023,8 +1035,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1065,8 +1077,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -1111,8 +1123,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1120,8 +1132,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1162,8 +1174,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -1206,8 +1218,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "code", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1215,8 +1227,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "title", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             { 
@@ -1257,8 +1269,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 field: "prereq", 
                 editor: "input",
                 editable: function(cell){
-                    const value = cell.getValue();
-                    return value === null || value === undefined || String(value).trim() === "";
+                    const data = cell.getRow().getData();
+                    return !data.subject_id ? true : false;
                 } 
             },
             {
@@ -1674,6 +1686,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         $('#bulkModal').modal('hide');
                         document.getElementById('import_course_form').reset();
                         refreshCourses();
+                        document.getElementById('import_course_file').value = '';
+                        document.getElementById('import_course_form').reset();
                         const dropify = $('#import_course_file').data('dropify');
                         if (dropify) {
                             dropify.resetPreview();
@@ -1785,6 +1799,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         $('#import_course_form')[0].reset();
                         
                         appendCoursesToTables(output.courses_upload); 
+
+                        document.getElementById('import_course_file').value = '';
+                        const dropify = $('#import_course_file').data('dropify');
+                        if (dropify) {
+                            dropify.resetPreview();
+                            dropify.clearElement();
+                        }
                     });
                     return;
                 }

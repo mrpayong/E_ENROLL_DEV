@@ -16,8 +16,6 @@ try {
         $program_id = isset($_POST['program']) ? intVal(trim($_POST['program'])) : '';
         $major = isset($_POST['major']) ? strtoupper(trim($_POST['major'])) : '';
         $curriculum_id = isset($_POST['curriculum']) ? intVal(trim($_POST['curriculum'])) : '';
-        $emergency = isset($_POST['emergency']) ? trim($_POST['emergency']) : '';
-        $additional = isset($_POST['additional_data']) ? trim($_POST['additional_data']) : '';
         $old_data = "";
         $to_edit = '';
         $firstname    = isset($_POST['f_name']) ? trim($_POST['f_name']) : '';
@@ -44,9 +42,7 @@ try {
             empty($contact) || 
             empty($year_level) || 
             empty($program_id) || 
-            empty($curriculum_id) || 
-            empty($emergency) || 
-            empty($additional)
+            empty($curriculum_id)
         ){
             $output['code'] = 501;
             $output['msg_response'] = "All fields are required.";
@@ -54,14 +50,14 @@ try {
             exit();
         }
 
-        $new_data = sha1($student_id . $barangay . $address . $contact . $year_level . $program_id . $major . $curriculum_id . $emergency . $additional . $department_id);
+        $new_data = sha1($student_id . $barangay . $address . $contact . $year_level . $program_id . $major . $curriculum_id . $department_id);
 
         $student_exist = "SELECT student_id, student_id_no, barangay, address, contact, year_level, program_id, major, curriculum_id, emergency_data, additional_data, department_id FROM student WHERE student_id_no = '".     escape($db_connect, $student_id)        ."'";
         if($query = call_mysql_query($student_exist)){
             if($data = call_mysql_fetch_array($query)){
                 $to_edit = $data['student_id'];
 
-                $old_data = sha1($data['student_id_no'] . $data['barangay'] . $data['address'] . $data['contact'] . $data['year_level'] . $data['program_id'] . $data['major'] . $data['curriculum_id'] . $data['emergency_data'] . $data['additional_data']) . $data['department_id'];
+                $old_data = sha1($data['student_id_no'] . $data['barangay'] . $data['address'] . $data['contact'] . $data['year_level'] . $data['program_id'] . $data['major'] . $data['curriculum_id'] . $data['department_id']);
             }
 
             if(empty($to_edit)){
@@ -83,8 +79,6 @@ try {
                     major,
                     username,
                     curriculum_id,
-                    emergency_data,
-                    additional_data,
                     flag_update,
                     program_id,
                     department_id
@@ -104,8 +98,6 @@ try {
                     '".escape($db_connect, $major)."',
                     '".escape($db_connect, $username)."',
                     '".escape($db_connect, $curriculum_id)."',
-                    '".escape($db_connect, $emergency)."',
-                    '".escape($db_connect, $additional)."',
                     NOW(),
                     '".escape($db_connect, $program_id)."',
                     '".escape($db_connect, $department_id)."'
@@ -146,8 +138,6 @@ try {
                 program_id = '".escape($db_connect, $program_id)."',
                 major = '".escape($db_connect, $major)."',
                 curriculum_id = '".escape($db_connect, $curriculum_id)."',
-                emergency_data = '".escape($db_connect, $emergency)."',
-                additional_data = '".escape($db_connect, $additional)."',
                 department_id = '".escape($db_connect, $department_id)."',
                 flag_update = NOW()
             WHERE student_id = '".escape($db_connect, $to_edit)."'

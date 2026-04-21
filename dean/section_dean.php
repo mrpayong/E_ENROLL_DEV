@@ -174,13 +174,12 @@ if (!($g_user_role == "DEAN")) {
                             <div class="modal-body">
                                 <div class="d-flex flex-row align-items-center justify-content-between">
                                     <a href="<?php echo BASE_URL; ?>dean/download.php?attach=IMP_BLK_SCT" class="mb-2" target="_blank"><i class="fas fa-download"></i>&ensp;Download Section CSV Template</a>
-                                    <a href="#" class="mb-2"><i class="fas fa-list"></i>&ensp;View Upload Logs</a>
                                 </div>
                                 <input type="file" name="import_section_file" id="import_section_file" class="bulk_dropify" data-allowed-file-extensions="csv" accept=".csv"  required>
                             </div>
                             <div class="modal-footer">
                                 <button type="submit" class="btn btn-success btn-sm">Confirm</button>
-                                <button type="button" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="cancelUpload" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -201,6 +200,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     openModalBtn.addEventListener('click', function(){
         $('#sectionFormModal').modal('show')
+    })
+
+    $('#cancelUpload').on('click', function(){
+        $('#bulkModal').modal('hide');
+        $('#import_section_form')[0].reset();
+        document.getElementById('import_section_file').value = '';
+        const dropify = $('#import_section_file').data('dropify');
+        if (dropify) {
+            dropify.resetPreview();
+            dropify.clearElement();
+        }
     })
 
     function formatDate(dateCreated){
@@ -729,6 +739,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         $('#bulkModal').modal('hide');
                         $('#import_section_form')[0].reset();
                         sectionTable.setData();
+                        document.getElementById('import_section_file').value = '';
+                        const dropify = $('#import_section_file').data('dropify');
+                        if (dropify) {
+                            dropify.resetPreview();
+                            dropify.clearElement();
+                        }
                     });
                     return;
                 }

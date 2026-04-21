@@ -230,13 +230,6 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                         </a>
                     </li>
 
-                    <li class="nav-item <?php echo navigation_active("curriculum"); ?>">
-                        <a href="<?php echo BASE_URL; ?>registrar/curriculum.php">
-                            <i class="fas fa-book-open"></i>
-                            <span>Curriculum</span>
-                        </a>
-                    </li>
-
                     <li class="nav-item <?php echo navigation_active("section"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/section.php">
                             <i class="fas fa-th"></i>
