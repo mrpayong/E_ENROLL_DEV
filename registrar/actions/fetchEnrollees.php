@@ -93,7 +93,7 @@ try {
         'program'
     ];
 
-    if ($fy_id > 0) {
+    if ($fy_id) {
         $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
                     "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
                     "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
@@ -112,23 +112,25 @@ try {
                         AND mus.curriculum_id = s.curriculum_id
                         AND mus.school_year_id = sy.school_year_id";
     } else {
-        $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
-                    "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
-                    "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
-                    "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id " .
-                    "LEFT JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments) e 
-                        ON e.student_id_no = s.student_id_no " .
-                    "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
-                    "LEFT JOIN final_grade AS fg
-                        ON fg.student_id_text = s.student_id_no
-                    AND fg.school_year = sy.school_year
-                    AND fg.sem = sy.sem ".
-                    "LEFT JOIN modify_units_students AS mus
-                        ON TRIM(mus.student_id_no) = TRIM(s.student_id_no)
-                        AND mus.year_level = s.year_level
-                        AND UPPER(mus.semester) = UPPER(sy.sem)
-                        AND mus.curriculum_id = s.curriculum_id
-                        AND mus.school_year_id = sy.school_year_id";
+        // $left_join = "LEFT JOIN users AS u ON u.general_id = s.student_id_no " .
+        //             "LEFT JOIN programs AS p ON s.program_id = p.program_id " .
+        //             "LEFT JOIN curriculum_master AS c ON s.curriculum_id = c.curriculum_id " .
+        //             "LEFT JOIN class_section AS sc ON s.class_id = sc.class_id " .
+        //             "LEFT JOIN (SELECT DISTINCT student_id_no, school_year_id FROM enrollments) e 
+        //                 ON e.student_id_no = s.student_id_no " .
+        //             "LEFT JOIN school_year AS sy ON sy.school_year_id = e.school_year_id ".
+        //             "LEFT JOIN final_grade AS fg
+        //                 ON fg.student_id_text = s.student_id_no
+        //             AND fg.school_year = sy.school_year
+        //             AND fg.sem = sy.sem ".
+        //             "LEFT JOIN modify_units_students AS mus
+        //                 ON TRIM(mus.student_id_no) = TRIM(s.student_id_no)
+        //                 AND mus.year_level = s.year_level
+        //                 AND UPPER(mus.semester) = UPPER(sy.sem)
+        //                 AND mus.curriculum_id = s.curriculum_id
+        //                 AND mus.school_year_id = sy.school_year_id";
+
+        $left_join = '';
     }
 
     // Filtering

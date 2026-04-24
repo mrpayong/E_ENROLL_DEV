@@ -211,130 +211,49 @@ if ($curriculum_units_total > 0) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
 
+
     <style>
-        /* Prospectus Styling (Shrunk) */
-        .grades-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-        .grades-table thead th { background-color: #000; color: #fff; text-align: center; padding: 6px; border: 1px solid #333; }
-        .grades-table tbody td { padding: 5px; border-bottom: 1px solid #dee2e6; }
-
-        /* Summary Tabulator Styling - Matching Screenshot Density */
-        #summary-table { 
-            border: 1px solid #ccc; 
-            font-size: 11px !important; 
+        #summary-table .tabulator-header {
+            background: #000 !important;
         }
 
-        /* Solid Black Header Layout */
-        .tabulator-header, 
-        .tabulator-header .tabulator-col,
-        .tabulator-header .tabulator-col-group {
-            background-color: #000 !important;
+        #summary-table .tabulator-col,
+        #summary-table .tabulator-col-group,
+        #summary-table .tabulator-header .tabulator-col {
+            background: #000 !important;
             color: #fff !important;
-            border-color: #333 !important;
+            border-right: 1px solid #fff !important;
+            border-bottom: 1px solid #fff !important;
         }
 
-        /* Search Filter Alignment */
-        .tabulator-header .tabulator-col .tabulator-header-filter {
-            margin-top: 5px !important;
+        #summary-table .tabulator-col:last-child {
+            border-right: 1px solid #fff !important;
         }
 
-        .tabulator-header .tabulator-col .tabulator-header-filter input {
-            background-color: #fff !important;
-            border: 1px solid #444 !important;
-            padding: 2px 4px !important;
-            font-size: 10px !important;
-            height: 20px !important;
-            border-radius: 0px !important;
-            width: 95% !important;
+        #summary-table .tabulator-col .tabulator-col-title {
+            color: #fff !important;
+            text-align: center !important;
         }
 
-        /* Grey Semester/Year Separator Bar */
-        .tabulator-group {
-            background: #bcbcbc !important; /* From image_45e6c1.png */
+        #summary-table .tabulator-header .tabulator-header-filter input {
+            width: 100% !important;
+            background: #fff !important;
+            border: 2px solid #2f2f2f !important;
+            border-radius: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        #summary-table .tabulator-col-group-cols {
+            border-top: 1px solid #fff !important;
+        }
+
+        #summary-table .tabulator-group {
+            background: #b8b8b8 !important;
             color: #000 !important;
-            font-weight: bold !important;
-            border-top: 1px solid #999 !important;
-            border-bottom: 1px solid #999 !important;
-            padding: 4px 10px !important;
-            font-size: 11px !important;
+            border-top: 1px solid #fff !important;
+            border-bottom: 1px solid #fff !important;
         }
 
-        /* Units Earned Bottom Bar */
-        .units-footer {
-            background-color: #000;
-            color: #fff;
-            padding: 8px 15px;
-            font-weight: bold;
-            font-size: 12px;
-            display: flex;
-            justify-content: flex-end;
-            margin-top: -1px; /* Align with table border */
-        }
-
-        .tabulator-row .tabulator-cell { padding: 4px 8px !important; border-right: 1px solid #eee !important; }
-
-        /* Grading legend styling */
-        .grading-legend {
-            background-color: #000000;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            font-size: 11px;
-        }
-
-        .grading-legend-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: #fff;
-            color: #000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 8px;
-            font-size: 12px;
-        }
-
-        .grading-legend-text {
-            line-height: 1.4;
-        }
-
-        /* Layout for prospectus meta header */
-        .prospectus-meta > div {
-            display: flex;
-            align-items: baseline;
-        }
-
-        .prospectus-meta .meta-label {
-            margin-right: 4px;
-        }
-
-        .prospectus-meta .meta-right {
-            margin-left: auto;
-        }
-
-        .prospectus-meta .meta-right-label {
-            font-weight: 700;
-        }
-
-        .prospectus-meta .meta-right-value {
-            text-decoration: underline;
-            font-weight: normal;
-        }
-
-        /* Override semester header color to blue for this page */
-        .sem-heading {
-            background-color: #2563EB !important;
-            color: #ffffff !important;
-        }
-
-        /* Center all text inside prospectus tables */
-        .prospectus-table th,
-        .prospectus-table td {
-            text-align: center;
-        }
     </style>
 </head>
 
@@ -384,7 +303,7 @@ if ($curriculum_units_total > 0) {
                                             <div class="school-office">OFFICE OF THE COLLEGE REGISTRAR</div>
                                             <div class="school-address">Calamba City</div>
                                             <div class="prospectus-title">
-                                                <?php echo htmlspecialchars($student_program_name ?: 'Bachelor of Science in Information Technology'); ?>
+                                                <?php echo htmlspecialchars($student_program_name); ?>
                                             </div>
                                             <?php if (!empty($student_curriculum_code)): ?>
                                                 <div class="prospectus-revision">Rv. <?php echo htmlspecialchars($student_curriculum_code); ?></div>
@@ -392,21 +311,13 @@ if ($curriculum_units_total > 0) {
                                         </div>
 
                                         <div class="prospectus-meta mb-2">
-                                            <div>
-                                                <span class="meta-label">NAME: </span>
-                                                <span><?php echo htmlspecialchars($student_fullname); ?></span>
-                                                <span class="meta-right">
-                                                    <span class="meta-right-label">Units Earned:</span>
-                                                    <span class="meta-right-value"> <?php echo (int)$total_units_earned; ?></span>
-                                                </span>
+                                            <div class="d-flex flex-row justify-content-between">
+                                                <span class="fw-bold">Name: <?php echo htmlspecialchars($student_fullname); ?></span>
+                                                <span class="fw-bold">Units Earned: <?php echo (int)$total_units_earned; ?></span>
                                             </div>
-                                            <div>
-                                                <span class="meta-label">STUDENT NO. :</span>
-                                                <span><?php echo htmlspecialchars($g_general_id ?? ''); ?></span>
-                                                <span class="meta-right">
-                                                    <span class="meta-right-label">Units to be Earned:</span>
-                                                    <span class="meta-right-value"> <?php echo $units_to_be_earned !== null ? (int)$units_to_be_earned : ''; ?></span>
-                                                </span>
+                                            <div class="d-flex flex-row justify-content-between">
+                                                <span class="fw-bold">STUDENT NO. :  <?php echo htmlspecialchars($g_general_id ?? ''); ?></span>
+                                                <span class="fw-bold">Units to be Earned: <?php echo intVal($units_to_be_earned) ?></span>
                                             </div>
                                         </div>
 
@@ -492,31 +403,161 @@ if ($curriculum_units_total > 0) {
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
 
 <script>
-    const tableData = <?php echo json_encode(array_values($final_rows ?? [])); ?>;
+    // const table = new Tabulator("#summary-table", {
+    //     data: tableData,
+    //     layout: "fitColumns",
+    //     // Nested grouping: Year Level then Semester
+    //     // groupBy: ["yr_level", "sem"],
+    //     // groupHeader: [
+    //     //     (value) => value,
+    //     //     (value, count, data) => value + ", S.Y." + data[0].school_year
+    //     // ],
+    //     columns: [
+    //         {title: "Course Code", field: "subject_code", width: 140, headerFilter: "input", hozAlign: "center", headerHozAlign: "center"},
+    //         {title: "Course Title", field: "course_desc", widthGrow: 3, headerFilter: "input", headerHozAlign: "center"},
+    //         {
+    //             title: "Grades",
+    //             headerHozAlign: "center",
+    //             columns: [
+    //                 {title: "Final", field: "converted_grade", hozAlign: "center", headerFilter: "input", width: 100, headerHozAlign: "center"},
+    //                 {title: "Re-Exam", field: "completion", hozAlign: "center", headerFilter: "input", width: 100, headerHozAlign: "center"},
+    //             ],
+    //         },
+    //         {title: "Credits", field: "units", hozAlign: "center", headerFilter: "input", width: 90, headerHozAlign: "center"},
+    //     ],
+    // });
 
+    // const table = new Tabulator("#summary-table", {
+    //     ajaxURL: "<?php echo BASE_URL; ?>student/actions/fetchGrades.php",
+    //     ajaxConfig: "GET",
+    //     layout: "fitColumns",
+    //     columnHeaderVertAlign: "bottom",
+    //     groupBy: function(row){
+    //         return row.sem + ", S.Y." + row.school_year;
+    //     },
+    //     groupStartOpen: true,
+    //     groupHeader: function(value){
+    //         return value;
+    //     },
+    //     columns: [
+    //         {
+    //             title: "Course Code",
+    //             field: "subject_code",
+    //             width: 220,
+    //             headerFilter: "input",
+    //             hozAlign: "left",
+    //             headerHozAlign: "center"
+    //         },
+    //         {
+    //             title: "Course Title",
+    //             field: "course_desc",
+    //             widthGrow: 4,
+    //             headerFilter: "input",
+    //             hozAlign: "left",
+    //             headerHozAlign: "center"
+    //         },
+    //         {
+    //             title: "Grades",
+    //             headerHozAlign: "center",
+    //             columns: [
+    //                 {
+    //                     title: "Final",
+    //                     field: "converted_grade",
+    //                     width: 160,
+    //                     hozAlign: "center",
+    //                     headerFilter: "input",
+    //                     headerHozAlign: "center"
+    //                 },
+    //                 {
+    //                     title: "Re-Exam",
+    //                     field: "completion",
+    //                     width: 160,
+    //                     hozAlign: "center",
+    //                     headerFilter: "input",
+    //                     headerHozAlign: "center"
+    //                 }
+    //             ]
+    //         },
+    //         {
+    //             title: "Credits",
+    //             field: "units",
+    //             width: 120,
+    //             hozAlign: "center",
+    //             headerHozAlign: "center",
+    //             headerFilter: false
+    //         }
+    //     ]
+    // });
     const table = new Tabulator("#summary-table", {
-        data: tableData,
+        ajaxURL: "<?php echo BASE_URL; ?>student/actions/fetchGrades.php",
+        ajaxConfig: "GET",
         layout: "fitColumns",
-        // Nested grouping: Year Level then Semester
-        // groupBy: ["yr_level", "sem"],
-        // groupHeader: [
-        //     (value) => value,
-        //     (value, count, data) => value + ", S.Y." + data[0].school_year
-        // ],
+        placeholder: "No Data Available",
+        ajaxFiltering: true,
+        ajaxSorting: true,
+        ajaxResponse: function(url, params, response){
+            return Array.isArray(response.data) ? response.data : [];
+        },
+        groupBy: function(row){
+            return row.sem + ", S.Y." + row.school_year;
+        },
+        groupStartOpen: true,
+        groupHeader: function(value){
+            return value;
+        },
         columns: [
-            {title: "Course Code", field: "subject_code", width: 140, headerFilter: "input", hozAlign: "center", headerHozAlign: "center"},
-            {title: "Course Title", field: "course_desc", widthGrow: 3, headerFilter: "input", headerHozAlign: "center"},
+            {
+                title: "Course Code",
+                field: "subject_code",
+                width: 220,
+                headerFilter: "input",
+                hozAlign: "left",
+                headerHozAlign: "center"
+            },
+            {
+                title: "Course Title",
+                field: "course_desc",
+                widthGrow: 4,
+                headerFilter: "input",
+                hozAlign: "left",
+                headerHozAlign: "center"
+            },
             {
                 title: "Grades",
                 headerHozAlign: "center",
                 columns: [
-                    {title: "Final", field: "converted_grade", hozAlign: "center", headerFilter: "input", width: 100, headerHozAlign: "center"},
-                    {title: "Re-Exam", field: "completion", hozAlign: "center", headerFilter: "input", width: 100, headerHozAlign: "center"},
-                ],
+                    {
+                        title: "Final",
+                        field: "converted_grade",
+                        width: 160,
+                        hozAlign: "center",
+                        headerFilter: "input",
+                        headerHozAlign: "center"
+                    },
+                    {
+                        title: "Re-Exam",
+                        field: "completion",
+                        width: 160,
+                        hozAlign: "center",
+                        headerFilter: "input",
+                        headerHozAlign: "center",
+                        formatter: function(cell){
+                            return cell.getValue() || "";
+                        }
+                    }
+                ]
             },
-            {title: "Credits", field: "units", hozAlign: "center", headerFilter: "input", width: 90, headerHozAlign: "center"},
-        ],
+            {
+                title: "Credits",
+                field: "units",
+                width: 120,
+                hozAlign: "center",
+                headerHozAlign: "center"
+            }
+        ]
     });
+
+
 
     document.querySelector('button[data-bs-target="#summary"]').addEventListener('shown.bs.tab', () => table.redraw());
 

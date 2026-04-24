@@ -190,28 +190,36 @@ if($fetchSql = call_mysql_query($sql)){
         const stnd_class = cell.getRow().getData().student_classification;
 
         let action = ``;
-        if(stnd_class === "Regular"){
-            action += `
+        // if(stnd_class === "Regular"){
+        //     action += `
+        //     <div class="d-flex justify-content-evenly">
+        //         <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
+        //     </div>
+        //     `;
+        // }
+        // if(stnd_class === "Irregular"){
+        //     action += `
+        //     <div class="d-flex justify-content-evenly gap-1">
+        //         <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
+        //     </div>
+        //     `;
+        // }
+        action += `
             <div class="d-flex justify-content-evenly">
                 <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
             </div>
-            `;
-        }
-        if(stnd_class === "Irregular"){
-            action += `
-            <div class="d-flex justify-content-evenly gap-1">
-                <button class="btn btn-info btn-sm view-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-eye"></i> View</button>
-                <button class="btn btn-secondary btn-sm modify-btn" style="color:black !important;" data-id="${student_id}"><i class="fas fa-edit"></i> Modify Units</button>
-            </div>
-            `;
-        }
-  
+        `;
         return action;
     };
     
     const enrollTable = new Tabulator("#enrollTable", {
         ajaxURL: "<?php echo BASE_URL; ?>registrar/actions/fetchEnrollees.php",
         ajaxConfig: "GET",
+    ajaxParams: function(){
+        return {
+            school_year_id: $('#syDropdown').val() || ''
+        };
+    },
         ajaxFiltering: true,
         layout:"fitDataStretch",
         ajaxSorting: true,
@@ -260,7 +268,6 @@ if($fetchSql = call_mysql_query($sql)){
                 headerFilter:"input",
                 hozAlign: "center",
                 formatter: function(cell){
-                    console.log(typeof cell.getData().year_level)
                     const yr_lvl = cell.getData().year_level;
                     switch(yr_lvl){
                         case 1:
@@ -297,7 +304,6 @@ if($fetchSql = call_mysql_query($sql)){
                 hozAlign: "center",
                 formatter: function(cell){
                     const data = cell.getValue();
-                    console.log('req uints', data)
                     return data !== null ? data : "No assigned curriculum yet";
                 }
             },
@@ -331,16 +337,16 @@ if($fetchSql = call_mysql_query($sql)){
             if ($sy[0].selectize) $sy[0].selectize.destroy();
 
             $sy.empty();
-            $sy.append('<option value="">Select Fiscal Year</option>');
+            $sy.append('<option value="" disabled>Select Fiscal Year</option>');
             let defaultId = null;
 
             res.data.forEach(function(row) {
-                console.log("fy: ", row)
                 const label = `${row.school_year} ${row.sem}`;
                 $sy.append(
                     $('<option>', { value: row.school_year_id, text: label })
                 );
                 if (Number(row.isDefault) === 1) {
+                    // set selectize to default fiscal year
                     defaultId = row.school_year_id;
                 }
             });
@@ -355,7 +361,8 @@ if($fetchSql = call_mysql_query($sql)){
             const selectize = $sy[0].selectize;
             selectize.clear(true);
             if (defaultId !== null) {
-                selectize.setValue(String(defaultId), true);
+                selectize.setValue(String(defaultId), false);
+                enrollTable.setData();
             }
             },
             error: function() {
@@ -389,11 +396,6 @@ if($fetchSql = call_mysql_query($sql)){
                 return "No year level";
         }
     }
-
-    // const FY = <?php echo json_encode($defaultFy); ?>;
-    // (function FyInput(){
-    //     document.getElementById('fyInput').value = FY ?? "No Fiscal Year";
-    // })();
 
     $('#syDropdown').on('change', function(){
         const fyId = $(this).val() || '';

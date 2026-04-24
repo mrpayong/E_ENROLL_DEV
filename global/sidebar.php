@@ -275,8 +275,8 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                     </li>
 
                     <!-- start navigation -->
-                    <li class="nav-item <?php echo navigation_active("enrollment_status"); ?>">
-                        <a href="<?php echo BASE_URL . "student/enrollment_status.php" ?>">
+                    <li class="nav-item <?php echo navigation_active("student_enroll"); ?>">
+                        <a href="<?php echo BASE_URL . "student/student_enroll.php" ?>">
                             <i class="fas fa-clipboard-list"></i>
                             <p>Enrollment Status</p>
                         </a>
