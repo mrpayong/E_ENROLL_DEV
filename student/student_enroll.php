@@ -19,6 +19,14 @@ if (!($g_user_role == "STUDENT")) {
 
 $active_fiscalYear = array();
 $student_user = array();
+$active_school_year = '';
+$active_semester = '';
+$student_year_level = 0;
+$student_curriculum_id = 0;
+$student_program_id = '';
+$student_program = '';
+$active_school_year_id = 0;
+
 $sql_fy = "SELECT school_year_id, school_year, sem, date_from, date_to, flag_used 
 FROM school_year
 WHERE isDefault = '".escape($db_connect, 1)."'
@@ -27,17 +35,36 @@ WHERE isDefault = '".escape($db_connect, 1)."'
 if($sql = call_mysql_query($sql_fy)){
     if($data = call_mysql_fetch_array($sql)){
         array_push($active_fiscalYear, $data);
+        $active_school_year = trim($data['school_year']);
+        $active_semester = trim($data['sem']);
+        $active_school_year_id = intVal($data['school_year_id']);
     }
 }
 
-$sql_student = "SELECT student_id, student_id_no, firstname, middle_name, lastname, year_level 
-FROM student WHERE student_id_no = '".  escape($db_connect, $g_general_id)  ."'";
+$sql_student = "SELECT student_id, student_id_no, firstname, middle_name, lastname, year_level, curriculum_id, program_id
+FROM student 
+WHERE student_id_no = '".  escape($db_connect, $g_general_id)  ."'
+LIMIT 1
+";
 if($sql = call_mysql_query($sql_student)){
     if($data = call_mysql_fetch_array($sql)){
         array_push($student_user, $data);
+        $student_year_level = intVal($data['year_level']);
+        $student_curriculum_id = intVal($data['curriculum_id']);
+        $student_program_id = intVal($data['program_id']);
     }
 }
 
+$sql_program = "SELECT short_name
+FROM programs
+WHERE program_id = '".  escape($db_connect, $student_program_id)    ."'
+";
+
+if($sql = call_mysql_query($sql_program)){
+    if($data = call_mysql_fetch_array($sql)){
+        $student_program = $data['short_name'];
+    }
+}
 
 $student_academic_status = 'Irregular';
 $previous_term_school_year = '';
@@ -48,78 +75,19 @@ $passed_earned_units = 0;
 $required_curriculum_units = 0;
 $previous_term_average_final_grade = 0;
 $passed_subject_count = 0;
+$required_subject_codes = array();
+$passed_subject_codes = array();
+$missing_subject_codes = array();
 
-/*
-|--------------------------------------------------------------------------
-| 1. Get student info needed for status computation
-|--------------------------------------------------------------------------
-| Add curriculum_id if your student table has it. This is strongly recommended.
-|--------------------------------------------------------------------------
-*/
-$student_info = null;
-$student_year_level = 0;
-$student_curriculum_id = 0;
-
-$sql_student_status = "
-    SELECT student_id_no, year_level, curriculum_id
-    FROM student
-    WHERE student_id_no = '" . escape($db_connect, $g_general_id) . "'
-    LIMIT 1
-";
-
-if ($query = call_mysql_query($sql_student_status)) {
-    if ($data = call_mysql_fetch_array($query)) {
-        $student_info = $data;
-        $student_year_level = (int)($data['year_level'] ?? 0);
-        $student_curriculum_id = (int)($data['curriculum_id'] ?? 0);
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| 2. Get current active school year based on today's date
-|--------------------------------------------------------------------------
-*/
-$current_school_year = '';
-$current_sem = '';
-
-$sql_current_term = "
-    SELECT school_year_id, school_year, sem, date_from, date_to
-    FROM school_year
-    WHERE CURDATE() BETWEEN date_from AND date_to
-    LIMIT 1
-";
-
-if ($query = call_mysql_query($sql_current_term)) {
-    if ($data = call_mysql_fetch_array($query)) {
-        $current_school_year = trim($data['school_year'] ?? '');
-        $current_sem = trim($data['sem'] ?? '');
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| 3. Resolve previous term and comparison year level
-|--------------------------------------------------------------------------
-| Rules:
-| - If current term is 2nd Semester:
-|     previous term = 1st Semester of same school year
-|     comparison year level = student's current year level
-|
-| - If current term is 1st Semester:
-|     previous term = 2nd Semester of previous school year
-|     comparison year level = student's current year level - 1
-|--------------------------------------------------------------------------
-*/
-if (!empty($current_school_year) && !empty($current_sem) && $student_year_level > 0) {
-    $normalized_current_sem = strtolower(trim($current_sem));
+if (!empty($active_school_year) && !empty($active_semester) && $student_year_level != 0) {
+    $normalized_current_sem = strtolower(trim($active_semester));
 
     if (strpos($normalized_current_sem, '2nd') !== false) {
-        $previous_term_school_year = $current_school_year;
+        $previous_term_school_year = $active_school_year;
         $previous_term_sem = '1ST SEMESTER';
         $comparison_year_level = $student_year_level;
     } elseif (strpos($normalized_current_sem, '1st') !== false) {
-        $parts = explode('-', $current_school_year);
+        $parts = explode('-', $active_school_year);
 
         if (count($parts) === 2) {
             $start_year = (int)$parts[0];
@@ -140,50 +108,42 @@ if (!empty($current_school_year) && !empty($current_sem) && $student_year_level 
 |--------------------------------------------------------------------------
 */
 if (!empty($previous_term_school_year) && !empty($previous_term_sem) && !empty($g_general_id)) {
-    $student_id_text = escape($db_connect, $g_general_id);
-    $prev_sy = escape($db_connect, $previous_term_school_year);
-    $prev_sem = escape($db_connect, $previous_term_sem);
-
+    
     $sql_passed_grades = "
-        SELECT
-            COUNT(*) AS passed_subject_count,
-            COALESCE(SUM(units), 0) AS earned_units,
-            COALESCE(AVG(final_grade), 0) AS average_final_grade
+        SELECT subject_code, units, final_grade
         FROM final_grade
-        WHERE student_id_text = '$student_id_text'
-          AND school_year = '$prev_sy'
-          AND UPPER(sem) = UPPER('$prev_sem')
+        WHERE student_id_text = '". escape($db_connect, $g_general_id)  ."'
+          AND school_year = '". escape($db_connect, $previous_term_school_year) ."'
+          AND UPPER(sem) = UPPER('".    escape($db_connect, $previous_term_sem) ."')
           AND UPPER(remarks) = 'PASSED'
     ";
 
+    $final_grade_total = 0;
+
     if ($query = call_mysql_query($sql_passed_grades)) {
-        if ($data = call_mysql_fetch_array($query)) {
-            $passed_subject_count = (int)($data['passed_subject_count'] ?? 0);
-            $passed_earned_units = (int)($data['earned_units'] ?? 0);
-            $previous_term_average_final_grade = round((float)($data['average_final_grade'] ?? 0), 2);
+        while ($data = call_mysql_fetch_array($query)){
+            $subject_code = trim($data['subject_code']);
+            $units = intVal($data['units']);
+            $final_grade = (float)($data['final_grade']);
+
+            if ($subject_code !== '') {
+                $passed_subject_codes[$subject_code] = true;
+                $passed_earned_units += $units;
+                $final_grade_total += $final_grade;
+                $passed_subject_count++;
+            }
         }
+    }
+
+    if ($passed_subject_count > 0) {
+        $previous_term_average_final_grade = round($final_grade_total / $passed_subject_count, 2);
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| 5. Compute required units from curriculum
-|--------------------------------------------------------------------------
-| Match:
-| - curriculum_id
-| - year_level
-| - semester
-|--------------------------------------------------------------------------
-*/
 if ($student_curriculum_id > 0 && $comparison_year_level > 0 && !empty($previous_term_sem)) {
-    $curriculum_id_safe = (int)$student_curriculum_id;
-    $comparison_year_level_safe = (int)$comparison_year_level;
+    $curriculum_id_safe = intVal($student_curriculum_id);
+    $comparison_year_level_safe = intVal($comparison_year_level);
 
-    /*
-    | curriculum.semester values are like:
-    | 1st Semester / 2nd Semester
-    | so we normalize the previous sem string to the same style
-    */
     $curriculum_sem = '';
     if (stripos($previous_term_sem, '1ST') !== false) {
         $curriculum_sem = '1st Semester';
@@ -195,31 +155,66 @@ if ($student_curriculum_id > 0 && $comparison_year_level > 0 && !empty($previous
         $curriculum_sem_safe = escape($db_connect, $curriculum_sem);
 
         $sql_curriculum_units = "
-            SELECT COALESCE(SUM(unit), 0) AS required_units
+            SELECT subject_code, unit
             FROM curriculum
             WHERE curriculum_id = $curriculum_id_safe
               AND year_level = $comparison_year_level_safe
-              AND semester = '$curriculum_sem_safe'
+              AND semester = '".    escape($db_connect, $curriculum_sem)    ."'
         ";
 
         if ($query = call_mysql_query($sql_curriculum_units)) {
-            if ($data = call_mysql_fetch_array($query)) {
-                $required_curriculum_units = (int)($data['required_units'] ?? 0);
+            while ($data = call_mysql_fetch_array($query)) {
+                $subject_code = trim($data['subject_code']);
+                $unit = intVal($data['unit']);
+
+                if ($subject_code !== '') {
+                    $required_subject_codes[$subject_code] = true;
+                    $required_curriculum_units += $unit;
+                }
             }
         }
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| 6. Determine academic status
-|--------------------------------------------------------------------------
-*/
-if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curriculum_units) {
-    $student_academic_status = "Regular";
+if (!empty($required_subject_codes)) {
+    foreach ($required_subject_codes as $subject_code => $flag) {
+        if (!isset($passed_subject_codes[$subject_code])) {
+            $missing_subject_codes[] = $subject_code;
+        }
+    }
+
+    if (empty($missing_subject_codes)) {
+        $student_academic_status = "Regular";
+    } else {
+        $student_academic_status = "Irregular";
+    }
 } else {
     $student_academic_status = "Irregular";
 }
+
+$effective_year_level = $student_year_level;
+
+if ($student_academic_status === 'Regular') {
+    if (stripos($active_semester, '2nd') !== false) {
+        $effective_year_level = $student_year_level;
+    } elseif (stripos($active_semester, '1st') !== false) {
+        $effective_year_level = max(1, $student_year_level);
+    }
+}
+
+$enrollment_context = [
+    'student_id_no' => $g_general_id,
+    'program_id' => $student_program_id,
+    'curriculum_id' => $student_curriculum_id,
+    'student_year_level' => $student_year_level,
+    'effective_year_level' => $effective_year_level,
+    'academic_status' => $student_academic_status,
+    'school_year_id' => $active_school_year_id,
+    'school_year' => $active_school_year,
+    'semester' => $active_semester,
+];
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -331,18 +326,7 @@ if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curricul
                         <div class="col-6 col-md-3 mb-3">
                             <div class="card student-info-card p-2">
                                 <div class="info-label">Year Level</div>
-                                <div class="info-value">
-                                    <?php
-                                    if (!is_null($student_year_level_display) && $student_year_level_display > 0) {
-                                        $y_level = $student_year_level_display;
-                                        $suffix = ['th', 'st', 'nd', 'rd'];
-                                        $val = $y_level % 100;
-                                        echo $y_level . ($suffix[($val - 20) % 10] ?? $suffix[$val] ?? $suffix[0]) . " Year";
-                                    } else {
-                                        echo 'N/A';
-                                    }
-                                    ?>
-                                </div>
+                                <span class="fs-6 fw-bold" id="year_level"></span>
                             </div>
                         </div>
                     </div>
@@ -483,7 +467,7 @@ if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curricul
 
                     <?php if (!$has_pending_request && !$has_approved_request && !$has_active_enrollment): ?>
                     <div class="row subjects-container-scroll">
-                        <div class="col-md-8">
+                        <div class="<?php echo strcasecmp($student_academic_status, 'Regular') === 0 ? 'col-md-12' : 'col-md-8'; ?>">
                             <!-- Container 1: Available Subjects -->
                             <div class="card card-round">
                                 <div class="card-body">
@@ -517,142 +501,42 @@ if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curricul
 
                                         <div class="row mb-4">
                                             <div class="col-md-4 mb-2 mb-md-0">
-                                                <?php
-                                                // For students with an assigned program, show a simple
-                                                // read-only text field instead of a disabled dropdown
-                                                // to make it clear that the program cannot be changed.
-                                                if ($student_program_id > 0 && !empty($programs)) {
-                                                    $program_label = '';
-                                                    foreach ($programs as $program) {
-                                                        if ((int)$program['program_id'] === (int)$student_program_id) {
-                                                            $program_label = !empty($program['short_name']) ? $program['short_name'] : $program['program'];
-                                                            break;
-                                                        }
-                                                    }
-                                                    if ($program_label === '' && !empty($programs[0])) {
-                                                        $program_label = !empty($programs[0]['short_name']) ? $programs[0]['short_name'] : $programs[0]['program'];
-                                                    }
-                                                ?>
-                                                    <label for="program_name_display" class="form-labe fw-bold">Program</label>
-                                                    <input type="text" class="form-control" title="Program" id="program_name_display" value="<?php echo htmlspecialchars($program_label); ?>" readonly>
-                                                    <input type="hidden" name="program_id" id="program_id" value="<?php echo (int)$student_program_id; ?>">
-                                                <?php } else { ?>
-                                                    <label for="program_id" class="form-labe fw-bold">Program</label>
-                                                    <select class="form-select" name="program_id" id="program_id">
-                                                        <?php if ($student_program_id <= 0): ?>
-                                                            <option value="">All Programs</option>
-                                                        <?php endif; ?>
-                                                        <?php
-                                                        if (!empty($programs)) {
-                                                            $seen_programs = [];
-                                                            foreach ($programs as $program) {
-                                                                $pid = (int)$program['program_id'];
-                                                                $label = !empty($program['short_name']) ? $program['short_name'] : $program['program'];
-
-                                                                // Avoid duplicate entries with the same label
-                                                                if (isset($seen_programs[$label])) {
-                                                                    continue;
-                                                                }
-                                                                $seen_programs[$label] = true;
-
-                                                                $selected = ($pid === $student_program_id) ? 'selected' : '';
-                                                        ?>
-                                                                <option value="<?php echo $pid; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($label); ?></option>
-                                                        <?php
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </select>
-                                                <?php } ?>
+                                                <label for="program_name" class="form-label fw-bold">Program</label>
+                                                <input type="text" class="form-control" title="Program" id="program_name" readonly>
                                             </div>
 
-                                            <div class="col-md-4 mb-2 mb-md-0">
-                                                <label for="fiscal_year_display" class="form-labe fw-bold">School Year</label>
-                                                <?php
-                                                // Normalize current school year and semester into separate labels
-                                                $sy_text  = $current_sy['school_year'] ?? '';
-                                                $sem_text = $current_sy['sem'] ?? '';
-                                                ?>
-                                                <input type="text" class="form-control" title="School Year" id="fiscal_year_display" value="<?php echo htmlspecialchars($sy_text); ?>" readonly>
-                                            </div>
-
-                                            <div class="col-md-4">
-                                                <label for="semester_display" class="form-labe fw-bold">Semester</label>
-                                                <input type="text" class="form-control" title="Semester" id="semester_display" value="<?php echo htmlspecialchars($sem_text); ?>" readonly>
+                                            <div class="col-md-8">
+                                                <label for="enrollPeriod" class="form-label fw-bold">Enrolling For</label>
+                                                <input type="text" class="form-control" id="enrollPeriod" name="enrollPeriod" readonly>
                                             </div>
                                         </div>
 
-                                        <?php if (strcasecmp($student_academic_status, 'Regular') === 0): ?>
                                         <div class="row mb-3">
                                             <div class="col-md-4" id="section_select_group">
-                                                <label for="class_id" class="form-labe fw-bold">Section</label>
-                                                <select class="form-select" name="class_id" id="class_id">
-                                                    <?php
-                                                    if (!empty($sections)) {
-                                                        $seen_sections = [];
-                                                        foreach ($sections as $section) {
-                                                            $cid = (int)$section['class_id'];
-
-                                                            if (isset($seen_sections[$cid])) {
-                                                                continue;
-                                                            }
-                                                            $seen_sections[$cid] = true;
-                                                            $is_full = !empty($section_capacity_info[$cid]['is_full']);
-                                                            $disabled_attr = $is_full ? ' disabled' : '';
-                                                            $label = $section['class_name'] . ($is_full ? ' (Full)' : '');
-                                                    ?>
-                                                            <option value="<?php echo $cid; ?>"<?php echo $disabled_attr; ?>><?php echo htmlspecialchars($label); ?></option>
-                                                    <?php
-                                                        }
-                                                    }
-                                                    ?>
+                                                <label for="section" class="form-labe fw-bold">Section</label>
+                                                <select name="section" id="section">
                                                 </select>
                                             </div>
-                                        </div>
-                                        <?php endif; ?>
+                                            <div class="col-md-4">
+                                                <label for="required_units_label" class="form-label">Required Units</label>
+                                                <span name="required_units_label" id="required_units_label"></span>
+                                            </div>
 
-                                        <?php if (strcasecmp($student_academic_status, 'Regular') === 0): ?>
-                                        <div id="autoFillRow" class="d-flex justify-content-start align-items-center mb-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="autoFill" checked>
-                                                <label class="form-check-label" for="autoFill">Auto-fill <b>"My Subject Cart"</b> with all subjects.</label>
+                                            <div class="col-md-4 d-flex align-items-end justify-content-end">
+                                                <button class="btn btn-success" id="submitCourse">Enroll courses at this section</button>
                                             </div>
                                         </div>
-                                        <?php endif; ?>
 
-                                        <div class="table-responsive subject-table-wrapper">
-                                            <table class="table" id="subjects_table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Code</th>
-                                                        <th>Subject</th>
-                                                        <th>Section</th>
-                                                        <th>Units</th>
-                                                        <th id="subjects_prereq_header">Pre-Req</th>
-                                                        <th id="subjects_action_header">Action</th>
-                                                    </tr>
-                                                    <tr id="subjects_filter_row">
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_subject_code" placeholder="Search code"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_subject_title" placeholder="Search subject"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_section" placeholder="Search section"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_units" placeholder="Units"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_schedule" placeholder="Search schedule"></th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="subjects_tbody">
-                                                    <tr>
-                                                        <td colspan="6" class="text-center text-muted">Loading subjects...</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <div class="table-responsive">
+                                            <div id="offered_subjects_table"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        
+                        <!-- <div class="col-md-4">
                             <div class="card subject-cart-card">
                                 <div class="card-header d-flex justify-content-between align-items-center bg-white">
                                     <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-book-open me-2"></i> My Subject Cart</h5>
@@ -688,7 +572,45 @@ if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curricul
                                     <button class="btn btn-proceed">ENROLL IN THIS CLASS SECTION</button>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
+
+                        <?php if (strcasecmp($student_academic_status, 'Regular') !== 0): ?>
+                            <div class="col-md-4">
+                                <div class="card subject-cart-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                                        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-book-open me-2"></i> My Subject Cart</h5>
+                                        <span class="badge bg-primary rounded-pill" id="cart_count">0</span>
+                                    </div>
+                                    
+                                    <div class="cart-body-container">
+                                        <div class="empty-cart-state" id="cart_empty_state">
+                                            <i class="fas fa-book fa-3x mb-2"></i>
+                                            <p class="mb-0">Subject is empty.</p>
+                                        </div>
+                                        
+                                        <div id="cart_list" style="display:none;">
+                                            <div id="cart_items"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="btn-proceed-container">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="fw-bold">Required Units:</span>
+                                            <span class="fw-bold" id="required_units_label">N/A</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="fw-bold">Total Units:</span>
+                                            <span class="fw-bold text-primary" id="cart_total_units">0.0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3" id="cart_section_row">
+                                            <span class="fw-bold">Your Section Classification:</span>
+                                            <span id="cart_section_label" class="ms-2">Not yet determined</span>
+                                        </div>
+                                        <button class="btn btn-proceed">ENROLL IN THIS CLASS SECTION</button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="row mt-4">
@@ -841,55 +763,356 @@ if ($required_curriculum_units > 0 && $passed_earned_units >= $required_curricul
     <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 
     <?php if (!$has_pending_request && !$has_approved_request): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            function formatReadableDate(dateValue) {
-                const dateObj = new Date(dateValue + "T00:00:00");
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    function formatReadableDate(dateValue) {
+        const dateObj = new Date(dateValue + "T00:00:00");
 
-                return dateObj.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+        return dateObj.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    function formatYearLevel(yearLevel) {
+        switch (parseInt(yearLevel, 10)) {
+            case 1:
+                return "1st Year";
+            case 2:
+                return "2nd Year";
+            case 3:
+                return "3rd Year";
+            case 4:
+                return "4th Year";
+            case 5:
+                return "5th Year";
+            default:
+                return "Invalid";
+        }
+    }
+
+    const enrollmentContext = <?php echo json_encode($enrollment_context); ?>;
+
+    function getSelectedSectionId() {
+        const selectEl = document.getElementById('section');
+        if (!selectEl) return '';
+
+        if (selectEl.selectize) {
+            return selectEl.selectize.getValue() || '';
+        }
+
+        return selectEl.value || '';
+    }
+
+    function populateSectionDropdown(selector, sections, selectedId = null) {
+        const $dropdown = $(selector);
+        if (!$dropdown.length) return;
+
+        const currentValue = $dropdown.val();
+
+        if ($dropdown[0].selectize) {
+            $dropdown[0].selectize.destroy();
+        }
+
+        $dropdown.empty();
+        $dropdown.append('<option value="" selected disabled>Select Section</option>');
+
+        (sections || []).forEach(function(item) {
+            $dropdown.append(
+                $('<option>', {
+                    value: item.class_id,
+                    text: item.class_name
+                })
+            );
+        });
+
+        $dropdown.selectize({
+            allowEmptyOption: true,
+            create: false,
+            sortField: 'text',
+            onChange: function(value) {
+                if (!value) return;
+                loadOfferedSubjects();
             }
-            const fy_data = <?php echo json_encode($active_fiscalYear). "\n "; ?>
-            const student_data = <?php echo json_encode($student_user); ?>
+        });
 
-            console.log("fiscal yaer:", fy_data);
+        const selectize = $dropdown[0].selectize;
+        const finalValue = selectedId || currentValue || '';
 
-            const today = new Date();
-            const dateFrom = new Date(fy_data[0].date_from + "T00:00:00");
-            const dateTo = new Date(fy_data[0].date_to + "T23:59:59");
+        if (finalValue) {
+            selectize.setValue(String(finalValue), true);
+        }
+    }
 
-            const formattedDateFrom = formatReadableDate(fy_data[0].date_from);
-            const formattedDateTo = formatReadableDate(fy_data[0].date_to);
+    // const offeredTable = new Tabulator('#offered_subjects_table', {
+    //     ajaxURL: "<?php echo BASE_URL; ?>student/actions/fetchEligibleSections.php",
+    //     ajaxConfig: "GET",
+    //     pagination: "remote",
+    //     paginationSize: 10,
+    //     movableColumns: true,
+    //     ajaxFiltering: true,
+    //     ajaxSorting: true,
+    //     headerFilterPlaceholder: "Search",
+    //     placeholder: "No Data Found",
+    //     layout: "fitDataStretch",
+    //     minHeight: 150,
+    //     ajaxResponse: function (url, params, response) {
+    //         if (!response || response.msg_status !== true) {
+    //             return [];
+    //         }
 
-            const isEnrollmentPeriod = today >= dateFrom && today <= dateTo;
+    //         document.getElementById('required_units_label').textContent = response.required_units ?? 'N/A';
 
-            const alertBox = document.getElementById('enroll_period');
+    //         if (document.getElementById('cart_section_label')) {
+    //             document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
+    //         }
 
-            if (isEnrollmentPeriod) {
-                alertBox.className = "alert alert-success text-black";
-                alertBox.innerHTML = `
-                    <span class="fs-4 fw-bold">Enrollment Period Ongoing</span><br>
-                    Enrollment is open from ${formattedDateFrom} to ${formattedDateTo}.
-                `;
-            } else {
-                alertBox.className = "alert alert-danger text-black";
-                alertBox.innerHTML = `  
-                    <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
-                    Enrollment period is from ${formattedDateFrom} to ${formattedDateTo}.
-                `;
+    //         return Array.isArray(response.data) ? response.data : [];
+    //     },
+    //     columns: [
+    //         {
+    //             title: "Course Code",
+    //             field: "subject_code",
+    //             headerFilter: "input"
+    //         },
+    //         {
+    //             title: "Course Title",
+    //             field: "subject_title",
+    //             headerFilter: "input"
+    //         },
+    //         {
+    //             title: "Schedule",
+    //             field: "schedule",
+    //             headerFilter: "input"
+    //         },
+    //         {
+    //             title: "Units",
+    //             field: "unit",
+    //             hozAlign: "center",
+    //             headerFilter: "input"
+    //         },
+    //         {
+    //             title: "Pre-req",
+    //             field: "pre_req",
+    //             headerFilter: "input"
+    //         },
+    //         {
+    //             title: "Action",
+    //             field: "section_text",
+    //             formatter: function () {
+    //                 return '<span class="badge bg-success">Fixed</span>';
+    //             },
+    //             hozAlign: "center"
+    //         }
+    //     ]
+
+    // })
+
+    function formatSchedule(scheduleValue) {
+        if (!scheduleValue) return '';
+
+        let parsed = scheduleValue;
+
+        if (typeof parsed === 'string') {
+            try {
+                parsed = JSON.parse(parsed);
+            } catch (e) {
+                return parsed;
+            }
+        }
+
+        if (!Array.isArray(parsed)) {
+            return String(parsed);
+        }
+
+        return parsed.map(function(item) {
+            return String(item)
+                .replace(',', ' | ')
+                .replaceAll('::', ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }).join('<br>');
+    }
+
+    const offeredTable = new Tabulator('#offered_subjects_table', {
+        pagination: "local",
+        paginationSize: 10,
+        movableColumns: true,
+        headerFilterPlaceholder: "Search",
+        placeholder: "No Data Found",
+        layout: "fitDataStretch",
+        minHeight: 250,
+        ajaxResponse: function (url, params, response) {
+            if (!response || response.msg_status !== true) {
+                document.getElementById('required_units_label').textContent = 'N/A';
+
+                if (document.getElementById('cart_section_label')) {
+                    document.getElementById('cart_section_label').textContent = 'Not yet determined';
+                }
+
+                return [];
             }
 
-            let student_classification = "<?php echo $student_academic_status; ?>"
-            document.getElementById('id_num').textContent = student_data[0].student_id_no;
-            document.getElementById('full_name').textContent = `${student_data[0].lastname}, ${student_data[0].firstname} ${student_data[0].middle_name}`;
-            document.getElementById('student_class').textContent = `${student_classification}`;
-        })
+            document.getElementById('required_units_label').textContent = response.required_units ?? 'N/A';
 
+            if (document.getElementById('cart_section_label')) {
+                document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
+            }
+
+            return Array.isArray(response.data) ? response.data : [];
+        },
+        columns: [
+            {
+                title: "Action",
+                field: "section_text",
+                formatter: function () {
+                    return '<span class="badge bg-success">Fixed</span>';
+                },
+                hozAlign: "center"
+            },
+            {
+                title: "Course Code",
+                field: "subject_code",
+                headerFilter: "input"
+            },
+            {
+                title: "Course Title",
+                field: "subject_title",
+                headerFilter: "input"
+            },
+            {
+                title: "Units",
+                field: "unit",
+                hozAlign: "center",
+                headerFilter: "input"
+            },
+            {
+                title: "Pre-req",
+                field: "pre_req",
+                headerFilter: "input"
+            },
+            {
+                title: "Schedule",
+                field: "schedule",
+                headerFilter: "input",
+                formatter: function(cell){
+                    return formatSchedule(cell.getValue());
+                }
+            },
+        ]
+    });
+
+    function loadOfferedSubjects() {
+        const selectedClassId = getSelectedSectionId();
+
+
+        if (!selectedClassId) {
+            offeredTable.clearData();
+            document.getElementById('required_units_label').textContent = 0;
+
+            if (document.getElementById('cart_section_label')) {
+                document.getElementById('cart_section_label').textContent = 'Not yet determined';
+            }
+
+            return;
+        }
+
+        offeredTable.setData(
+            "<?php echo BASE_URL; ?>student/actions/fetchEligibleSections.php",
+            {
+                selected_class_id: selectedClassId
+            }
+        );
+    }
+
+    function bootstrapSections() {
+        $.ajax({
+            url: "<?php echo BASE_URL; ?>student/actions/fetchEligibleSections.php",
+            method: "GET",
+            dataType: "json",
+            success: function (response) {
+                if (!response || response.msg_status !== true) {
+                    return;
+                }
+
+                populateSectionDropdown('#section', response.sections || [], response.selected_class_id || '');
+
+                if (document.getElementById('cart_section_label')) {
+                    document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
+                }
+
+                loadOfferedSubjects();
+            }
+        });
+    }
+
+        bootstrapSections();
+        const student_prog = <?php echo json_encode($student_program). "\n "; ?>
+        const fy_data = <?php echo json_encode($active_fiscalYear). "\n "; ?>
+        const student_data = <?php echo json_encode($student_user); ?>
         
-    </script>
+        console.log("fiscal yaer:", fy_data);
+
+        const today = new Date();
+        const dateFrom = new Date(fy_data[0].date_from + "T00:00:00");
+        const dateTo = new Date(fy_data[0].date_to + "T23:59:59");
+
+        const formattedDateFrom = formatReadableDate(fy_data[0].date_from);
+        const formattedDateTo = formatReadableDate(fy_data[0].date_to);
+
+        const isEnrollmentPeriod = today >= dateFrom && today <= dateTo;
+
+        const alertBox = document.getElementById('enroll_period');
+
+        if (isEnrollmentPeriod) {
+            alertBox.className = "alert alert-success text-black";
+            alertBox.innerHTML = `
+                <span class="fs-4 fw-bold">Enrollment Period Ongoing</span><br>
+                <label class="fw-bold text-black">Term: ${fy_data[0].school_year} ${fy_data[0].sem}</label><br>
+                Enrollment is open from ${formattedDateFrom} to ${formattedDateTo}.
+            `;
+        } else {
+            alertBox.className = "alert alert-danger text-black";
+            alertBox.innerHTML = `  
+                <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
+                Enrollment period is from ${formattedDateFrom} to ${formattedDateTo}.
+            `;
+        }
+
+        const student_classification = <?php echo json_encode($student_academic_status). " \n "; ?>;
+        console.log('student: ', student_data)
+        document.getElementById('id_num').textContent = student_data[0].student_id_no;
+        document.getElementById('full_name').textContent = `${student_data[0].lastname}, ${student_data[0].firstname} ${student_data[0].middle_name}`;
+        document.getElementById('student_class').textContent = `${student_classification}`;
+        document.getElementById('year_level').textContent = formatYearLevel(student_data[0].year_level);
+        document.getElementById('program_name').value = student_prog;
+        document.getElementById('enrollPeriod').value = `F.Y. ${fy_data[0].school_year}  ${fy_data[0].sem}`
+        
+        $('#submitCourse').on('click', function(){
+            const tableData = offeredTable.getData();
+            console.log(tableData);
+            console.log("context: ", enrollmentContext)
+            const postData = [
+                {
+                    name: "submitEnroll",
+                    value: "createEnroll"
+                },
+                {
+                    name: "school_year_id",
+                    value: enrollmentContext.school_year_id
+                },
+                {
+                    name: "idNumber",
+                    value: enrollmentContext.student_id_no
+                },
+                {
+                    name: ""
+                }
+            ]
+        });
+})
+</script>
     <!-- <script src="<?php echo BASE_URL; ?>student/js/enrollment_status.js?v=<?php echo time(); ?>"></script> -->
     <?php endif; ?>
 </body>

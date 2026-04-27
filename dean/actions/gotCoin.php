@@ -54,6 +54,9 @@ try {
     $payloadJson = base64url_decode($payloadB64);
     $payload = json_decode($payloadJson, true);
 
+    // var_dump($payload);
+    // exit();
+
     function dataEmptyCheck($val){
         return ($val === null || $val === '');
     }
