@@ -32,16 +32,15 @@ if ($prof_query = call_mysql_query($query_prof)) {
 }
 
 $sections = array();
-$section_sql = " SELECT class_id, class_name, sem_limit
+$section_sql = " SELECT class_id, class_name, sec_limit
 FROM class_section WHERE status = 0 ORDER BY class_name ASC
 ";
 if ($section_query = call_mysql_query($section_sql)) {
     if ($num = mysqli_num_rows($section_query)) {
         while ($data = call_mysql_fetch_array($section_query)) {
            
-            $data['sem_limit'] = $data['sem_limit'] ? json_decode($data['sem_limit'], true) : 'No Limit';
             // echo json_encode($data['sem_limit'], JSON_PRETTY_PRINT);
-            $default_limit = reset($data['sem_limit']);
+            $default_limit = $data['sec_limit'];
             $sections[] = [
                 'class_id' => $data['class_id'],
                 'class_name' => $data['class_name'],

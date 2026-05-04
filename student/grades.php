@@ -38,7 +38,7 @@ if (!empty($g_general_id)) {
 
     // Resolve student's program and curriculum/prospectus from curriculum_master
     $student_sql = "
-        SELECT s.program_id, s.curriculum_id, p.program, p.short_name
+        SELECT s.program_id, s.curriculum_id, p.program, p.short_name, s.firstname, s.lastname, s.middle_name, s.suffix_name
         FROM student s
         LEFT JOIN programs p ON s.program_id = p.program_id
         WHERE s.student_id_no = '$student_id_for_query'
@@ -55,6 +55,7 @@ if (!empty($g_general_id)) {
         $student_curriculum_id = (int)($student_row['curriculum_id'] ?? 0);
         $student_program_name = $student_row['program'] ?? '';
         $student_program_short_name = $student_row['short_name'] ?? '';
+        $student_fullname = $student_row['lastname'] . ", " .$student_row['firstname']. " ".$student_row['middle_name']. " ".$student_row['suffix_name'];
 
         $curriculum_sql = '';
         if ($student_curriculum_id > 0) {
@@ -117,7 +118,7 @@ if (!empty($g_general_id)) {
     if (!empty($final_rows)) {
         // Use first row's name for header display
         $first_row = $final_rows[0];
-        $student_fullname = $first_row['student_name'] ?? '';
+        // $student_fullname = $first_row['student_name'] ?? '';
 
         foreach ($final_rows as $row) {
             $unit_val = (int)($row['units'] ?? 0);

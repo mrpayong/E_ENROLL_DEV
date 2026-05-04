@@ -340,7 +340,9 @@ foreach ($curriculumRows as $row) {
     */
     $offeringsByClass = [];
     $offeringsByCode = [];
-
+    $enrollmentCountsByTeacherClass = [];
+    $enrollmentCountsByClass = [];
+    
     $sql_offerings = "
         SELECT
             tc.teacher_class_id,
@@ -354,6 +356,7 @@ foreach ($curriculumRows as $row) {
             tc.unit,
             tc.section_limit,
             cs.class_name,
+            cs.sec_limit,
             s.subject_code,
             s.subject_title
         FROM teacher_class tc
@@ -370,8 +373,9 @@ foreach ($curriculumRows as $row) {
         while ($row = call_mysql_fetch_array($query)) {
             $classId = intVal($row['class_id'] ?? 0);
             $code = trim($row['subject_code'] ?? '');
+            $teacherClassId = intVal($row['teacher_class_id']);
 
-            if ($classId > 0 && $code !== '') {
+            if ($classId > 0 && $teacherClassId > 0 && $code !== '') {
                 if (!isset($offeringsByClass[$classId])) {
                     $offeringsByClass[$classId] = [];
                 }
@@ -385,27 +389,71 @@ foreach ($curriculumRows as $row) {
         }
     }
 
+    $sql_enrollment_counts = "
+        SELECT
+            teacher_class_id,
+            class_id,
+            COUNT(*) AS enrolled_count
+        FROM enrollments
+        WHERE school_year_id = '" . escape($db_connect, $school_year_id) . "'
+        AND sem = '" . escape($db_connect, $active_term_semester === '1st Semester' ? 1 : 2) . "'
+        AND status = 'Enrolled'
+        GROUP BY teacher_class_id, class_id
+    ";
+
+    if ($query = call_mysql_query($sql_enrollment_counts)) {
+        while ($row = call_mysql_fetch_array($query)) {
+            $teacherClassId = intVal($row['teacher_class_id'] ?? 0);
+            $classId = intVal($row['class_id'] ?? 0);
+            $enrolledCount = intVal($row['enrolled_count'] ?? 0);
+
+            if ($teacherClassId > 0) {
+                $enrollmentCountsByTeacherClass[$teacherClassId] = $enrolledCount;
+            }
+
+            if ($classId > 0) {
+                if (!isset($enrollmentCountsByClass[$classId])) {
+                    $enrollmentCountsByClass[$classId] = 0;
+                }
+
+                $enrollmentCountsByClass[$classId] += $enrolledCount;
+            }
+        }
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Sections that fully cover fixed subjects
     |--------------------------------------------------------------------------
     */
-    $sections = [];
 
 $sections = [];
 
 if (!empty($fixedSubjects)) {
     foreach ($offeringsByClass as $classId => $rows) {
         $offeredCodes = [];
+        $missingFixedCodes = [];
+        $hasFullTeacherClass = false;
+
+        $className = $rows[0]['class_name'] ?? '';
+        $classSectionLimit = intVal($rows[0]['class_section_limit'] ?? 0);
+        $classEnrolledCount = intVal($enrollmentCountsByClass[$classId] ?? 0);
 
         foreach ($rows as $r) {
             $offeredCode = trim($r['subject_code'] ?? '');
+            $teacherClassId = intVal($r['teacher_class_id'] ?? 0);
+            $teacherClassLimit = intVal($r['section_limit'] ?? 0);
+            $teacherClassEnrolledCount = intVal($enrollmentCountsByTeacherClass[$teacherClassId] ?? 0);
+
             if ($offeredCode !== '') {
                 $offeredCodes[$offeredCode] = true;
             }
+
+            if ($teacherClassLimit > 0 && $teacherClassEnrolledCount >= $teacherClassLimit) {
+                $hasFullTeacherClass = true;
+            }
         }
 
-        $missingFixedCodes = [];
 
         foreach ($fixedSubjects as $code => $fixedRow) {
             if (!isset($offeredCodes[$code])) {
@@ -413,11 +461,16 @@ if (!empty($fixedSubjects)) {
             }
         }
 
-        if (empty($missingFixedCodes)) {
+        $isClassFull = ($classSectionLimit > 0 && $classEnrolledCount >= $classSectionLimit);
+
+        if (empty($missingFixedCodes) && !$hasFullTeacherClass && !$isClassFull) {
             $sections[] = [
                 'class_id' => $classId,
-                'class_name' => $rows[0]['class_name'] ?? '',
+                'class_name' => $className,
                 'fixed_subject_count' => count($fixedSubjects),
+                'class_enrolled_count' => $classEnrolledCount,
+                'class_section_limit' => $classSectionLimit,
+                'remaining_slots' => $classSectionLimit > 0 ? max(0, $classSectionLimit - $classEnrolledCount) : null,
             ];
         }
     }

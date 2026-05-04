@@ -52,6 +52,7 @@ if($sql = call_mysql_query($sql_student)){
         $student_year_level = intVal($data['year_level']);
         $student_curriculum_id = intVal($data['curriculum_id']);
         $student_program_id = intVal($data['program_id']);
+        $student_id_data = $data['student_id_no'];
     }
 }
 
@@ -66,7 +67,7 @@ if($sql = call_mysql_query($sql_program)){
     }
 }
 
-$student_academic_status = 'Irregular';
+$student_academic_status = 'Regular';
 $previous_term_school_year = '';
 $previous_term_sem = '';
 $comparison_year_level = 0;
@@ -107,8 +108,19 @@ if (!empty($active_school_year) && !empty($active_semester) && $student_year_lev
 | Only include rows where remarks = PASSED
 |--------------------------------------------------------------------------
 */
-if (!empty($previous_term_school_year) && !empty($previous_term_sem) && !empty($g_general_id)) {
-    
+$check_stdn = false;
+$check_stdn_data = '';
+$sql_student_check = "SELECT student_id_text FROM final_grade 
+    WHERE student_id_text = '".    escape($db_connect, $student_id_data)    ."' ";
+
+    if ($query = call_mysql_query($sql_student_check)) {
+        if ($data = call_mysql_fetch_array($query)) {
+            $check_stdn = true;
+        }
+    }
+
+
+if (!empty($previous_term_school_year) && !empty($previous_term_sem) && !empty($g_general_id)){
     $sql_passed_grades = "
         SELECT subject_code, units, final_grade
         FROM final_grade
@@ -176,7 +188,9 @@ if ($student_curriculum_id > 0 && $comparison_year_level > 0 && !empty($previous
     }
 }
 
-if (!empty($required_subject_codes)) {
+if (!$check_stdn) {
+    $student_academic_status = "Regular";
+} elseif (!empty($required_subject_codes)) {
     foreach ($required_subject_codes as $subject_code => $flag) {
         if (!isset($passed_subject_codes[$subject_code])) {
             $missing_subject_codes[] = $subject_code;
@@ -214,6 +228,21 @@ $enrollment_context = [
     'semester' => $active_semester,
 ];
 
+$enroll_status = false;
+$sql_enroll = "SELECT student_id_no FROM enrollments
+WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
+AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
+AND sem = '".   escape($db_connect, strtoupper($active_semester))."'
+LIMIT 1
+";
+
+if($sql = call_mysql_query($sql_enroll)){
+    if($data = call_mysql_fetch_array($sql)){
+        if(empty($data['student_id_no'])){
+            $enroll_status = true;
+        }
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -234,65 +263,7 @@ $enrollment_context = [
             <?php include_once DOMAIN_PATH . '/global/header.php'; ?>
 
             <div class="container">
-                <div class="page-inner">
-                    
-                    <?php if ($has_active_enrollment): ?>
-                    <div class="alert alert-success bg-success text-white d-flex align-items-center p-4 mb-4 border-0" role="alert">
-                        <i class="fas fa-check-circle fa-2x me-3 text-white"></i>
-                        <div>
-                            <h5 class="alert-heading mb-1 fw-bold">You Are Successfully Enrolled</h5>
-                            <p class="mb-0">
-                                Your regular enrollment<?php echo $active_enrollment_date ? ' on <strong>' . date('F d, Y', strtotime($active_enrollment_date)) . '</strong>' : ''; ?> has been recorded.
-                                You are now officially enrolled for the current term.
-                            </p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if ($has_pending_request): ?>
-                    <div class="alert alert-warning d-flex align-items-center p-4 mb-3" role="alert">
-                        <i class="fas fa-clock fa-2x me-3"></i>
-                        <div>
-                            <h5 class="alert-heading mb-1 fw-bold">Enrollment Request Pending</h5>
-                            <p class="mb-0">Your enrollment request has been submitted<?php echo $pending_request_date ? ' on <strong>' . date('F d, Y', strtotime($pending_request_date)) . '</strong>' : ''; ?>. Please wait for Dean approval. You will be notified once your request has been reviewed.</p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!$has_pending_request && $has_approved_request): ?>
-                    <div class="alert alert-success bg-success text-white d-flex align-items-center p-4 mb-3 border-0" role="alert">
-                        <i class="fas fa-check-circle fa-2x me-3 text-white"></i>
-                        <div>
-                            <h5 class="alert-heading mb-1 fw-bold">Enrollment Request Approved</h5>
-                            <p class="mb-0">
-                                Your irregular enrollment request<?php echo $approved_request_date ? ' on <strong>' . date('F d, Y', strtotime($approved_request_date)) . '</strong>' : ''; ?> has been <strong>approved</strong> by the Dean.
-                                Please monitor your official enrollment record for any further updates.
-                            </p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!$has_pending_request && !$has_approved_request && $has_rejected_request): ?>
-                    <div class="alert alert-danger bg-danger text-white d-flex align-items-center p-4 mb-3 border-0" role="alert">
-                        <i class="fas fa-times-circle fa-2x me-3 text-white"></i>
-                        <div>
-                            <h5 class="alert-heading mb-1 fw-bold">Enrollment Request Rejected</h5>
-                            <p class="mb-1">
-                                Your previous enrollment request<?php echo $rejected_request_date ? ' on <strong>' . date('F d, Y', strtotime($rejected_request_date)) . '</strong>' : ''; ?> has been <strong>rejected</strong> by the Dean.
-                                You may review the subjects and submit a new request.
-                            </p>
-                            <?php if (!empty($rejected_remarks)): ?>
-                            <p class="mb-0 small"><strong>Dean's Remarks:</strong> <?php echo htmlspecialchars($rejected_remarks); ?></p>
-                            <?php endif; ?>
-                            <?php if (!empty($rejected_recommended)): ?>
-                            <p class="mb-0 small mt-1">
-                                <strong>Dean's Recommended Subjects:</strong>
-                                <?php echo htmlspecialchars(implode(', ', $rejected_recommended)); ?>
-                            </p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <?php endif; ?>
+                <div class="page-inner">    
 
                     <!-- <?php
                     // Global banner indicating whether the currently
@@ -331,141 +302,6 @@ $enrollment_context = [
                         </div>
                     </div>
 
-                    <?php if ($has_active_enrollment && empty($has_pending_request) && empty($has_approved_request) && !empty($regular_time_slots)): ?>
-                    <div class="card card-round mb-4" id="enrolled_schedule_print_area">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold mb-0">Enrolled Subjects Schedule</h4>
-                                <div class="btn-group no-print" role="group" aria-label="Enrolled schedule actions">
-                                    <a href="<?php echo BASE_URL; ?>student/process/print_enrolled_schedule_pdf.php" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-print me-1"></i> Print / Save as PDF
-                                    </a>
-                                    <a href="<?php echo BASE_URL; ?>student/process/export_enrolled_schedule_excel.php" class="btn btn-outline-success btn-sm">
-                                        <i class="fas fa-file-excel me-1"></i> Save as Excel
-                                    </a>
-                                </div>
-                            </div>
-                            <p class="text-muted small mb-3">
-                                <i class="fas fa-info-circle text-success"></i>
-                                This is your current enrolled class schedule for the term.
-                            </p>
-
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 12%;">Time</th>
-                                            <?php foreach ($regular_day_order as $day_label): ?>
-                                                <th><?php echo htmlspecialchars($day_label); ?></th>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($regular_time_slots as $time_slot): ?>
-                                        <tr>
-                                            <td class="fw-semibold text-nowrap"><?php echo htmlspecialchars($regular_time_label_map[$time_slot] ?? $time_slot); ?></td>
-                                            <?php foreach ($regular_day_order as $day_label):
-                                                $subjects_cell = $regular_schedule_grid[$time_slot][$day_label] ?? [];
-                                                $cell_value = !empty($subjects_cell) ? implode('<br>', array_map('htmlspecialchars', $subjects_cell)) : '';
-                                            ?>
-                                                <td><?php echo $cell_value; ?></td>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if ($has_pending_request && !empty($pending_time_slots)): ?>
-                    <div class="card card-round mb-4">
-                        <div class="card-body">
-                            <h4 class="fw-bold mb-3">Requested Subjects Schedule</h4>
-                            <p class="text-muted small mb-3">
-                                <i class="fas fa-info-circle text-primary"></i>
-                                Time shows in AM/PM; each cell displays subject code with its name for that day/time.
-                            </p>
-
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 12%;">Time</th>
-                                            <?php foreach ($pending_day_order as $day_label): ?>
-                                                <th><?php echo htmlspecialchars($day_label); ?></th>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($pending_time_slots as $time_slot): ?>
-                                        <tr>
-                                            <td class="fw-semibold text-nowrap"><?php echo htmlspecialchars($pending_time_label_map[$time_slot] ?? $time_slot); ?></td>
-                                            <?php foreach ($pending_day_order as $day_label):
-                                                $subjects = $pending_schedule_grid[$time_slot][$day_label] ?? [];
-                                                $cell_value = !empty($subjects) ? implode('<br>', array_map('htmlspecialchars', $subjects)) : '';
-                                            ?>
-                                                <td><?php echo $cell_value; ?></td>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!$has_pending_request && $has_approved_request && !empty($approved_time_slots)): ?>
-                    <div class="card card-round mb-4">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold mb-0">Approved Subjects Schedule</h4>
-                                <div class="btn-group" role="group" aria-label="Approved schedule actions">
-                                    <a href="<?php echo BASE_URL; ?>student/process/print_irregular_schedule_pdf.php" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-print me-1"></i> Print / Save as PDF
-                                    </a>
-                                    <a href="<?php echo BASE_URL; ?>student/process/export_irregular_schedule_excel.php" class="btn btn-outline-success btn-sm">
-                                        <i class="fas fa-file-excel me-1"></i> Save as Excel
-                                    </a>
-                                </div>
-                            </div>
-                            <p class="text-muted small mb-3">
-                                <i class="fas fa-info-circle text-success"></i>
-                                This is the schedule of your <strong>approved</strong> irregular enrollment request.
-                            </p>
-
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 12%;">Time</th>
-                                            <?php foreach ($approved_day_order as $day_label): ?>
-                                                <th><?php echo htmlspecialchars($day_label); ?></th>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($approved_time_slots as $time_slot): ?>
-                                        <tr>
-                                            <td class="fw-semibold text-nowrap"><?php echo htmlspecialchars($approved_time_label_map[$time_slot] ?? $time_slot); ?></td>
-                                            <?php foreach ($approved_day_order as $day_label):
-                                                $subjects = $approved_schedule_grid[$time_slot][$day_label] ?? [];
-                                                $cell_value = !empty($subjects) ? implode('<br>', array_map('htmlspecialchars', $subjects)) : '';
-                                            ?>
-                                                <td><?php echo $cell_value; ?></td>
-                                            <?php endforeach; ?>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!$has_pending_request && !$has_approved_request && !$has_active_enrollment): ?>
                     <div class="row subjects-container-scroll">
                         <div class="<?php echo strcasecmp($student_academic_status, 'Regular') === 0 ? 'col-md-12' : 'col-md-8'; ?>">
                             <!-- Container 1: Available Subjects -->
@@ -495,9 +331,6 @@ $enrollment_context = [
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <h4 id="available_subjects_title" class="fw-bold mb-0">Available Subjects for Your Program</h4>
                                         </div>
-                                        <p id="available_subjects_hint" class="text-muted small mb-3">
-                                            <i class="fas fa-info-circle text-primary"></i> Choose your current-term subjects. The system will assign the best section automatically based on your chosen subjects.
-                                        </p>
 
                                         <div class="row mb-4">
                                             <div class="col-md-4 mb-2 mb-md-0">
@@ -518,8 +351,8 @@ $enrollment_context = [
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="required_units_label" class="form-label">Required Units</label>
-                                                <span name="required_units_label" id="required_units_label"></span>
+                                                <label for="required_units_label" class="form-label">Required Units: </label>
+                                                <span name="required_units_label" class="fw-bold" id="required_units_label"></span>
                                             </div>
 
                                             <div class="col-md-4 d-flex align-items-end justify-content-end">
@@ -703,66 +536,14 @@ $enrollment_context = [
                             </div>
                             <?php endif; ?>
 
-                            <div class="card card-round mt-4" id="schedule_preview_card">
-                                <div class="card-body">
-                                    <h4 class="fw-bold mb-4">Schedule Preview</h4>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered schedule-table">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width: 10%;"></th>
-                                                    <?php
-                                                    // Days shown in the schedule preview (no Sunday classes).
-                                                    $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                                                    foreach ($days as $day): ?>
-                                                        <th style="width: 15%;" data-day="<?php echo $day; ?>"><?php echo strtoupper($day); ?></th>
-                                                    <?php endforeach; ?>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="schedule_table_body">
-                                                <?php 
-                                                $timeSlots = [
-                                                    '07:00' => '7am',
-                                                    '08:00' => '8am',
-                                                    '09:00' => '9am',
-                                                    '10:00' => '10am',
-                                                    '11:00' => '11am',
-                                                    '12:00' => '12pm',
-                                                    '13:00' => '1pm',
-                                                    '14:00' => '2pm',
-                                                    '15:00' => '3pm',
-                                                    '16:00' => '4pm',
-                                                    '17:00' => '5pm',
-                                                    '18:00' => '6pm',
-                                                    '19:00' => '7pm',
-                                                    '20:00' => '8pm',
-                                                    '21:00' => '9pm',
-                                                    '22:00' => '10pm',
-                                                ];
-
-                                                foreach ($timeSlots as $time24 => $label): ?>
-                                                <tr data-time="<?php echo $time24; ?>">
-                                                    <td class="text-center small"><?php echo $label; ?></td>
-                                                    <?php foreach ($days as $day): ?>
-                                                        <td data-day="<?php echo $day; ?>"></td>
-                                                    <?php endforeach; ?>
-                                                </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                <?php endif; ?>
             </div>
         </div>
     </div>
     <?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 
-    <?php if (!$has_pending_request && !$has_approved_request): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     function formatReadableDate(dateValue) {
@@ -935,6 +716,23 @@ document.addEventListener('DOMContentLoaded', function(){
         }).join('<br>');
     }
 
+    function loadingAPIrequest(status){
+        if(status === true){
+            swal({
+                title: "Loading",
+                icon: 'info',
+                text: "Please wait",
+                buttons:false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
+            });
+        }
+        if(status === false){
+            swal.close();
+        }
+
+    }
+
     const offeredTable = new Tabulator('#offered_subjects_table', {
         pagination: "local",
         paginationSize: 10,
@@ -1091,12 +889,12 @@ document.addEventListener('DOMContentLoaded', function(){
         
         $('#submitCourse').on('click', function(){
             const tableData = offeredTable.getData();
-            console.log(tableData);
+            console.log(JSON.stringify(tableData))
             console.log("context: ", enrollmentContext)
             const postData = [
                 {
-                    name: "submitEnroll",
-                    value: "createEnroll"
+                    name: "submitEnrollment",
+                    value: "createEnrollment"
                 },
                 {
                     name: "school_year_id",
@@ -1107,13 +905,79 @@ document.addEventListener('DOMContentLoaded', function(){
                     value: enrollmentContext.student_id_no
                 },
                 {
-                    name: ""
+                    name: "enrollCourses",
+                    value: JSON.stringify(tableData)
+                },
+                {
+                    name: "curriculum_id",
+                    value: enrollmentContext.curriculum_id
+                },
+                {
+                    name: "semester",
+                    value: enrollmentContext.semester
+                },
+                {
+                    name: "program_id",
+                    value: enrollmentContext.program_id
                 }
-            ]
+            ];
+
+            $.ajax({
+                url: "<?php echo BASE_URL; ?>student/actions/enroll_process.php",
+                method: "POST",
+                data: postData,
+                dataType: "json",
+                success: function(data){
+                    if(data){
+                        if(data.code === 200 && data.msg_status === true){
+                            swal({
+                                title: "Enrollment Successful",
+                                icon: 'success',
+                                text: data.msg_response,
+                                button: false,
+                                timer: 2000
+                            })
+                        } else {
+                            swal({
+                                title: "Enrollment Failedl",
+                                icon: 'error',
+                                text: data.msg_response,
+                                button: true
+                            })
+                        }
+                    }
+                },
+                error: function(xhr, status, error){
+                    swal.close();
+                    swal({
+                        title: "Error",
+                        icon: "error",
+                        text: "Network/Server error occured",
+                        button:true
+                    })
+                }
+            })
+
         });
+
+        const enroll_status = <?php echo json_encode($enroll_status); ?>;
+        if(enroll_status === false){
+            document.getElementById('available_subjects_title').textContent = 'Enrolled Subjects';
+            document.getElementById('submitCourse').disabled = true;
+            document.getElementById('submitCourse').textContent = 'Already Enrolled';
+            document.getElementById('submitCourse').classList.remove('btn-success');
+            document.getElementById('submitCourse').classList.add('btn-secondary');
+            const sectionEl = document.getElementById('section');
+
+            if (sectionEl && sectionEl.selectize) {
+                sectionEl.selectize.disable();
+            } else if (sectionEl) {
+                sectionEl.disabled = true;
+            }
+        }
+
+
 })
 </script>
-    <!-- <script src="<?php echo BASE_URL; ?>student/js/enrollment_status.js?v=<?php echo time(); ?>"></script> -->
-    <?php endif; ?>
 </body>
 </html>

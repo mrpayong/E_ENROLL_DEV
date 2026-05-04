@@ -291,3 +291,10 @@ ALTER TABLE `curriculum` DROP `pre_req_id`;
 -- apr 8, 2026
 ALTER TABLE `subject` CHANGE `desciption` `program_id` INT(50) NOT NULL;
 ALTER TABLE `subject` ADD `curriculum_id` INT(50) NOT NULL AFTER `program_id`;
+
+
+-- May 4, 2026
+ALTER TABLE `enrollments` ADD `program_id` INT(50) NOT NULL AFTER `class_id`;
+ALTER TABLE `enrollments` CHANGE `sem` `sem` TINYINT(2) NOT NULL COMMENT 'for curriculum sem indication';
+ALTER TABLE `enrollments` CHANGE `enrollment_id` `enrollment_id` INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `enrollments` CHANGE `sem` `sem` VARCHAR(50) NOT NULL COMMENT 'for curriculum sem indication';
