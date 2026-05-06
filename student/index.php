@@ -19,7 +19,7 @@ if (isset($g_user_role) || !empty($g_user_role)) {
 		header("Location: " . BASE_URL . "app/main_dean.php");
 		exit();
 	} else if ($g_user_role == "STUDENT") {
-		header("Location: " . BASE_URL . "student/enrollment_status.php");
+		header("Location: " . BASE_URL . "student/student_enroll.php");
 		exit();
 	} else {
 		header("Location: " . API_URL);

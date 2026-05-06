@@ -29,7 +29,9 @@ $active_school_year_id = 0;
 
 $sql_fy = "SELECT school_year_id, school_year, sem, date_from, date_to, flag_used 
 FROM school_year
-WHERE isDefault = '".escape($db_connect, 1)."'
+WHERE flag_used != 0
+ORDER BY createdAt DESC
+LIMIT 1
 ";
 
 if($sql = call_mysql_query($sql_fy)){
@@ -71,6 +73,7 @@ $student_academic_status = 'Regular';
 $previous_term_school_year = '';
 $previous_term_sem = '';
 $comparison_year_level = 0;
+$display_required_units = 0;
 
 $passed_earned_units = 0;
 $required_curriculum_units = 0;
@@ -216,6 +219,148 @@ if ($student_academic_status === 'Regular') {
     }
 }
 
+/*
+|--------------------------------------------------------------------------
+| Required units indicator for incoming target semester
+|--------------------------------------------------------------------------
+| Use curriculum progression instead of summing the currently shown rows.
+|--------------------------------------------------------------------------
+*/
+function split_prereq_codes_display($text) {
+    $text = trim((string)$text);
+    if ($text === '') return [];
+    $parts = preg_split('/\s*,\s*|\s*;\s*|\s*\/\s*/', $text);
+    return array_values(array_filter(array_map('trim', $parts)));
+}
+
+$curriculumByYearSem = [];
+$curriculumCourseMap = [];
+$curriculumProgressionOrder = [];
+$maxCurriculumYearLevel = 0;
+$semester_order = ['1st Semester', '2nd Semester'];
+
+if ($student_curriculum_id > 0) {
+    $sql_curriculum_progress = "
+        SELECT subject_code, unit, year_level, semester
+        FROM curriculum
+        WHERE curriculum_id = '" . escape($db_connect, $student_curriculum_id) . "'
+        ORDER BY year_level ASC, semester ASC, subject_code ASC
+    ";
+
+    if ($query = call_mysql_query($sql_curriculum_progress)) {
+        while ($row = call_mysql_fetch_array($query)) {
+            $year_level = intVal($row['year_level'] ?? 0);
+            $subject_code = trim($row['subject_code'] ?? '');
+            $row_semester = trim($row['semester'] ?? '');
+            $unit = intVal($row['unit'] ?? 0);
+
+            if ($year_level === 0 || $subject_code === '' || $row_semester === '') {
+                continue;
+            }
+
+            if (!isset($curriculumByYearSem[$year_level])) {
+                $curriculumByYearSem[$year_level] = [];
+            }
+
+            if (!isset($curriculumByYearSem[$year_level][$row_semester])) {
+                $curriculumByYearSem[$year_level][$row_semester] = [
+                    'required_units' => 0,
+                    'earned_units' => 0,
+                    'courses' => [],
+                ];
+            }
+
+            $curriculumByYearSem[$year_level][$row_semester]['required_units'] += $unit;
+            $curriculumByYearSem[$year_level][$row_semester]['courses'][$subject_code] = true;
+            $curriculumCourseMap[$subject_code] = [
+                'year_level' => $year_level,
+                'semester' => $row_semester,
+                'unit' => $unit,
+            ];
+
+            if ($year_level > $maxCurriculumYearLevel) {
+                $maxCurriculumYearLevel = $year_level;
+            }
+        }
+    }
+
+    $passedCodesForProgress = [];
+    $sql_all_passed = "
+        SELECT subject_code, remarks
+        FROM final_grade
+        WHERE student_id_text = '" . escape($db_connect, $g_general_id) . "'
+    ";
+
+    if ($query = call_mysql_query($sql_all_passed)) {
+        while ($row = call_mysql_fetch_array($query)) {
+            $subject_code = trim($row['subject_code'] ?? '');
+            $remarks = strtoupper(trim($row['remarks'] ?? ''));
+
+            if ($subject_code === '' || $remarks !== 'PASSED' || !isset($curriculumCourseMap[$subject_code])) {
+                continue;
+            }
+
+            $passedCodesForProgress[$subject_code] = true;
+            $courseMeta = $curriculumCourseMap[$subject_code];
+            $courseYear = intVal($courseMeta['year_level']);
+            $courseSemester = trim($courseMeta['semester']);
+            $courseUnit = intVal($courseMeta['unit']);
+
+            $curriculumByYearSem[$courseYear][$courseSemester]['earned_units'] += $courseUnit;
+        }
+    }
+
+    for ($level = 1; $level <= $maxCurriculumYearLevel; $level++) {
+        foreach ($semester_order as $semester_name) {
+            if (empty($curriculumByYearSem[$level][$semester_name])) {
+                continue;
+            }
+
+            $bucket = $curriculumByYearSem[$level][$semester_name];
+            $curriculumProgressionOrder[] = [
+                'year_level' => $level,
+                'semester' => $semester_name,
+                'required_units' => intVal($bucket['required_units']),
+                'earned_units' => intVal($bucket['earned_units']),
+            ];
+        }
+    }
+
+    $progressed_year_level = $student_year_level;
+    $progressed_semester = $active_semester;
+
+    foreach ($curriculumProgressionOrder as $bucket) {
+        if (intVal($bucket['earned_units']) < intVal($bucket['required_units'])) {
+            $progressed_year_level = intVal($bucket['year_level']);
+            $progressed_semester = $bucket['semester'];
+            break;
+        }
+    }
+
+    if (!empty($curriculumProgressionOrder)) {
+        $lastBucket = end($curriculumProgressionOrder);
+        if (intVal($lastBucket['earned_units']) >= intVal($lastBucket['required_units'])) {
+            $lastYear = intVal($lastBucket['year_level']);
+            $lastSem = trim($lastBucket['semester']);
+
+            if ($lastSem === '1st Semester') {
+                $progressed_year_level = $lastYear;
+                $progressed_semester = '2nd Semester';
+            } else {
+                $progressed_year_level = min($lastYear + 1, $maxCurriculumYearLevel);
+                $progressed_semester = '1st Semester';
+            }
+        }
+    }
+
+    $target_year_level_for_display = $progressed_year_level;
+    if (strcasecmp($active_semester, '1st Semester') === 0 && strcasecmp($progressed_semester, '2nd Semester') === 0) {
+        $target_year_level_for_display = min($progressed_year_level + 1, $maxCurriculumYearLevel);
+    }
+
+    $display_required_units = intVal($curriculumByYearSem[$target_year_level_for_display][$active_semester]['required_units'] ?? 0);
+}
+
 $enrollment_context = [
     'student_id_no' => $g_general_id,
     'program_id' => $student_program_id,
@@ -226,20 +371,40 @@ $enrollment_context = [
     'school_year_id' => $active_school_year_id,
     'school_year' => $active_school_year,
     'semester' => $active_semester,
+    'display_required_units' => $display_required_units,
 ];
 
 $enroll_status = false;
+$back_subject_request_status = false;
+$id_Data = '';
 $sql_enroll = "SELECT student_id_no FROM enrollments
 WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
 AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
-AND sem = '".   escape($db_connect, strtoupper($active_semester))."'
+AND sem = '".   escape($db_connect, stripos($active_semester, '1st') !== false ? 1 : 2)."'
 LIMIT 1
 ";
 
 if($sql = call_mysql_query($sql_enroll)){
     if($data = call_mysql_fetch_array($sql)){
-        if(empty($data['student_id_no'])){
+        $id_Data = $data['student_id_no'];
+        if(!empty($data['student_id_no'])){
             $enroll_status = true;
+        }
+    }
+}
+
+$sql_back_subject_request = "SELECT backSubject_enroll_id FROM backSubject_enroll
+WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
+AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
+AND sem = '".   escape($db_connect, strtoupper($active_semester))."'
+AND status IN ('Pending', 'Approved')
+LIMIT 1
+";
+
+if($sql = call_mysql_query($sql_back_subject_request)){
+    if($data = call_mysql_fetch_array($sql)){
+        if(!empty($data['backSubject_enroll_id'])){
+            $back_subject_request_status = true;
         }
     }
 }
@@ -275,39 +440,43 @@ if($sql = call_mysql_query($sql_enroll)){
                     <div class="alert text-black" id="enroll_period"></div>
 
 
-                    <div class="row mb-4">
+                    <div class="row">
                         <div class="col-6 col-md-3 mb-3">
-                            <div class="card student-info-card p-2">
-                                <label class="info-label">ID Number</label>
+                            <div class="card student-info-card p-2 mb-0">
+                                <label>ID Number</label>
                                 <span class="fs-6 fw-bold" id="id_num"></span>
                             </div>
                         </div>
                         <div class="col-6 col-md-3 mb-3">
-                            <div class="card student-info-card p-2">
-                                <div class="info-label">Student Name</div>
+                            <div class="card student-info-card p-2 mb-0">
+                                <label>Student Name</label>
                                 <span class="fs-6 fw-bold" id="full_name"></span>
                             </div>
                         </div>
                         <div class="col-6 col-md-3 mb-3">
-                            <div class="card student-info-card p-2">
-                                <div class="info-label">Academic Status</div>
+                            <div class="card student-info-card p-2 mb-0">
+                                <label>Academic Status</label>
                                 <span class="fs-6 fw-bold" id="student_class"></span>
                             </div>
                         </div>
                         <div class="col-6 col-md-3 mb-3">
-                            <div class="card student-info-card p-2">
-                                <div class="info-label">Year Level</div>
+                            <div class="card student-info-card p-2 mb-0">
+                                <label>Year Level</label>
                                 <span class="fs-6 fw-bold" id="year_level"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row subjects-container-scroll">
-                        <div class="<?php echo strcasecmp($student_academic_status, 'Regular') === 0 ? 'col-md-12' : 'col-md-8'; ?>">
+                    <div>
+                        <div>
                             <!-- Container 1: Available Subjects -->
                             <div class="card card-round">
+                                              <div class="card-header bg-primary rounded-top-2 pb-1 pt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h4 id="available_subjects_title" class="fw-bolder mb-0 text-white">Available Subjects for Your Program</h4>
+                                        </div></div>
                                 <div class="card-body">
-                                    <ul class="nav nav-tabs mb-3" id="subjects_tabs" role="tablist">
+                                    <!-- <ul class="nav nav-tabs mb-3" id="subjects_tabs" role="tablist">
                                         <li class="nav-item" role="presentation" id="subjects_tab_available_item">
                                             <button class="nav-link active" id="subjects_tab_available" type="button" role="tab">
                                                 Available&nbsp;<span class="badge bg-secondary rounded-pill" id="available_subjects_count">0</span>
@@ -325,12 +494,10 @@ if($sql = call_mysql_query($sql_enroll)){
                                             </button>
                                         </li>
                                         <?php endif; ?>
-                                    </ul>
+                                    </ul> -->
 
                                     <div id="available_subjects_panel" class="subjects-tab-panel">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 id="available_subjects_title" class="fw-bold mb-0">Available Subjects for Your Program</h4>
-                                        </div>
+                          
 
                                         <div class="row mb-4">
                                             <div class="col-md-4 mb-2 mb-md-0">
@@ -356,7 +523,7 @@ if($sql = call_mysql_query($sql_enroll)){
                                             </div>
 
                                             <div class="col-md-4 d-flex align-items-end justify-content-end">
-                                                <button class="btn btn-success" id="submitCourse">Enroll courses at this section</button>
+                                                <button class="btn btn-secondary" id="submitCourse" disabled></button>
                                             </div>
                                         </div>
 
@@ -366,176 +533,37 @@ if($sql = call_mysql_query($sql_enroll)){
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        
-                        <!-- <div class="col-md-4">
-                            <div class="card subject-cart-card">
-                                <div class="card-header d-flex justify-content-between align-items-center bg-white">
-                                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-book-open me-2"></i> My Subject Cart</h5>
-                                    <span class="badge bg-primary rounded-pill" id="cart_count">0</span>
-                                </div>
-                                
-                                <div class="cart-body-container">
-                                    <div class="empty-cart-state" id="cart_empty_state">
-                                        <i class="fas fa-book fa-3x mb-2"></i>
-                                        <p class="mb-0">Subject is empty.</p>
-                                    </div>
-                                    
-                                    <div id="cart_list" style="display:none;">
-                                        <div id="cart_items"></div>
+                            <?php if (strcasecmp($student_academic_status, 'Irregular') === 0): ?>
+                            <div class="card card-round mt-4" id="offered_back_subjects_card">
+                                <div class="card-header bg-warning rounded-top-2 pb-1 pt-3">
+                                    <div class="d-flex row align-items-center mb-2">
+                                        <h4 class="fw-bolder mb-0 text-dark">Suggested Subjects</h4>
+                                        <span>For This Term</span>
                                     </div>
                                 </div>
-                                
-                                <div class="btn-proceed-container">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="fw-bold">Required Units:</span>
-                                        <span class="fw-bold" id="required_units_label">N/A</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold">Total Units:</span>
-                                        <span class="fw-bold text-primary" id="cart_total_units">0.0</span>
-                                    </div>
-                                    <?php if (strcasecmp($student_academic_status, 'Regular') !== 0): ?>
-                                    <div class="d-flex justify-content-between align-items-center mb-3" id="cart_section_row">
-                                        <span class="fw-bold">Your Section Classification:</span>
-                                        <span id="cart_section_label" class="ms-2">Not yet determined</span>
-                                    </div>
-                                    <?php endif; ?>
-                                    <button class="btn btn-proceed">ENROLL IN THIS CLASS SECTION</button>
-                                </div>
-                            </div>
-                        </div> -->
-
-                        <?php if (strcasecmp($student_academic_status, 'Regular') !== 0): ?>
-                            <div class="col-md-4">
-                                <div class="card subject-cart-card">
-                                    <div class="card-header d-flex justify-content-between align-items-center bg-white">
-                                        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-book-open me-2"></i> My Subject Cart</h5>
-                                        <span class="badge bg-primary rounded-pill" id="cart_count">0</span>
-                                    </div>
-                                    
-                                    <div class="cart-body-container">
-                                        <div class="empty-cart-state" id="cart_empty_state">
-                                            <i class="fas fa-book fa-3x mb-2"></i>
-                                            <p class="mb-0">Subject is empty.</p>
-                                        </div>
-                                        
-                                        <div id="cart_list" style="display:none;">
-                                            <div id="cart_items"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="btn-proceed-container">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="fw-bold">Required Units:</span>
-                                            <span class="fw-bold" id="required_units_label">N/A</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span class="fw-bold">Total Units:</span>
-                                            <span class="fw-bold text-primary" id="cart_total_units">0.0</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-3" id="cart_section_row">
-                                            <span class="fw-bold">Your Section Classification:</span>
-                                            <span id="cart_section_label" class="ms-2">Not yet determined</span>
-                                        </div>
-                                        <button class="btn btn-proceed">ENROLL IN THIS CLASS SECTION</button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <?php if (strcasecmp($student_academic_status, 'Regular') !== 0): ?>
-                            <!-- Container 2: Backlog / Higher-Year Subjects (shown only when applicable) -->
-                            <div class="card card-round" id="backlog_container_card">
                                 <div class="card-body">
-                                    <div class="subjects-tab-panel" id="backlog_subjects_card">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 class="fw-bold mb-0">Backlog Subjects Offered This Term</h4>
+                                    <div class="row mb-3 d-flex justify-content-evenly align-items center">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Missing Units: </label>
+                                            <span class="fw-bold" id="back_required_units_label">0</span>
                                         </div>
-                                        <p id="backlog_subjects_hint" class="text-muted small mb-3">
-                                            <i class="fas fa-info-circle text-warning"></i>
-                                            These are backlog subject(s) from previous term(s) that are offered this term. You may add them to your cart as needed.
-                                        </p>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Required Units: </label>
+                                            <span class="fw-bold" id="back_target_units_label">0</span>
+                                        </div>
 
-                                        <div class="table-responsive subject-table-wrapper">
-                                            <table class="table" id="backlog_subjects_table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Code</th>
-                                                        <th>Subject</th>
-                                                        <th>Section</th>
-                                                        <th>Units</th>
-                                                        <th id="backlog_schedule_header">Schedule</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                    <tr id="backlog_filter_row">
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_backlog_code" placeholder="Search code"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_backlog_title" placeholder="Search subject"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_backlog_section" placeholder="Search section"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_backlog_units" placeholder="Units"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_backlog_schedule" placeholder="Search schedule"></th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="backlog_subjects_tbody">
-                                                    <tr>
-                                                        <td colspan="6" class="text-center text-muted">No backlog subjects available for this term.</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                        <!-- <div class="col-md-4 d-flex justify-content-end">
+                                            <button class="btn btn-secondary" id="submitBackSubjects" disabled>Request back subjects for Dean approval</button>
+                                        </div> -->
                                     </div>
-                                </div>
-                            </div>
 
-                            <!-- Container 3: Higher-Year Subjects (shown only for irregular students when applicable) -->
-                            <div class="card card-round mt-4" id="higher_year_container_card">
-                                <div class="card-body">
-                                    <div class="subjects-tab-panel" id="higher_year_subjects_card">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 class="fw-bold mb-0">Higher-Year Subjects Offered This Term</h4>
-                                        </div>
-                                        <p id="higher_year_subjects_hint" class="text-muted small mb-3">
-                                            <i class="fas fa-info-circle text-info"></i>
-                                            These are higher-year subject(s) without pre-requisites that are offered this term.
-                                        </p>
-
-                                        <div class="table-responsive subject-table-wrapper">
-                                            <table class="table" id="higher_year_subjects_table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Code</th>
-                                                        <th>Subject</th>
-                                                        <th>Section</th>
-                                                        <th>Units</th>
-                                                        <th id="higher_year_schedule_header">Schedule</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                    <tr id="higher_year_filter_row">
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_higher_code" placeholder="Search code"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_higher_title" placeholder="Search subject"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_higher_section" placeholder="Search section"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_higher_units" placeholder="Units"></th>
-                                                        <th><input type="text" class="form-control form-control-sm" id="filter_higher_schedule" placeholder="Search schedule"></th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="higher_year_subjects_tbody">
-                                                    <tr>
-                                                        <td colspan="6" class="text-center text-muted">No higher-year subjects available for this term.</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                    <div class="table-responsive">
+                                        <div id="offered_back_subjects_table"></div>
                                     </div>
                                 </div>
                             </div>
                             <?php endif; ?>
-
                         </div>
                     </div>
 
@@ -547,7 +575,7 @@ if($sql = call_mysql_query($sql_enroll)){
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     function formatReadableDate(dateValue) {
-        const dateObj = new Date(dateValue + "T00:00:00");
+        const dateObj = new Date(dateValue);
 
         return dateObj.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -615,6 +643,7 @@ document.addEventListener('DOMContentLoaded', function(){
             onChange: function(value) {
                 if (!value) return;
                 loadOfferedSubjects();
+                loadBackSubjects();
             }
         });
 
@@ -743,7 +772,7 @@ document.addEventListener('DOMContentLoaded', function(){
         minHeight: 250,
         ajaxResponse: function (url, params, response) {
             if (!response || response.msg_status !== true) {
-                document.getElementById('required_units_label').textContent = 'N/A';
+                document.getElementById('required_units_label').textContent = enrollmentContext.display_required_units || 'N/A';
 
                 if (document.getElementById('cart_section_label')) {
                     document.getElementById('cart_section_label').textContent = 'Not yet determined';
@@ -752,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 return [];
             }
 
-            document.getElementById('required_units_label').textContent = response.required_units ?? 'N/A';
+            document.getElementById('required_units_label').textContent = enrollmentContext.display_required_units || response.required_units || 'N/A';
 
             if (document.getElementById('cart_section_label')) {
                 document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
@@ -801,13 +830,110 @@ document.addEventListener('DOMContentLoaded', function(){
         ]
     });
 
+    const backSubjectSubmitBtn = document.getElementById('submitBackSubjects');
+    let isEnrollmentPeriodOpen = false;
+    let hasBackSubjectRequest = <?php echo json_encode($back_subject_request_status); ?>;
+
+    function updateBackSubjectButtonState() {
+        if (!backSubjectSubmitBtn || !backSubjectsTable) return;
+
+        const hasRows = backSubjectsTable.getDataCount() > 0;
+        backSubjectSubmitBtn.disabled = hasBackSubjectRequest || !(isEnrollmentPeriodOpen && hasRows);
+        backSubjectSubmitBtn.textContent = hasBackSubjectRequest
+            ? 'Subject offer request submitted'
+            : (hasRows ? 'Request for Subject Offer to Dean' : 'No back subjects to request');
+        backSubjectSubmitBtn.classList.remove('btn-success', 'btn-secondary');
+        backSubjectSubmitBtn.classList.add(backSubjectSubmitBtn.disabled ? 'btn-secondary' : 'btn-success');
+    }
+
+    const backSubjectsTableEl = document.getElementById('offered_back_subjects_table');
+    const backSubjectsTable = backSubjectsTableEl ? new Tabulator('#offered_back_subjects_table', {
+        pagination: "local",
+        paginationSize: 10,
+        movableColumns: true,
+        headerFilterPlaceholder: "Search",
+        placeholder: "No Data Found",
+        layout: "fitDataStretch",
+        minHeight: 120,
+        ajaxResponse: function (url, params, response) {
+            if (!response || response.msg_status !== true) {
+                const backRequiredEl = document.getElementById('back_required_units_label');
+                const backTargetEl = document.getElementById('back_target_units_label');
+
+                if (backRequiredEl) backRequiredEl.textContent = '0';
+                if (backTargetEl) backTargetEl.textContent = '0';
+
+                return [];
+            }
+
+            const backRequiredEl = document.getElementById('back_required_units_label');
+            const backTargetEl = document.getElementById('back_target_units_label');
+
+            if (backRequiredEl) backRequiredEl.textContent = response.missing_units ?? 0;
+            if (backTargetEl) backTargetEl.textContent = response.required_units ?? 0;
+
+            setTimeout(updateBackSubjectButtonState, 0);
+
+            return Array.isArray(response.data) ? response.data : [];
+        },
+        columns: [
+            {
+                title: "Action",
+                field: "section_text",
+                formatter: function () {
+                    return '<span class="badge bg-warning text-dark">Offered Back</span>';
+                },
+                hozAlign: "center"
+            },
+            {
+                title: "Course Code",
+                field: "subject_code",
+                headerFilter: "input"
+            },
+            {
+                title: "Course Title",
+                field: "subject_title",
+                headerFilter: "input"
+            },
+            {
+                title: "Offered By",
+                field: "offered_program",
+                headerFilter: "input"
+            },
+            {
+                title: "Section",
+                field: "class_name",
+                headerFilter: "input"
+            },
+            {
+                title: "Units",
+                field: "unit",
+                hozAlign: "center",
+                headerFilter: "input"
+            },
+            {
+                title: "Pre-req",
+                field: "pre_req",
+                headerFilter: "input"
+            },
+            {
+                title: "Schedule",
+                field: "schedule",
+                headerFilter: "input",
+                formatter: function(cell){
+                    return formatSchedule(cell.getValue());
+                }
+            },
+        ]
+    }) : null;
+
     function loadOfferedSubjects() {
         const selectedClassId = getSelectedSectionId();
 
 
         if (!selectedClassId) {
             offeredTable.clearData();
-            document.getElementById('required_units_label').textContent = 0;
+            document.getElementById('required_units_label').textContent = enrollmentContext.display_required_units || 0;
 
             if (document.getElementById('cart_section_label')) {
                 document.getElementById('cart_section_label').textContent = 'Not yet determined';
@@ -824,7 +950,20 @@ document.addEventListener('DOMContentLoaded', function(){
         );
     }
 
-    function bootstrapSections() {
+    function loadBackSubjects() {
+        if (!backSubjectsTable) return;
+
+        const selectedClassId = getSelectedSectionId();
+
+        backSubjectsTable.setData(
+            "<?php echo BASE_URL; ?>student/actions/backSubjects.php",
+            {
+                selected_class_id: hasBackSubjectRequest ? '' : selectedClassId
+            }
+        );
+    }
+
+    function bootstrapSections() {  
         $.ajax({
             url: "<?php echo BASE_URL; ?>student/actions/fetchEligibleSections.php",
             method: "GET",
@@ -841,6 +980,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
 
                 loadOfferedSubjects();
+                loadBackSubjects();
             }
         });
     }
@@ -852,14 +992,19 @@ document.addEventListener('DOMContentLoaded', function(){
         
         console.log("fiscal yaer:", fy_data);
 
-        const today = new Date();
+        // 2026-01-30T00:00:00
+        const today = new Date('2026-01-30T00:00:00');
         const dateFrom = new Date(fy_data[0].date_from + "T00:00:00");
-        const dateTo = new Date(fy_data[0].date_to + "T23:59:59");
+        dateFrom.setHours(0, 0, 0, 0);
 
-        const formattedDateFrom = formatReadableDate(fy_data[0].date_from);
-        const formattedDateTo = formatReadableDate(fy_data[0].date_to);
+        const enrollmentStart = new Date(dateFrom);
+        enrollmentStart.setDate(enrollmentStart.getDate() - 14);
 
-        const isEnrollmentPeriod = today >= dateFrom && today <= dateTo;
+        const startEnrollPeriod = formatReadableDate(enrollmentStart);
+        const endEnrollPeriod = formatReadableDate(dateFrom);
+
+
+        const isEnrollmentPeriod = today >= enrollmentStart && today < dateFrom;
 
         const alertBox = document.getElementById('enroll_period');
 
@@ -868,15 +1013,28 @@ document.addEventListener('DOMContentLoaded', function(){
             alertBox.innerHTML = `
                 <span class="fs-4 fw-bold">Enrollment Period Ongoing</span><br>
                 <label class="fw-bold text-black">Term: ${fy_data[0].school_year} ${fy_data[0].sem}</label><br>
-                Enrollment is open from ${formattedDateFrom} to ${formattedDateTo}.
+                Enrollment is open from ${startEnrollPeriod} to ${endEnrollPeriod}.
             `;
+
+            document.getElementById('submitCourse').disabled = false;
+            document.getElementById('submitCourse').textContent = 'Enroll Courses and Create Request';
+            document.getElementById('submitCourse').classList.remove('btn-secondary');
+            document.getElementById('submitCourse').classList.add('btn-success');
+            isEnrollmentPeriodOpen = true;
         } else {
             alertBox.className = "alert alert-danger text-black";
             alertBox.innerHTML = `  
                 <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
-                Enrollment period is from ${formattedDateFrom} to ${formattedDateTo}.
+                Enrollment period is from ${startEnrollPeriod} to ${endEnrollPeriod}.
             `;
+            document.getElementById('submitCourse').disabled = true;
+            document.getElementById('submitCourse').textContent = 'Enrollment Period Closed';
+            document.getElementById('submitCourse').classList.remove('btn-success');
+            document.getElementById('submitCourse').classList.add('btn-secondary');
+            isEnrollmentPeriodOpen = false;
         }
+
+        updateBackSubjectButtonState();
 
         const student_classification = <?php echo json_encode($student_academic_status). " \n "; ?>;
         console.log('student: ', student_data)
@@ -934,9 +1092,21 @@ document.addEventListener('DOMContentLoaded', function(){
                                 title: "Enrollment Successful",
                                 icon: 'success',
                                 text: data.msg_response,
-                                button: false,
-                                timer: 2000
+                                button: true
                             })
+
+                            document.getElementById('available_subjects_title').textContent = 'Enrolled Courses';
+                            document.getElementById('submitCourse').disabled = true;
+                            document.getElementById('submitCourse').textContent = 'Already Enrolled';
+                            document.getElementById('submitCourse').classList.remove('btn-success');
+                            document.getElementById('submitCourse').classList.add('btn-secondary');
+
+                            const sectionEl = document.getElementById('section');
+                            if (sectionEl && sectionEl.selectize) {
+                                sectionEl.selectize.disable();
+                            } else if (sectionEl) {
+                                sectionEl.disabled = true;
+                            }
                         } else {
                             swal({
                                 title: "Enrollment Failedl",
@@ -960,8 +1130,96 @@ document.addEventListener('DOMContentLoaded', function(){
 
         });
 
+        $('#submitCourse').on('click', function(){
+            if (!backSubjectsTable) return;
+
+            const tableData = backSubjectsTable.getData();
+
+            if (!Array.isArray(tableData) || tableData.length === 0) {
+                swal({
+                    title: "No Back Subjects",
+                    icon: 'info',
+                    text: "No offered back subjects are available to request.",
+                    button: true
+                });
+                return;
+            }
+
+            const postData = [
+                {
+                    name: "submitBackSubjectEnrollment",
+                    value: "createBackSubjectRequest"
+                },
+                {
+                    name: "school_year_id",
+                    value: enrollmentContext.school_year_id
+                },
+                {
+                    name: "idNumber",
+                    value: enrollmentContext.student_id_no
+                },
+                {
+                    name: "backSubjectCourses",
+                    value: JSON.stringify(tableData)
+                },
+                {
+                    name: "curriculum_id",
+                    value: enrollmentContext.curriculum_id
+                },
+                {
+                    name: "semester",
+                    value: enrollmentContext.semester
+                },
+                {
+                    name: "program_id",
+                    value: enrollmentContext.program_id
+                }
+            ];
+
+            $.ajax({
+                url: "<?php echo BASE_URL; ?>student/actions/enroll_backSubject_process.php",
+                method: "POST",
+                data: postData,
+                dataType: "json",
+                success: function(data){
+                    if (data && data.code === 200 && data.msg_status === true) {
+                        swal({
+                            title: "Done!",
+                            icon: 'success',
+                            text: "Request has been sent and fixed courses has been enrolled.",
+                            button: true
+                        });
+
+                        if (backSubjectSubmitBtn) {
+                            hasBackSubjectRequest = true;
+                            backSubjectSubmitBtn.disabled = true;
+                            backSubjectSubmitBtn.textContent = 'Subject offer request submitted';
+                            backSubjectSubmitBtn.classList.remove('btn-success');
+                            backSubjectSubmitBtn.classList.add('btn-secondary');
+                        }
+                    } else {
+                        swal({
+                            title: "Request Failed",
+                            icon: 'error',
+                            text: data?.msg_response || 'Unable to submit back subject request.',
+                            button: true
+                        });
+                    }
+                },
+                error: function(){
+                    swal({
+                        title: "Error",
+                        icon: "error",
+                        text: "Network/Server error occured",
+                        button:true
+                    });
+                }
+            });
+        });
+
         const enroll_status = <?php echo json_encode($enroll_status); ?>;
-        if(enroll_status === false){
+
+        if(enroll_status === true) {
             document.getElementById('available_subjects_title').textContent = 'Enrolled Subjects';
             document.getElementById('submitCourse').disabled = true;
             document.getElementById('submitCourse').textContent = 'Already Enrolled';

@@ -65,7 +65,7 @@ try {
         }
     }
 
-    if ($student === null) {
+    if (empty($student)) {
         $output['code'] = 401;
         $output['msg_response'] = 'student not found';
         echo json_encode($output);
@@ -87,7 +87,8 @@ try {
     $sql_sy = "
         SELECT school_year_id, school_year, sem
         FROM school_year
-        WHERE isDefault = '1'
+        WHERE flag_used != 0
+        ORDER BY createdAt DESC
         LIMIT 1
     ";
 
@@ -99,195 +100,274 @@ try {
 
     if ($schoolYear === null) {
         $output['code'] = 401;
-        $output['msg_response'] = 'fiscal year not found';
+        $output['msg_response'] = 'No default Fiscal Year set.';
         echo json_encode($output);
         exit();
     }
 
     $school_year_id = intVal($schoolYear['school_year_id']);
     $active_term_semester = trim($schoolYear['sem']);
+    $active_school_year = trim($schoolYear['school_year']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Passed subjects
-    |--------------------------------------------------------------------------
-    */
-    $passedCodes = [];
-    $sql_passed = "
-        SELECT DISTINCT subject_code
-        FROM final_grade
-        WHERE student_id_text = '" . escape($db_connect, $student_id_no) . "'
-          AND UPPER(remarks) = 'PASSED'
-    ";
 
-    if ($query = call_mysql_query($sql_passed)) {
-        while ($row = call_mysql_fetch_array($query)) {
-            $code = trim($row['subject_code']);
-            if ($code !== '') {
-                // get existing final grades of the student for
-                // curriculum progression tracking through comparison
-                $passedCodes[$code] = true;
-            }
-        }
-    }
+
+
 
     /*
     |--------------------------------------------------------------------------
     | Curriculum
     |--------------------------------------------------------------------------
     */
-    $curriculumRows = [];
-    $curriculumByYearSem= [];
-    $maxCurriculumYearLevel = 0;
+$curriculumRows = [];
+$curriculumByYearSem = [];
+$curriculumCourseMap = [];
+$curriculumProgressionOrder = [];
+$maxCurriculumYearLevel = 0;
+$semester_order = ['1st Semester', '2nd Semester'];
 
-    $sql_curriculum = "
-        SELECT subject_code, subject_title, unit, pre_req, year_level, semester
-        FROM curriculum
-        WHERE curriculum_id = '" . escape($db_connect, $curriculum_id) . "'
-        ORDER BY year_level ASC, semester ASC
-    ";
+$sql_curriculum = "
+    SELECT subject_code, subject_title, unit, pre_req, year_level, semester
+    FROM curriculum
+    WHERE curriculum_id = '" . escape($db_connect, $curriculum_id) . "'
+    ORDER BY year_level ASC, semester ASC
+";
 
-    if ($query = call_mysql_query($sql_curriculum)) {
-        while ($row = call_mysql_fetch_array($query)) {
-            $curriculumRows[] = $row;
+if ($query = call_mysql_query($sql_curriculum)) {
+    while ($row = call_mysql_fetch_array($query)) {
+        $curriculumRows[] = $row;
 
-            $year_level = intVal($row['year_level']);
-            $subject_code = trim($row['subject_code']);
-            $row_semester = trim($row['semester']);
+        $year_level = intVal($row['year_level'] ?? 0);
+        $subject_code = trim($row['subject_code'] ?? '');
+        $row_semester = trim($row['semester'] ?? '');
+        $unit = intVal($row['unit'] ?? 0);
 
-            if ($year_level !== 0 && $row_semester !== '' && $subject_code !== '') {
+        if ($year_level === 0 || $row_semester === '' || $subject_code === '') {
+            continue;
+        }
 
-                if (!isset($curriculumByYearSem[$year_level][$row_semester])) {
-                    $curriculumByYearSem[$year_level][$row_semester] = [];
-                }
+        if (!isset($curriculumByYearSem[$year_level])) {
+            $curriculumByYearSem[$year_level] = [];
+        }
 
-                // structure curriculum by year level and semester
-                // to be compared with final grades later for progression tracking through comparison
-                $curriculumByYearSem[$year_level][$row_semester][] = $row;
+        if (!isset($curriculumByYearSem[$year_level][$row_semester])) {
+            $curriculumByYearSem[$year_level][$row_semester] = [
+                'required_units' => 0,
+                'earned_units' => 0,
+                'courses' => [],
+                'passed_codes' => []
+            ];
+        }
 
-                if ($year_level > $maxCurriculumYearLevel) {
-                    $maxCurriculumYearLevel = $year_level;
-                }
-            }
+        $curriculumByYearSem[$year_level][$row_semester]['courses'][$subject_code] = [
+            'unit' => $unit,
+            'row' => $row
+        ];
+        $curriculumByYearSem[$year_level][$row_semester]['required_units'] += $unit;
+
+        $curriculumCourseMap[$subject_code] = [
+            'year_level' => $year_level,
+            'semester' => $row_semester,
+            'unit' => $unit,
+            'row' => $row
+        ];
+
+        if ($year_level > $maxCurriculumYearLevel) {
+            $maxCurriculumYearLevel = $year_level;
         }
     }
+}
+
 
     /*
     |--------------------------------------------------------------------------
-    | Compute progressed/planning year level
+    | Passed subjects
     |--------------------------------------------------------------------------
     */
-    $progressed_year_level = 1;
-    $progressed_semester = '1st Semester';
-    $semester_order = ['1st Semester', '2nd Semester'];
+$passedCodes = [];
+$failedCodes = [];
 
-    for ($level = 1; $level <= $maxCurriculumYearLevel; $level++) {
-        // "$level <= $maxCurriculumYearLevel" means:
-        // continue looping as long as $level is less than or equal to the highest curriculum year level
-        // "$level++" means:
-        // after each loop, add 1 to $level
-        if (empty($curriculumByYearSem[$level])) {
-            break;
+$sql_passed = "
+    SELECT subject_code, units, remarks
+    FROM final_grade
+    WHERE student_id_text = '" . escape($db_connect, $student_id_no) . "'
+";
+
+if ($query = call_mysql_query($sql_passed)) {
+    while ($row = call_mysql_fetch_array($query)) {
+        $code = trim($row['subject_code'] ?? '');
+        $remarks = strtoupper(trim($row['remarks'] ?? ''));
+
+        if ($code === '' || !isset($curriculumCourseMap[$code])) {
+            continue;
         }
 
+        $courseMeta = $curriculumCourseMap[$code];
+        $courseYear = intVal($courseMeta['year_level']);
+        $courseSemester = trim($courseMeta['semester']);
+        $courseUnit = intVal($courseMeta['unit']);
 
-        foreach ($semester_order as $semester_name) {
-            $semester_rows = $curriculumByYearSem[$level][$semester_name] ?? [];
+        if ($remarks === 'PASSED') {
+            $passedCodes[$code] = true;
+            $curriculumByYearSem[$courseYear][$courseSemester]['earned_units'] += $courseUnit;
+            $curriculumByYearSem[$courseYear][$courseSemester]['passed_codes'][$code] = true;
+        } elseif ($remarks === 'FAILED') {
+            $failedCodes[$code] = true;
+        }
+    }
+}
+/*
+|--------------------------------------------------------------------------
+| Flatten curriculum into ordered semester checkpoints
+|--------------------------------------------------------------------------
+*/
+for ($level = 1; $level <= $maxCurriculumYearLevel; $level++) {
+    foreach ($semester_order as $semester_name) {
+        if (empty($curriculumByYearSem[$level][$semester_name])) {
+            continue;
+        }
 
-            if (empty($semester_rows)) {
-                continue;
-            }
+        $bucket = $curriculumByYearSem[$level][$semester_name];
 
-            $all_passed_for_semester = true;
+        $curriculumProgressionOrder[] = [
+            'year_level' => $level,
+            'semester' => $semester_name,
+            'required_units' => intVal($bucket['required_units']),
+            'earned_units' => intVal($bucket['earned_units']),
+            'courses' => $bucket['courses'],
+            'passed_codes' => $bucket['passed_codes']
+        ];
+    }
+}
 
-            foreach ($semester_rows as $row) {
-                $subject_code = trim($row['subject_code'] ?? '');
-                if ($subject_code === '') {
-                    continue;
-                }
+    /*
+    |--------------------------------------------------------------------------
+    | Progression logic: stop at first incomplete semester
+    |--------------------------------------------------------------------------
+    */
+    $progressed_year_level = $stored_year_level;
+    $progressed_semester = $active_term_semester;
+    $first_incomplete_found = false;
 
-                // track passed subjects by indexing
-                // $passedCodes array with the $subejct_code values 
-                // from $curriculumByYearSem array
-                if (!isset($passedCodes[$subject_code])) {
-                    $all_passed_for_semester = false;
-                    break;
-                }
-            }
-
-            if ($all_passed_for_semester) {
-                if ($semester_name === '1st Semester') {
-                    $progressed_year_level = $level;
-                    $progressed_semester = '2nd Semester';
-                } else {
-                    $progressed_year_level = $level + 1;
-                    $progressed_semester = '1st Semester';
-                }
-            } else {
-                $progressed_year_level = $level;
-                $progressed_semester = $semester_name;
-                break 2;
-            }
+    foreach ($curriculumProgressionOrder as $bucket) {
+        if (intVal($bucket['earned_units']) < intVal($bucket['required_units'])) {
+            $progressed_year_level = intVal($bucket['year_level']);
+            $progressed_semester = $bucket['semester'];
+            $first_incomplete_found = true;
+            break;
         }
     }
 
-    if ($maxCurriculumYearLevel > 0 && $progressed_year_level > $maxCurriculumYearLevel) {
-        $progressed_year_level = $maxCurriculumYearLevel;
-        $progressed_semester = '2nd Semester';
+    if (!$first_incomplete_found && !empty($curriculumProgressionOrder)) {
+        $lastBucket = end($curriculumProgressionOrder);
+        $lastYear = intVal($lastBucket['year_level']);
+        $lastSem = $lastBucket['semester'];
+
+        if ($lastSem === '1st Semester') {
+            $progressed_year_level = $lastYear;
+            $progressed_semester = '2nd Semester';
+        } else {
+            $progressed_year_level = min($lastYear + 1, $maxCurriculumYearLevel);
+            $progressed_semester = '1st Semester';
+        }
     }
 
     $planning_year_level = $progressed_year_level;
     $planning_semester = $progressed_semester;
+
     /*
     |--------------------------------------------------------------------------
     | Academic status
     |--------------------------------------------------------------------------
     */
-    $missing_lower_year_subjects = [];
 
-    for ($level = 1; $level <= $maxCurriculumYearLevel; $level++) {
+    $missing_required_subjects = [];
+
+    for ($level = 1; $level <= $planning_year_level; $level++) {
         if (empty($curriculumByYearSem[$level])) {
             continue;
         }
 
         foreach ($semester_order as $semester_name) {
-            $semester_rows = $curriculumByYearSem[$level][$semester_name] ?? [];
+            $semester_bucket = $curriculumByYearSem[$level][$semester_name] ?? null;
 
-            if (empty($semester_rows)) {
+            if (empty($semester_bucket)) {
                 continue;
             }
 
-            $is_before_planning_point =
-                ($level < $planning_year_level) ||
-                ($level === $planning_year_level && $semester_name !== $planning_semester && $planning_semester === '2nd Semester');
+            $is_after_planning_point =
+                ($level > $planning_year_level) ||
+                ($level === $planning_year_level && $planning_semester === '1st Semester' && strcasecmp($semester_name, '2nd Semester') === 0);
 
-            if (!$is_before_planning_point) {
+            if ($is_after_planning_point) {
                 continue;
             }
 
-            foreach ($semester_rows as $row) {
-                $subject_code = trim($row['subject_code'] ?? '');
-                if ($subject_code === '') {
-                    continue;
-                }
-
+            foreach (($semester_bucket['courses'] ?? []) as $subject_code => $courseData) {
                 if (!isset($passedCodes[$subject_code])) {
-                    $missing_lower_year_subjects[] = $subject_code;
+                    $missing_required_subjects[$subject_code] = $courseData['row'];
                 }
             }
         }
     }
 
-    $student_academic_status = empty($missing_lower_year_subjects) ? 'Regular' : 'Irregular';
+    $student_academic_status = empty($missing_required_subjects) ? 'Regular' : 'Irregular';
 
     /*
     |--------------------------------------------------------------------------
     | Current-term curriculum buckets
     |--------------------------------------------------------------------------
     */
-    $fixedSubjects = [];
-    $backlogSubjects = [];
-    $higherSubjects = [];
+//     $fixedSubjects = [];
+//     $backlogSubjects = [];
+//     $higherSubjects = [];
+
+// // foreach ($curriculumRows as $row) {
+// //     $rowSemester = trim($row['semester'] ?? '');
+// //     $rowYear = intVal($row['year_level'] ?? 0);
+// //     $code = trim($row['subject_code'] ?? '');
+
+// //     if ($code === '' || $rowYear === 0 || $rowSemester === '') {
+// //         continue;
+// //     }
+
+// //     // Only subjects belonging to the currently open term semester
+// //     // should be considered for available offerings.
+// //     if (strcasecmp($rowSemester, $active_term_semester) !== 0) {
+// //         continue;
+// //     }
+
+// //     // Already passed subjects should not appear again.
+// //     if (isset($passedCodes[$code])) {
+// //         continue;
+// //     }
+
+// //     $eligible = prereq_satisfied($row, $passedCodes);
+
+// //     // Fixed subjects:
+// //     // same planning year level, same currently open semester, prereqs satisfied
+// //     if ($rowYear === $planning_year_level && $eligible) {
+// //         $fixedSubjects[$code] = $row;
+// //         continue;
+// //     }
+
+// //     // Backlog subjects:
+// //     // lower year level subjects that are offered in this current semester
+// //     if ($rowYear < $planning_year_level) {
+// //         $backlogSubjects[$code] = $row;
+// //         continue;
+// //     }
+
+// //     // Higher-year subjects:
+// //     // only for irregular students, and only if prereqs are already satisfied
+// //     if ($student_academic_status === 'Irregular' && $rowYear > $planning_year_level && $eligible) {
+// //         $higherSubjects[$code] = $row;
+// //         continue;
+// //     }
+// // }
+
+$fixedSubjects = [];
+$backlogSubjects = [];
+$higherSubjects = [];
 
 foreach ($curriculumRows as $row) {
     $rowSemester = trim($row['semester'] ?? '');
@@ -298,40 +378,49 @@ foreach ($curriculumRows as $row) {
         continue;
     }
 
-    // Only subjects belonging to the currently open term semester
-    // should be considered for available offerings.
-    if (strcasecmp($rowSemester, $active_term_semester) !== 0) {
-        continue;
-    }
-
-    // Already passed subjects should not appear again.
     if (isset($passedCodes[$code])) {
         continue;
     }
 
     $eligible = prereq_satisfied($row, $passedCodes);
+    $isActiveSemester = (strcasecmp($rowSemester, $active_term_semester) === 0);
 
-    // Fixed subjects:
-    // same planning year level, same currently open semester, prereqs satisfied
-    if ($rowYear === $planning_year_level && $eligible) {
+    $isBacklog =
+        ($rowYear < $planning_year_level) ||
+        (
+            $rowYear === $planning_year_level &&
+            $planning_semester === '2nd Semester' &&
+            strcasecmp($rowSemester, '1st Semester') === 0
+        );
+
+    if ($isBacklog && $isActiveSemester) {
+        $backlogSubjects[$code] = $row;
+        continue;
+    }
+    /*
+    Offer next active-semester subjects not affected by the failed subject.
+    If prereqs are satisfied, they should appear even if the student has
+    another failed subject elsewhere.
+    */
+    if ($isActiveSemester && $eligible) {
         $fixedSubjects[$code] = $row;
         continue;
     }
 
-    // Backlog subjects:
-    // lower year level subjects that are offered in this current semester
-    if ($rowYear < $planning_year_level) {
-        $backlogSubjects[$code] = $row;
-        continue;
-    }
-
-    // Higher-year subjects:
-    // only for irregular students, and only if prereqs are already satisfied
-    if ($student_academic_status === 'Irregular' && $rowYear > $planning_year_level && $eligible) {
+    if (
+        $student_academic_status === 'Irregular' &&
+        $rowYear > $planning_year_level &&
+        $isActiveSemester &&
+        $eligible
+    ) {
         $higherSubjects[$code] = $row;
         continue;
     }
 }
+
+
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -364,7 +453,7 @@ foreach ($curriculumRows as $row) {
         INNER JOIN subject s ON s.subject_id = tc.subject_id
         WHERE tc.schoolyear_id = '" . escape($db_connect, $school_year_id) . "'
         AND tc.program_id = '" . escape($db_connect, $program_id) . "'
-        AND tc.sem = '" . escape($db_connect, $active_term_semester) . "'
+        AND UPPER(tc.sem) = UPPER('" . escape($db_connect, $active_term_semester) . "')
         AND tc.status = 0
         AND cs.status = 0
     ";
@@ -396,7 +485,7 @@ foreach ($curriculumRows as $row) {
             COUNT(*) AS enrolled_count
         FROM enrollments
         WHERE school_year_id = '" . escape($db_connect, $school_year_id) . "'
-        AND sem = '" . escape($db_connect, $active_term_semester === '1st Semester' ? 1 : 2) . "'
+        AND sem = '" . escape($db_connect, stripos($active_term_semester, '1ST') !== false ? 1 : 2) . "'
         AND status = 'Enrolled'
         GROUP BY teacher_class_id, class_id
     ";
@@ -427,16 +516,69 @@ foreach ($curriculumRows as $row) {
     |--------------------------------------------------------------------------
     */
 
-$sections = [];
+// $sections = [];
 
-if (!empty($fixedSubjects)) {
+// if (!empty($fixedSubjects)) {
+//     foreach ($offeringsByClass as $classId => $rows) {
+//         $offeredCodes = [];
+//         $missingFixedCodes = [];
+//         $hasFullTeacherClass = false;
+
+//         $className = $rows[0]['class_name'] ?? '';
+//         $classSectionLimit = intVal($rows[0]['class_section_limit'] ?? 0);
+//         $classEnrolledCount = intVal($enrollmentCountsByClass[$classId] ?? 0);
+
+//         foreach ($rows as $r) {
+//             $offeredCode = trim($r['subject_code'] ?? '');
+//             $teacherClassId = intVal($r['teacher_class_id'] ?? 0);
+//             $teacherClassLimit = intVal($r['section_limit'] ?? 0);
+//             $teacherClassEnrolledCount = intVal($enrollmentCountsByTeacherClass[$teacherClassId] ?? 0);
+
+//             if ($offeredCode !== '') {
+//                 $offeredCodes[$offeredCode] = true;
+//             }
+
+//             if ($teacherClassLimit > 0 && $teacherClassEnrolledCount >= $teacherClassLimit) {
+//                 $hasFullTeacherClass = true;
+//             }
+//         }
+
+
+//         foreach ($fixedSubjects as $code => $fixedRow) {
+//             if (!isset($offeredCodes[$code])) {
+//                 $missingFixedCodes[] = $code;
+//             }
+//         }
+
+//         $isClassFull = ($classSectionLimit > 0 && $classEnrolledCount >= $classSectionLimit);
+
+//         if (empty($missingFixedCodes) && !$hasFullTeacherClass && !$isClassFull) {
+//             $sections[] = [
+//                 'class_id' => $classId,
+//                 'class_name' => $className,
+//                 'fixed_subject_count' => count($fixedSubjects),
+//                 'class_enrolled_count' => $classEnrolledCount,
+//                 'class_section_limit' => $classSectionLimit,
+//                 'remaining_slots' => $classSectionLimit > 0 ? max(0, $classSectionLimit - $classEnrolledCount) : null,
+//             ];
+//         }
+//     }
+// }
+
+$sections = [];
+$availableSubjects = $student_academic_status === 'Irregular'
+    ? ($fixedSubjects + $higherSubjects)
+    : $fixedSubjects;
+
+if (!empty($availableSubjects)) {
     foreach ($offeringsByClass as $classId => $rows) {
         $offeredCodes = [];
+        $matchedOfferableCodes = [];
         $missingFixedCodes = [];
         $hasFullTeacherClass = false;
 
         $className = $rows[0]['class_name'] ?? '';
-        $classSectionLimit = intVal($rows[0]['class_section_limit'] ?? 0);
+        $classSectionLimit = intVal($rows[0]['sec_limit'] ?? 0);
         $classEnrolledCount = intVal($enrollmentCountsByClass[$classId] ?? 0);
 
         foreach ($rows as $r) {
@@ -447,6 +589,10 @@ if (!empty($fixedSubjects)) {
 
             if ($offeredCode !== '') {
                 $offeredCodes[$offeredCode] = true;
+
+                if (isset($availableSubjects[$offeredCode])) {
+                    $matchedOfferableCodes[$offeredCode] = true;
+                }
             }
 
             if ($teacherClassLimit > 0 && $teacherClassEnrolledCount >= $teacherClassLimit) {
@@ -454,8 +600,7 @@ if (!empty($fixedSubjects)) {
             }
         }
 
-
-        foreach ($fixedSubjects as $code => $fixedRow) {
+        foreach ($availableSubjects as $code => $fixedRow) {
             if (!isset($offeredCodes[$code])) {
                 $missingFixedCodes[] = $code;
             }
@@ -463,11 +608,37 @@ if (!empty($fixedSubjects)) {
 
         $isClassFull = ($classSectionLimit > 0 && $classEnrolledCount >= $classSectionLimit);
 
-        if (empty($missingFixedCodes) && !$hasFullTeacherClass && !$isClassFull) {
+        /*
+        |--------------------------------------------------------------------------
+        | Regular students still require a full section match
+        |--------------------------------------------------------------------------
+        */
+        if ($student_academic_status === 'Regular') {
+            if (empty($missingFixedCodes) && !$hasFullTeacherClass && !$isClassFull) {
+                $sections[] = [
+                    'class_id' => $classId,
+                    'class_name' => $className,
+                    'fixed_subject_count' => count($availableSubjects),
+                    'matched_subject_count' => count($matchedOfferableCodes),
+                    'class_enrolled_count' => $classEnrolledCount,
+                    'class_section_limit' => $classSectionLimit,
+                    'remaining_slots' => $classSectionLimit > 0 ? max(0, $classSectionLimit - $classEnrolledCount) : null,
+                ];
+            }
+            continue;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Irregular students only need at least one eligible active-sem subject
+        |--------------------------------------------------------------------------
+        */
+        if (count($matchedOfferableCodes) > 0 && !$hasFullTeacherClass && !$isClassFull) {
             $sections[] = [
                 'class_id' => $classId,
                 'class_name' => $className,
-                'fixed_subject_count' => count($fixedSubjects),
+                'fixed_subject_count' => count($availableSubjects),
+                'matched_subject_count' => count($matchedOfferableCodes),
                 'class_enrolled_count' => $classEnrolledCount,
                 'class_section_limit' => $classSectionLimit,
                 'remaining_slots' => $classSectionLimit > 0 ? max(0, $classSectionLimit - $classEnrolledCount) : null,
@@ -475,6 +646,7 @@ if (!empty($fixedSubjects)) {
         }
     }
 }
+
 
 if ($selected_class_id <= 0 && !empty($sections)) {
     $selected_class_id = intVal($sections[0]['class_id']);
@@ -486,29 +658,58 @@ if ($selected_class_id <= 0 && !empty($sections)) {
     */
     $fixedResponse = [];
 
-    foreach ($offeringsByClass[$selected_class_id] ?? [] as $row) {
-        $subject_code = trim($row['subject_code'] ?? '');
+    if ($student_academic_status === 'Irregular') {
+        foreach ($offeringsByClass[$selected_class_id] ?? [] as $row) {
+            $subject_code = trim($row['subject_code'] ?? '');
 
-        if ($subject_code === '' || !isset($fixedSubjects[$subject_code])) {
-            continue;
+            if ($subject_code === '' || !isset($availableSubjects[$subject_code])) {
+                continue;
+            }
+
+            $curriculumRow = $availableSubjects[$subject_code];
+            $compatibleOfferings = $offeringsByCode[$subject_code] ?? [];
+            $sectionText = implode(', ', array_unique(array_column($compatibleOfferings, 'class_name')));
+
+            $fixedResponse[] = [
+                'teacher_class_id' => intVal($row['teacher_class_id'] ?? 0),
+                'class_id' => intVal($row['class_id'] ?? 0),
+                'class_name' => $row['class_name'] ?? '',
+                'subject_code' => $subject_code,
+                'subject_title' => $row['subject_title'] ?? ($curriculumRow['subject_title'] ?? ''),
+                'unit' => intVal($row['unit'] ?? ($curriculumRow['unit'] ?? 0)),
+                'pre_req' => $curriculumRow['pre_req'] ?? '',
+                'schedule' => $row['schedule'] ?? '',
+                'section_text' => $sectionText,
+                'subject_id' => intVal($row['subject_id'] ?? 0),
+                'curriculum_year_level' => intVal($curriculumRow['year_level'] ?? 0),
+                'curriculum_semester' => $curriculumRow['semester'] ?? '',
+            ];
         }
+    } else {
+        foreach ($offeringsByClass[$selected_class_id] ?? [] as $row) {
+            $subject_code = trim($row['subject_code'] ?? '');
 
-        $curriculumRow = $fixedSubjects[$subject_code];
+            if ($subject_code === '' || !isset($fixedSubjects[$subject_code])) {
+                continue;
+            }
 
-        $fixedResponse[] = [
-            'teacher_class_id' => intVal($row['teacher_class_id'] ?? 0),
-            'class_id' => intVal($row['class_id'] ?? 0),
-            'class_name' => $row['class_name'] ?? '',
-            'subject_code' => $subject_code,
-            'subject_title' => $row['subject_title'] ?? ($curriculumRow['subject_title'] ?? ''),
-            'unit' => intVal($row['unit'] ?? ($curriculumRow['unit'] ?? 0)),
-            'pre_req' => $curriculumRow['pre_req'] ?? '',
-            'schedule' => $row['schedule'] ?? '',
-            'section_text' => $row['class_name'] ?? '',
-            'subject_id' => intVal($row['subject_id'] ?? 0),
-            'curriculum_year_level' => intVal($curriculumRow['year_level'] ?? 0),
-            'curriculum_semester' => $curriculumRow['semester'] ?? '',
-        ];
+            $curriculumRow = $fixedSubjects[$subject_code];
+
+            $fixedResponse[] = [
+                'teacher_class_id' => intVal($row['teacher_class_id'] ?? 0),
+                'class_id' => intVal($row['class_id'] ?? 0),
+                'class_name' => $row['class_name'] ?? '',
+                'subject_code' => $subject_code,
+                'subject_title' => $row['subject_title'] ?? ($curriculumRow['subject_title'] ?? ''),
+                'unit' => intVal($row['unit'] ?? ($curriculumRow['unit'] ?? 0)),
+                'pre_req' => $curriculumRow['pre_req'] ?? '',
+                'schedule' => $row['schedule'] ?? '',
+                'section_text' => $row['class_name'] ?? '',
+                'subject_id' => intVal($row['subject_id'] ?? 0),
+                'curriculum_year_level' => intVal($curriculumRow['year_level'] ?? 0),
+                'curriculum_semester' => $curriculumRow['semester'] ?? '',
+            ];
+        }
     }
 
     /*

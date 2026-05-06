@@ -66,7 +66,7 @@ if (!empty($g_general_id)) {
         } elseif ($student_program_id > 0) {
             // Fall back to the program's default curriculum as marked in
             // curriculum_master via status_allowable = 0.
-            $curriculum_sql = "SELECT curriculum_id, curriculum_code, header, units
+            $curriculum_sql = "SELECT curriculum_id, header, units
                               FROM curriculum_master
                               WHERE program_id = " . (int)$student_program_id . " AND status_allowable = 0
                               LIMIT 1";
@@ -79,15 +79,10 @@ if (!empty($g_general_id)) {
                 // Ensure we have the resolved curriculum_id (may come from default)
                 $student_curriculum_id = (int)($cur['curriculum_id'] ?? $student_curriculum_id);
 
-                $student_curriculum_code = $cur['curriculum_code'] ?? '';
+                $student_curriculum_code = $cur['curriculum_code'];
                 $student_curriculum_units = isset($cur['units']) ? (int)$cur['units'] : null;
 
-                $header = trim($cur['header'] ?? '');
-                if ($header !== '') {
-                    $student_prospectus_label = $header;
-                } elseif ($student_curriculum_code !== '') {
-                    $student_prospectus_label = 'Curriculum ' . $student_curriculum_code;
-                }
+                $student_prospectus_label = trim($cur['header']);
             }
         }
     }
@@ -135,9 +130,9 @@ if (!empty($g_general_id)) {
     // Build prospectus view from curriculum; overlay any existing grades
     if ($student_curriculum_id > 0) {
         $curriculum_sql = "
-            SELECT curriculum_id, subject_code, subject_title, unit, pre_req, semester, year_level
+            SELECT curriculum_id, subject_code, subject_title, unit, pre_req, semester, year_level, lec_lab
             FROM curriculum
-            WHERE curriculum_id = " . (int)$student_curriculum_id . "
+            WHERE curriculum_id = " . escape($db_connect, intVal($student_curriculum_id)) . "
             ORDER BY year_level ASC, semester ASC, subject_code ASC
         ";
 
@@ -167,6 +162,10 @@ if (!empty($g_general_id)) {
                 $sem_label = trim($c_row['semester'] ?? '') ?: 'UNSPECIFIED SEMESTER';
                 $unit_val = (int)($c_row['unit'] ?? 0);
                 $code = trim($c_row['subject_code'] ?? '');
+                $preReq = trim($c_row['pre_req'] ?? '');
+                $lec_lab_val = json_decode($c_row['pre_req']);
+                $lec = isset($lec_lab_val[0]) ? $lec_lab_val[0] : '';
+                $lab = isset($lec_lab_val[1]) ? $lec_lab_val[1] : '';
 
                 if (!isset($prospectus_data[$year_level])) {
                     $prospectus_data[$year_level] = [];
@@ -183,6 +182,9 @@ if (!empty($g_general_id)) {
                     'converted_grade' => $grade_row['converted_grade'] ?? '',
                     'completion'      => $grade_row['completion'] ?? '',
                     'units'           => $unit_val,
+                    'pre_req'         => $preReq,
+                    'lec' => $lec,
+                    'lab' => $lab
                 ];
 
                 $prospectus_data[$year_level][$sem_label]['total_units'] += $unit_val;
@@ -306,8 +308,8 @@ if ($curriculum_units_total > 0) {
                                             <div class="prospectus-title">
                                                 <?php echo htmlspecialchars($student_program_name); ?>
                                             </div>
-                                            <?php if (!empty($student_curriculum_code)): ?>
-                                                <div class="prospectus-revision">Rv. <?php echo htmlspecialchars($student_curriculum_code); ?></div>
+                                            <?php if (!empty($student_prospectus_label)): ?>
+                                                <div class="prospectus-revision"><?php echo htmlspecialchars($student_prospectus_label); ?></div>
                                             <?php endif; ?>
                                         </div>
 
@@ -349,10 +351,10 @@ if ($curriculum_units_total > 0) {
                                                                                     <td><?php echo htmlspecialchars($subject['converted_grade']); ?></td>
                                                                                     <td><?php echo htmlspecialchars($subject['subject_code']); ?></td>
                                                                                     <td><?php echo htmlspecialchars($subject['course_desc']); ?></td>
-                                                                                    <td></td>
-                                                                                    <td></td>
+                                                                                    <td><?php echo htmlspecialchars($subject['lec']); ?></td>
+                                                                                    <td><?php echo htmlspecialchars($subject['lab']); ?></td>
                                                                                     <td><?php echo htmlspecialchars($subject['units']); ?></td>
-                                                                                    <td></td>
+                                                                                    <td><?php echo htmlspecialchars($subject['pre_req']); ?></td>
                                                                                 </tr>
                                                                             <?php endforeach; ?>
                                                                             <tr class="total-row">

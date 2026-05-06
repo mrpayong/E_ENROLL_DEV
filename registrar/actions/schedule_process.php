@@ -259,15 +259,14 @@ try {
         $section_id = intVal($section);
 
         // validates section limit against default limit set in class_section table
-        $sqlSec = "SELECT sem_limit, class_name, class_id FROM class_section 
+        $sqlSec = "SELECT sec_limit, class_name, class_id FROM class_section 
                 WHERE class_id = '".escape($db_connect, $section_id)."'
                 ";
 
         if($result = call_mysql_query($sqlSec)){
             if($data = call_mysql_fetch_array($result)){
-                $semLimit = (array)json_decode($data['sem_limit']);
-                $fetchedLimit = intVal(reset($semLimit));
-                if($fetchedLimit > $limit){
+                $semLimit = intVal($data['sec_limit']);
+                if($semLimit > $limit){
                     $output['code'] = 507;
                     $output['msg_response'] = "Entered section limit is lower than the default student limit for ".trim($data['class_name']).".";
                     echo json_encode($output);
@@ -763,14 +762,13 @@ try {
         WHERE teacher_class_id = '".escape($db_connect, $edit_id)."' ";
         if ($query = call_mysql_query($sched_exist)){
             if($data = call_mysql_fetch_array($query)){
-                $sql_limits = "SELECT sem_limit, class_name FROM class_section
+                $sql_limits = "SELECT sec_limit, class_name FROM class_section
                 WHERE class_id = '".escape($db_connect, $data['class_id'])."'
                 ";
                 if($limit_query = call_mysql_query($sql_limits)){
                     if($dataLimits = call_mysql_fetch_array($limit_query)){
-                        $semLimit = (array)json_decode($dataLimits['sem_limit']);
-                        $fetchedLimit = intVal(reset($semLimit));
-                        if($fetchedLimit > $limit){
+                        $semLimit = intVal($dataLimits['sec_limit']);
+                        if($semLimit > $limit){
                             $output['code'] = 507;
                             $output['msg_response'] = "Entered section limit is lower than the default student limit for ".trim($dataLimits['class_name']).".";
                             echo json_encode($output);
