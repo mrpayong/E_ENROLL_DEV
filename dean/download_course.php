@@ -21,6 +21,8 @@ $id = isset($_GET['attach']) ? trim($_GET['attach']) : '';
 if ($id != "") {
     if ($id == "IMP_BLK_CRS" && ($g_user_role == "DEAN")) {
         $fullPath = join(DIRECTORY_SEPARATOR, array(DOMAIN_PATH, 'upload', 'guide', 'guide_courses_import.csv'));
+    } elseif ($id == "IMP_OFFERED_COURSE" && ($g_user_role == "DEAN")) {
+        $fullPath = join(DIRECTORY_SEPARATOR, array(DOMAIN_PATH, 'upload', 'guide', 'guide_offered_course_import.csv'));
     } else {
         include HTTP_404;
         exit();
@@ -32,6 +34,10 @@ if ($id != "") {
             $path_parts = pathinfo($fullPath);
             $ext = strtolower($path_parts["extension"]);
             switch ($ext) {
+                case "csv":
+                    header("Content-Type: text/csv; charset=utf-8");
+                    header("Content-Disposition: attachment; filename=\"" . $path_parts["basename"] . "\"");
+                    break;
                 case "pdf":
                     header("Content-type: application/pdf");
                     header("Content-Disposition: attachment; filename=\"" . $path_parts["basename"] . "\""); // use 'attachment' to force a file download
@@ -39,7 +45,7 @@ if ($id != "") {
                 // add more headers for other content types here
                 default;
                     header("Content-type: application/octet-stream");
-                    header("Content-Disposition: filename=\"" . $path_parts["basename"] . "\"");
+                    header("Content-Disposition: attachment; filename=\"" . $path_parts["basename"] . "\"");
                     break;
             }
             header("Content-length: " . $fsize);

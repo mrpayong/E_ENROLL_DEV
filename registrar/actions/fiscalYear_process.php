@@ -8,6 +8,20 @@ require ISLOGIN;
 
 header('Content-Type: application/json');
 
+function fiscal_year_date_valid($date) {
+    $parsed = DateTime::createFromFormat('Y-m-d', (string)$date);
+    return $parsed && $parsed->format('Y-m-d') === $date;
+}
+
+function fiscal_year_period_valid($date_from, $date_to, $enrollment_start, $enrollment_end) {
+    if (!fiscal_year_date_valid($date_from) || !fiscal_year_date_valid($date_to) || !fiscal_year_date_valid($enrollment_start) || !fiscal_year_date_valid($enrollment_end)) {
+        return false;
+    }
+
+    return $date_from <= $date_to
+        && $enrollment_start <= $enrollment_end
+        && $enrollment_end <= $date_from;
+}
 
 // create fiscal year
 try {
@@ -16,6 +30,8 @@ try {
         $sem = isset($_POST['semester']) ? trim($_POST['semester']) : "";
         $date_from = isset($_POST['startDate']) ? trim($_POST['startDate']) : "";
         $date_to = isset($_POST['endDate']) ? trim($_POST['endDate']) : "";
+        $enrollment_start = isset($_POST['enrollmentStartDate']) ? trim($_POST['enrollmentStartDate']) : "";
+        $enrollment_end = isset($_POST['enrollmentEndDate']) ? trim($_POST['enrollmentEndDate']) : "";
         $syFrom_class_array = array();
         $to_pushID = '';
         $output = array(
@@ -26,9 +42,16 @@ try {
         );
 
         // Validation: All fields required
-        if (empty($school_year) || empty($sem) || empty($date_from) || empty($date_to)) {
+        if (empty($school_year) || empty($sem) || empty($date_from) || empty($date_to) || empty($enrollment_start) || empty($enrollment_end)) {
             $output['code'] = 400;
             $output['msg_response'] = "All fields are required.";
+            echo json_encode($output);
+            exit();
+        }
+
+        if (!fiscal_year_period_valid($date_from, $date_to, $enrollment_start, $enrollment_end)) {
+            $output['code'] = 400;
+            $output['msg_response'] = "Enrollment period must end on or before the term start date.";
             echo json_encode($output);
             exit();
         }
@@ -45,12 +68,14 @@ try {
 
         $db_connect->begin_transaction();
 
-        $sql1 = "INSERT INTO school_year (school_year, sem, date_from, date_to) 
+        $sql1 = "INSERT INTO school_year (school_year, sem, date_from, date_to, enrollment_start_date, enrollment_end_date) 
         VALUES (
             '" . escape($db_connect, $school_year) . "',
             '" . escape($db_connect, $sem) . "',
             '" . escape($db_connect, $date_from) . "',
-            '" . escape($db_connect, $date_to) . "')
+            '" . escape($db_connect, $date_to) . "',
+            '" . escape($db_connect, $enrollment_start) . "',
+            '" . escape($db_connect, $enrollment_end) . "')
         ";
 
         $result1 = call_mysql_query($sql1);
@@ -71,6 +96,8 @@ try {
         $sem = isset($_POST['semester']) ? trim($_POST['semester']) : '';
         $date_from = isset($_POST['startDate']) ? trim($_POST['startDate']) : '';
         $date_to = isset($_POST['endDate']) ? trim($_POST['endDate']) : '';
+        $enrollment_start = isset($_POST['enrollmentStartDate']) ? trim($_POST['enrollmentStartDate']) : '';
+        $enrollment_end = isset($_POST['enrollmentEndDate']) ? trim($_POST['enrollmentEndDate']) : '';
         $isDefault = isset($_POST['isDefault']) ? intVal(trim($_POST['isDefault'])) : '';
         $old_vals = "";
         $new_vals = "";
@@ -84,20 +111,27 @@ try {
             return ($val === null || $val === '');
          }
         // Basic validation
-        if (empty($id) || empty($school_year) || empty($sem) || empty($date_from) || empty($date_to) || dataEmptyCheck($isDefault)) {
+        if (empty($id) || empty($school_year) || empty($sem) || empty($date_from) || empty($date_to) || empty($enrollment_start) || empty($enrollment_end) || dataEmptyCheck($isDefault)) {
             $output['msg_response'] = "All fields are required.";
             $output['code'] = 501;
             echo json_encode($output);
             exit();
         }
 
-        $new_vals = sha1($school_year . $sem . $date_from . $date_to . $isDefault);
+        if (!fiscal_year_period_valid($date_from, $date_to, $enrollment_start, $enrollment_end)) {
+            $output['msg_response'] = "Enrollment period must end on or before the term start date.";
+            $output['code'] = 501;
+            echo json_encode($output);
+            exit();
+        }
 
-        $default_query = "SELECT school_year, sem, date_from, date_to, isDefault FROM school_year WHERE school_year_id = '" . escape($db_connect, $id) . "'";
+        $new_vals = sha1($school_year . $sem . $date_from . $date_to . $enrollment_start . $enrollment_end . $isDefault);
+
+        $default_query = "SELECT school_year, sem, date_from, date_to, enrollment_start_date, enrollment_end_date, isDefault FROM school_year WHERE school_year_id = '" . escape($db_connect, $id) . "'";
         if($query = call_mysql_query($default_query)){
             if($num = call_mysql_num_rows($query)){
                 if($data = call_mysql_fetch_array($query)){
-                    $old_vals = sha1($data['school_year'] . $data['sem'] . $data['date_from'] . $data['date_to'] . $data['isDefault']);
+                    $old_vals = sha1($data['school_year'] . $data['sem'] . $data['date_from'] . $data['date_to'] . $data['enrollment_start_date'] . $data['enrollment_end_date'] . $data['isDefault']);
                 }
             } else {
                 $output['code'] = 502;
@@ -126,6 +160,8 @@ try {
                 sem = '" . escape($db_connect, $sem) . "',
                 date_from = '" . escape($db_connect, $date_from) . "',
                 date_to = '" . escape($db_connect, $date_to) . "',
+                enrollment_start_date = '" . escape($db_connect, $enrollment_start) . "',
+                enrollment_end_date = '" . escape($db_connect, $enrollment_end) . "',
                 isDefault = '" . escape($db_connect, $isDefault) . "',
                 updatedAt = NOW()
                 WHERE school_year_id = '" .  escape($db_connect, $id) . "'";

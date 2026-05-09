@@ -10,6 +10,9 @@ require ISLOGIN;
 $general_page_title = "Grades & Prospectus";
 $get_user_value = strtoupper($_GET['none'] ?? '');
 $page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
 
 if ($g_user_role !== "STUDENT") {
     header("Location: " . BASE_URL . "index.php");
@@ -269,6 +272,9 @@ if ($curriculum_units_total > 0) {
 
         <div class="container">
             <div class="page-inner">
+                    <?php
+                    include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                    ?>
                 <div class="card card-round">
                     <div class="card-header">
                         <ul class="nav nav-tabs card-header-tabs">
@@ -376,8 +382,7 @@ if ($curriculum_units_total > 0) {
                                     </div>
                                 </div>
 
-                                <div class="grading-legend mt-3 small">
-                                    <div class="grading-legend-icon">i</div>
+                                <div class="grading-legend mb-3 small ms-4">
                                     <div class="grading-legend-text">
                                         <strong>GRADING SYSTEM:</strong>
                                         1 (PASSED) - 96-100%,

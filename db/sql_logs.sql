@@ -298,3 +298,8 @@ ALTER TABLE `enrollments` ADD `program_id` INT(50) NOT NULL AFTER `class_id`;
 ALTER TABLE `enrollments` CHANGE `sem` `sem` TINYINT(2) NOT NULL COMMENT 'for curriculum sem indication';
 ALTER TABLE `enrollments` CHANGE `enrollment_id` `enrollment_id` INT(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `enrollments` CHANGE `sem` `sem` VARCHAR(50) NOT NULL COMMENT 'for curriculum sem indication';
+
+-- May 9, 2026
+ALTER TABLE school_year
+  ADD COLUMN enrollment_start_date date DEFAULT NULL AFTER date_to,
+  ADD COLUMN enrollment_end_date date DEFAULT NULL AFTER enrollment_start_date;

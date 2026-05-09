@@ -53,7 +53,9 @@ try {
         $semester_value = '';
         foreach ($enrollData as $course) {
             $teacher_class_id = isset($course->teacher_class_id) ? intVal($course->teacher_class_id) : 0;
-            $semester_value = isset($course->curriculum_semester) ? strtoupper(trim($course->curriculum_semester)) : '';
+            $semester_value = isset($course->curriculum_semester) && trim((string)$course->curriculum_semester) !== ''
+                ? strtoupper(trim($course->curriculum_semester))
+                : $sem;
             
             if ($teacher_class_id <= 0 && empty($semester_value)) {
                 continue;
@@ -65,7 +67,7 @@ try {
                 WHERE student_id_no = '" . escape($db_connect, $student_id_no) . "'
                 AND teacher_class_id = '" . escape($db_connect, $teacher_class_id) . "'
                 AND school_year_id = '" . escape($db_connect, $school_year_id) . "'
-                AND sem = '" . escape($db_connect, $semester_value) . "'
+                AND UPPER(sem) = UPPER('" . escape($db_connect, $semester_value) . "')
                 LIMIT 1
             ";
 
@@ -91,6 +93,9 @@ try {
             $class_name = isset($course->class_name) ? trim($course->class_name) : '';
             $subject_id = isset($course->subject_id) ? intVal($course->subject_id) : 0;
             $schedule = isset($course->schedule) ? trim($course->schedule) : '';
+            $course_semester_value = isset($course->curriculum_semester) && trim((string)$course->curriculum_semester) !== ''
+                ? strtoupper(trim($course->curriculum_semester))
+                : $sem;
 
             if ($teacher_class_id <= 0 || $class_id <= 0 || $subject_id <= 0 || $class_name === '' || $schedule === '') {
                 throw new Exception("Invalid course data found in enrollment payload.");
@@ -102,6 +107,7 @@ try {
                     teacher_class_id,
                     subject_id,
                     class_id,
+                    program_id,
                     curriculum_id,
                     section_name,
                     schedule,
@@ -113,11 +119,12 @@ try {
                     '" . escape($db_connect, $teacher_class_id) . "',
                     '" . escape($db_connect, $subject_id) . "',
                     '" . escape($db_connect, $class_id) . "',
+                    '" . escape($db_connect, $program_id) . "',
                     '" . escape($db_connect, $curriculum_id) . "',
                     '" . escape($db_connect, $class_name) . "',
                     '" . escape($db_connect, $schedule) . "',
                     '" . escape($db_connect, $school_year_id) . "',
-                    '" . escape($db_connect, $semester_value) . "',
+                    '" . escape($db_connect, $course_semester_value) . "',
                     'Enrolled'
                 )
             ";

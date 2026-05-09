@@ -115,9 +115,13 @@ if($fetchSql = call_mysql_query($sql)){
                                 </div>
 
                                 <div class="row">
-                                    <div class="mb-3 col-md-12">
+                                    <div class="mb-3 col-md-6">
                                         <label for="fiscal" class="form-label">Fiscal Year</label>
                                         <input type="text" class="form-control  fw-bold" id="fiscal" name="fiscal" readOnly>
+                                    </div>
+                                    <div class="mb-3 col-md-6">
+                                        <label for="enrolled_units" class="form-label">Enrolled Units</label>
+                                        <input type="text" class="form-control  fw-bold" id="enrolled_units" name="enrolled_units" readOnly>
                                     </div>
                                 </div>
 
@@ -239,7 +243,6 @@ if($fetchSql = call_mysql_query($sql)){
                 title:"Name", 
                 field:"name", 
                 headerFilter:"input",
-                hozAlign: "center",
             },
             {
                 title:"Section", 
@@ -257,7 +260,7 @@ if($fetchSql = call_mysql_query($sql)){
             },
             {
                 title:"Curriculum", 
-                field:"curriculum_code", 
+                field:"curriculum_header", 
                 headerFilter:"input",
                 hozAlign: "center",
                 headerHozAlign: "center",
@@ -288,7 +291,7 @@ if($fetchSql = call_mysql_query($sql)){
                 }
             },
             {
-                title:"Earned Units", 
+                title:"Last Term Earned Units", 
                 field: "earned_units_sem",
                 headerFilter:"input",
                 hozAlign: "center",
@@ -298,13 +301,23 @@ if($fetchSql = call_mysql_query($sql)){
                 }
             },
             {
-                title:"Required Units", 
+                title:"Required Units This Term", 
                 field: "required_units_sem",
                 headerFilter:"input",
                 hozAlign: "center",
                 formatter: function(cell){
                     const data = cell.getValue();
                     return data !== null ? data : "No assigned curriculum yet";
+                }
+            },
+            {
+                title:"Enrolled Units This Term",
+                field: "enrolled_units_sem",
+                headerFilter:"input",
+                hozAlign: "center",
+                formatter: function(cell){
+                    const data = cell.getValue();
+                    return data !== null ? data : "No enrolled units";
                 }
             },
             {
@@ -398,7 +411,12 @@ if($fetchSql = call_mysql_query($sql)){
     }
 
     $('#syDropdown').on('change', function(){
-        const fyId = $(this).val() || '';
+        enrollTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchEnrollees.php", {
+            school_year_id: $('#syDropdown').val()
+        });
+    });
+
+    $('#generateBtn').on('click', function(){
         enrollTable.setData("<?php echo BASE_URL; ?>registrar/actions/fetchEnrollees.php", {
             school_year_id: $('#syDropdown').val()
         });
@@ -437,7 +455,9 @@ if($fetchSql = call_mysql_query($sql)){
             document.getElementById('section').value = rowData.section;
             document.getElementById('yr_lvl').value = formatYear(rowData.year_level);
             document.getElementById('program').value = rowData.program;
+            document.getElementById('student_class').value = rowData.student_classification;
             document.getElementById('fiscal').value = rowData.fiscal_year;
+            document.getElementById('enrolled_units').value = rowData.enrolled_units_sem ?? 0;
 
             $('#viewStudentInfo').modal('show');
         }

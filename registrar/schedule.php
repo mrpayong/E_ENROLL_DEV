@@ -785,7 +785,7 @@ if ($sem_query = call_mysql_query($query)) {
             const studentLimit = Number(rowData?.section_limit);
 
             let buttons = `
-                <button class="btn btn-sm btn-primary edit-sched fs-6" data-id="${rowData.teacher_class_id}">
+                <button class="btn btn-sm btn-warning edit-sched" data-id="${rowData.teacher_class_id}">
                     <i class="bi bi-pencil-square"></i> Update
                 </button>
             `;

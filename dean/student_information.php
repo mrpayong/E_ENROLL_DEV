@@ -9,10 +9,12 @@ require ISLOGIN;
 require DOMAIN_PATH . '/dean/process/dean_backlog_helper.php';
 
 $general_page_title = "Student Information";
-$page_header_title = "Dean's Student Information";
-$header_breadcrumbs = [];
 $active_page = 'student_information';
-
+$get_user_value = strtoupper($_GET['none'] ?? ''); ## change based on key
+$page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
 // Guard: Only allow DEAN or ADMIN
 if (!in_array($g_user_role, ["DEAN", "ADMIN"])) {
 	header("Location: " . BASE_URL . "index.php");
@@ -121,17 +123,17 @@ if ($result_students) {
 					<div class="row">
 						<div class="col-12">
 							<div class="card student-info-card">
-								<div class="card-header text-white fw-semibold d-flex align-items-center justify-content-between flex-wrap" style="background-color: #2563EB; font-size: large;">
+								<div class="card-header text-white fw-semibold d-flex align-items-center justify-content-between flex-wrap rounded-top-3" style="background-color: #2563EB; font-size: large;">
 									<div>
 										<i class="bi bi-people"></i>&ensp;Student Information
 									</div>
-									<div class="text-white-50 small">
+									<span class="text-white fs-5">
 										<?php echo $dean_department_name ? ''
 										 . htmlspecialchars($dean_department_name) : 'All Departments'; ?>
-									</div>
+									</span>
 								</div>
 								<div class="card-body mt-3 bg-white">
-									<div id="student-info-table"></div>
+									<div id="student_table"></div>
 								</div>
 							</div>
 						</div>
@@ -147,12 +149,99 @@ if ($result_students) {
 	<?php include_once DOMAIN_PATH . '/global/include_bottom.php'; ?>
 
 	<script>
-		window.deanStudentInfoConfig = {
-			tableData: <?php echo json_encode($students_data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?> || [],
-			baseUrl: '<?php echo BASE_URL; ?>'
-		};
+		// window.deanStudentInfoConfig = {
+		// 	tableData: <?php echo json_encode($students_data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?> || [],
+		// 	baseUrl: '<?php echo BASE_URL; ?>'
+		// };
+
+		document.addEventListener('DOMContentLoaded', function(){
+			const studentInfoTable = new Tabulator('#student_table', {
+				ajaxURL: "<?php echo BASE_URL; ?>dean/actions/fetchStudents.php",
+				ajaxConfig: "GET",
+				pagination: "remote",
+				paginationSize: 10,
+				paginationSizeSelector: [10, 20, 50],
+				ajaxFiltering: true,
+				ajaxSorting: true,
+				movableColumns: true,
+				headerFilterPlaceholder: "Search",
+				placeholder: "No Data Found",
+				layout: "fitDataStretch",
+				minHeight: 250,
+				ajaxResponse: function(url, params, response) {
+					if (!response || response.msg_status !== true) {
+						swal({
+							title: "Load Failed",
+							icon: "error",
+							text: response && response.msg_response ? response.msg_response : "Unable to load students.",
+							button: true
+						});
+
+						return {
+							last_page: 1,
+							data: []
+						};
+					}
+
+					return {
+						last_page: response.last_page || 1,
+						data: Array.isArray(response.data) ? response.data : []
+					};
+				},
+				columns: [
+					{
+						title: "Student ID",
+						field: "student_id",
+						headerFilter: "input",
+						headerHozAlign: "center",
+						hozAlign: "center"
+					},
+					{
+						title: "Name",
+						field: "student_name",
+						headerFilter: "input",
+						headerHozAlign: "center"
+					},
+					{
+						title: "Program",
+						field: "program",
+						headerFilter: "input",
+						headerHozAlign: "center",
+						hozAlign: "center"
+					},
+					{
+						title: "Year Level",
+						field: "year_level",
+						headerFilter: "input",
+						headerHozAlign: "center",
+						hozAlign: "center"
+					},
+					{
+						title: "Status",
+						field: "status",
+						headerFilter: "input",
+						headerHozAlign: "center",
+						hozAlign: "center",
+						formatter: function(cell) {
+							const value = String(cell.getValue() || '').toUpperCase();
+							const isIrregular = value === 'IRREGULAR' || value === 'IRREG';
+							const badgeClass = isIrregular ? 'bg-warning text-dark' : 'bg-success';
+							const label = isIrregular ? 'IRREGULAR' : 'REGULAR';
+							return '<span class="badge ' + badgeClass + '">' + label + '</span>';
+						}
+					},
+					{
+						title: "Department",
+						field: "department",
+						headerFilter: "input",
+						headerHozAlign: "center"
+					}
+					
+				]
+			});
+		});
 	</script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>dean/js/student_information.js?v=<?php echo FILE_VERSION; ?>"></script>
+	<!-- <script type="text/javascript" src="<?php echo BASE_URL; ?>dean/js/student_information.js?v=<?php echo FILE_VERSION; ?>"></script> -->
 </body>
 </html>
 

@@ -37,8 +37,8 @@ $output = "";
 $total_query = 0;
 
 // Define fields for filtering/sorting
-$dbfield = array('school_year_id', 'school_year', 'sem', 'date_from', 'date_to', 'flag_used', 'isDefault', 'createdAt', 'updatedAt');
-$dborig = array('school_year_id', 'school_year', 'sem', 'date_from', 'date_to', 'flag_used', 'isDefault', 'createdAt', 'updatedAt');
+$dbfield = array('school_year_id', 'school_year', 'sem', 'date_from', 'date_to', 'enrollment_start_date', 'enrollment_end_date', 'flag_used', 'isDefault', 'createdAt', 'updatedAt');
+$dborig = array('school_year_id', 'school_year', 'sem', 'date_from', 'date_to', 'enrollment_start_date', 'enrollment_end_date', 'flag_used', 'isDefault', 'createdAt', 'updatedAt');
 
 // --- Filtering ---
 if (isset($_GET['filters'])) {
@@ -113,8 +113,14 @@ if ($query = call_mysql_query($sql_limit)) {
         while ($data = call_mysql_fetch_array($query)) {
             // Format/secure data as needed
             $data = array_html($data);
+            $data['date_from_raw'] = $data['date_from'];
+            $data['date_to_raw'] = $data['date_to'];
+            $data['enrollment_start_date_raw'] = $data['enrollment_start_date'];
+            $data['enrollment_end_date_raw'] = $data['enrollment_end_date'];
             $data['date_from'] = formatterDateLong($data['date_from']);
             $data['date_to'] = formatterDateLong($data['date_to']);
+            $data['enrollment_start_date'] = !empty($data['enrollment_start_date']) ? formatterDateLong($data['enrollment_start_date']) : '';
+            $data['enrollment_end_date'] = !empty($data['enrollment_end_date']) ? formatterDateLong($data['enrollment_end_date']) : '';
             $data['school_year_id'] = (int)$data['school_year_id'];
             $data['isDefault'] = (int)$data['isDefault'];
             $data['flag_used'] = (int)$data['flag_used'] === 1 ? "Active" : "Locked";

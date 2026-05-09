@@ -96,6 +96,14 @@ if (!($g_user_role == "REGISTRAR")) {
                                     <label for="endDate" class="form-label">End Date</label>
                                     <input type="date" class="form-control" id="endDate" name="endDate" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="enrollmentStartDate" class="form-label">Enrollment Start Date</label>
+                                    <input type="date" class="form-control" id="enrollmentStartDate" name="enrollmentStartDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="enrollmentEndDate" class="form-label">Enrollment End Date</label>
+                                    <input type="date" class="form-control" id="enrollmentEndDate" name="enrollmentEndDate" required>
+                                </div>
                             </section>
                             <footer class="modal-footer">
                                 <button type="submit" class="btn btn-primary">Create</button>
@@ -133,6 +141,14 @@ if (!($g_user_role == "REGISTRAR")) {
                                 <div class="mb-3">
                                     <label for="editEndDate" class="form-label">End Date</label>
                                     <input type="date" class="form-control" id="editEndDate" name="endDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editEnrollmentStartDate" class="form-label">Enrollment Start Date</label>
+                                    <input type="date" class="form-control" id="editEnrollmentStartDate" name="enrollmentStartDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editEnrollmentEndDate" class="form-label">Enrollment End Date</label>
+                                    <input type="date" class="form-control" id="editEnrollmentEndDate" name="enrollmentEndDate" required>
                                 </div>
                             </section>
                             <footer class="modal-footer">
@@ -227,26 +243,52 @@ if (!($g_user_role == "REGISTRAR")) {
             return value;
         }
 
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
+        function bindDateRange(startId, endId) {
+            const startInput = document.getElementById(startId);
+            const endInput = document.getElementById(endId);
 
-    if (startDateInput && endDateInput) {
-        startDateInput.addEventListener('change', function() {
-            endDateInput.value = ""; // Clear previous end date
-            endDateInput.min = startDateInput.value; // Set min to selected start date
-        });
-    }
+            if (!startInput || !endInput) return;
 
-    // For Edit Fiscal Year Modal
-    const editStartDateInput = document.getElementById('editStartDate');
-    const editEndDateInput = document.getElementById('editEndDate');
+            startInput.addEventListener('change', function() {
+                endInput.min = startInput.value;
+                if (endInput.value && endInput.value < startInput.value) {
+                    endInput.value = "";
+                }
+            });
+        }
 
-    if (editStartDateInput && editEndDateInput) {
-        editStartDateInput.addEventListener('change', function() {
-            editEndDateInput.value = ""; // Clear previous end date
-            editEndDateInput.min = editStartDateInput.value; // Set min to selected start date
-        });
-    }
+        function bindEnrollmentBounds(termStartId, enrollmentStartId, enrollmentEndId) {
+            const termStart = document.getElementById(termStartId);
+            const enrollmentStart = document.getElementById(enrollmentStartId);
+            const enrollmentEnd = document.getElementById(enrollmentEndId);
+
+            if (!termStart || !enrollmentStart || !enrollmentEnd) return;
+
+            function syncBounds() {
+                enrollmentStart.max = termStart.value || "";
+                enrollmentEnd.min = enrollmentStart.value || "";
+                enrollmentEnd.max = termStart.value || "";
+
+                if (enrollmentStart.value && termStart.value && enrollmentStart.value > termStart.value) {
+                    enrollmentStart.value = "";
+                }
+                if (enrollmentEnd.value && enrollmentStart.value && enrollmentEnd.value < enrollmentStart.value) {
+                    enrollmentEnd.value = "";
+                }
+                if (enrollmentEnd.value && termStart.value && enrollmentEnd.value > termStart.value) {
+                    enrollmentEnd.value = "";
+                }
+            }
+
+            termStart.addEventListener('change', syncBounds);
+            enrollmentStart.addEventListener('change', syncBounds);
+            syncBounds();
+        }
+
+        bindDateRange('startDate', 'endDate');
+        bindDateRange('editStartDate', 'editEndDate');
+        bindEnrollmentBounds('startDate', 'enrollmentStartDate', 'enrollmentEndDate');
+        bindEnrollmentBounds('editStartDate', 'editEnrollmentStartDate', 'editEnrollmentEndDate');
 
         function formatDate(dateCreated){
             if (!dateCreated) return "";
@@ -341,7 +383,7 @@ if (!($g_user_role == "REGISTRAR")) {
                     headerHozAlign: "center",
                 },
                 {
-                    title: "Start Date",
+                    title: "Term Start Date",
                     field: "date_from",
                     headerFilter: "input",
                     headerFilterFunc: "like",
@@ -352,7 +394,7 @@ if (!($g_user_role == "REGISTRAR")) {
                     headerHozAlign: "center",
                 },
                 {
-                    title: "End Date",
+                    title: "Term End Date",
                     field: "date_to",
                     headerFilter: "input",
                     headerFilterFunc: "like",
@@ -361,6 +403,34 @@ if (!($g_user_role == "REGISTRAR")) {
                     headerSort: true,
                     hozAlign: "center",
                     headerHozAlign: "center",
+                },
+                {
+                    title: "Enrollment Start",
+                    field: "enrollment_start_date",
+                    headerFilter: "input",
+                    headerFilterFunc: "like",
+                    headerFilterParams: { allowEmpty: true },
+                    headerFilterLiveFilter: true,
+                    headerSort: true,
+                    hozAlign: "center",
+                    headerHozAlign: "center",
+                    formatter: function(cell) {
+                        return cell.getValue() || "Not set";
+                    }
+                },
+                {
+                    title: "Enrollment End",
+                    field: "enrollment_end_date",
+                    headerFilter: "input",
+                    headerFilterFunc: "like",
+                    headerFilterParams: { allowEmpty: true },
+                    headerFilterLiveFilter: true,
+                    headerSort: true,
+                    hozAlign: "center",
+                    headerHozAlign: "center",
+                    formatter: function(cell) {
+                        return cell.getValue() || "Not set";
+                    }
                 },
                 {
                     title: "Status",
@@ -440,9 +510,13 @@ if (!($g_user_role == "REGISTRAR")) {
                 document.getElementById('editSchoolYear').value = rowData.school_year;
                 document.getElementById('editModalTitle').textContent = `Edit F.Y. ${rowData.school_year}`;
                 document.getElementById('editSemester').value = rowData.sem;
-                document.getElementById('editStartDate').value = toInputDateFormat(rowData.date_from);
-                document.getElementById('editEndDate').value = toInputDateFormat(rowData.date_to);
+                document.getElementById('editStartDate').value = rowData.date_from_raw || toInputDateFormat(rowData.date_from);
+                document.getElementById('editEndDate').value = rowData.date_to_raw || toInputDateFormat(rowData.date_to);
+                document.getElementById('editEnrollmentStartDate').value = rowData.enrollment_start_date_raw || "";
+                document.getElementById('editEnrollmentEndDate').value = rowData.enrollment_end_date_raw || "";
                 currDef = parseInt(rowData.isDefault);
+                document.getElementById('editStartDate').dispatchEvent(new Event('change'));
+                document.getElementById('editEnrollmentStartDate').dispatchEvent(new Event('change'));
                 $("#EditFiscalYearModal").modal("show");
             }
             if (unlockBtn) {

@@ -321,7 +321,7 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                     <li class="nav-item <?php echo navigation_active("student_approvals"); ?>">
                         <a href="<?php echo BASE_URL . "dean/student_approvals.php" ?>">
                             <i class="fas fa-user-check"></i>
-                            <p>Student Approvals</p>
+                            <p>Course Offering</p>
                         </a>
                     </li>
 
@@ -341,14 +341,14 @@ function navigation_active($pages, $class = 'active', $conditions = [])
 
                     <li class="nav-item <?php echo navigation_active("course_dean"); ?>">
                         <a href="<?php echo BASE_URL; ?>dean/course_dean.php">
-                            <i class="fas fa-th"></i>
+                            <i class="fas fa-book-reader"></i>
                             <span>Course</span>
                         </a>
                     </li>
 
                     <li class="nav-item <?php echo navigation_active("curriculum_dean"); ?>">
                         <a href="<?php echo BASE_URL; ?>dean/curriculum_dean.php">
-                            <i class="fas fa-th"></i>
+                            <i class="fab fa-leanpub"></i>
                             <span>Curriculum</span>
                         </a>
                     </li>

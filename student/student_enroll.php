@@ -7,10 +7,12 @@ require CONNECT_PATH;
 require VALIDATOR_PATH;
 require ISLOGIN;
 
-$general_page_title = "Enrollment";
+$general_page_title = "Student Enrollment";
 $get_user_value = strtoupper($_GET['none'] ?? '');
 $page_header_title = ACCESS_NAME[$get_user_value] ?? $general_page_title;
-$header_breadcrumbs = [];
+$header_breadcrumbs = [
+    ['label' => $page_header_title, 'url' => '']
+];
 
 if (!($g_user_role == "STUDENT")) {
     header("Location: " . BASE_URL . "index.php");
@@ -26,8 +28,9 @@ $student_curriculum_id = 0;
 $student_program_id = '';
 $student_program = '';
 $active_school_year_id = 0;
+$student_class_id = 0;
 
-$sql_fy = "SELECT school_year_id, school_year, sem, date_from, date_to, flag_used 
+$sql_fy = "SELECT school_year_id, school_year, sem, date_from, date_to, enrollment_start_date, enrollment_end_date, flag_used 
 FROM school_year
 WHERE flag_used != 0
 ORDER BY createdAt DESC
@@ -43,7 +46,7 @@ if($sql = call_mysql_query($sql_fy)){
     }
 }
 
-$sql_student = "SELECT student_id, student_id_no, firstname, middle_name, lastname, year_level, curriculum_id, program_id
+$sql_student = "SELECT student_id, student_id_no, firstname, middle_name, lastname, year_level, curriculum_id, program_id, class_id
 FROM student 
 WHERE student_id_no = '".  escape($db_connect, $g_general_id)  ."'
 LIMIT 1
@@ -54,6 +57,7 @@ if($sql = call_mysql_query($sql_student)){
         $student_year_level = intVal($data['year_level']);
         $student_curriculum_id = intVal($data['curriculum_id']);
         $student_program_id = intVal($data['program_id']);
+        $student_class_id = intVal($data['class_id'] ?? 0);
         $student_id_data = $data['student_id_no'];
     }
 }
@@ -74,6 +78,9 @@ $previous_term_school_year = '';
 $previous_term_sem = '';
 $comparison_year_level = 0;
 $display_required_units = 0;
+$tracked_year_level_for_display = $student_year_level;
+$progressed_year_level = $student_year_level;
+$progressed_semester = $active_semester;
 
 $passed_earned_units = 0;
 $required_curriculum_units = 0;
@@ -358,6 +365,7 @@ if ($student_curriculum_id > 0) {
         $target_year_level_for_display = min($progressed_year_level + 1, $maxCurriculumYearLevel);
     }
 
+    $tracked_year_level_for_display = $target_year_level_for_display;
     $display_required_units = intVal($curriculumByYearSem[$target_year_level_for_display][$active_semester]['required_units'] ?? 0);
 }
 
@@ -367,6 +375,9 @@ $enrollment_context = [
     'curriculum_id' => $student_curriculum_id,
     'student_year_level' => $student_year_level,
     'effective_year_level' => $effective_year_level,
+    'tracked_year_level' => $tracked_year_level_for_display,
+    'progressed_year_level' => $progressed_year_level,
+    'progressed_semester' => $progressed_semester,
     'academic_status' => $student_academic_status,
     'school_year_id' => $active_school_year_id,
     'school_year' => $active_school_year,
@@ -380,7 +391,7 @@ $id_Data = '';
 $sql_enroll = "SELECT student_id_no FROM enrollments
 WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
 AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
-AND sem = '".   escape($db_connect, stripos($active_semester, '1st') !== false ? 1 : 2)."'
+AND UPPER(sem) = UPPER('".   escape($db_connect, $active_semester)."')
 LIMIT 1
 ";
 
@@ -393,21 +404,102 @@ if($sql = call_mysql_query($sql_enroll)){
     }
 }
 
-$sql_back_subject_request = "SELECT backSubject_enroll_id FROM backSubject_enroll
-WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
-AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
-AND sem = '".   escape($db_connect, strtoupper($active_semester))."'
-AND status IN ('Pending', 'Approved')
-LIMIT 1
-";
+$enrolled_courses = array();
+$enrolled_fixed_courses = array();
+$enrolled_offered_courses = array();
 
-if($sql = call_mysql_query($sql_back_subject_request)){
-    if($data = call_mysql_fetch_array($sql)){
-        if(!empty($data['backSubject_enroll_id'])){
-            $back_subject_request_status = true;
+if (!empty($g_general_id) && $active_school_year_id > 0 && !empty($active_semester)) {
+    $sql_enrolled_courses = "
+        SELECT
+            e.enrollment_id,
+            e.teacher_class_id,
+            e.subject_id,
+            e.class_id,
+            e.section_name,
+            e.schedule,
+            e.sem,
+            e.status,
+            s.subject_code,
+            s.subject_title,
+            s.unit AS subject_unit,
+            c.unit AS curriculum_unit,
+            c.pre_req,
+            c.year_level AS curriculum_year_level,
+            c.semester AS curriculum_semester,
+            tc.year_level AS scheduled_year_level,
+            cs.class_name,
+            p.short_name AS offered_program
+        FROM enrollments e
+        LEFT JOIN subject s ON s.subject_id = e.subject_id
+        LEFT JOIN teacher_class tc ON tc.teacher_class_id = e.teacher_class_id
+        LEFT JOIN class_section cs ON cs.class_id = e.class_id
+        LEFT JOIN programs p ON p.program_id = tc.program_id
+        LEFT JOIN curriculum c
+               ON c.curriculum_id = '" . escape($db_connect, $student_curriculum_id) . "'
+              AND UPPER(TRIM(c.subject_code)) = UPPER(TRIM(s.subject_code))
+        WHERE e.student_id_no = '" . escape($db_connect, $g_general_id) . "'
+          AND e.school_year_id = '" . escape($db_connect, $active_school_year_id) . "'
+          AND UPPER(e.sem) = UPPER('" . escape($db_connect, $active_semester) . "')
+          AND e.status = 'Enrolled'
+        ORDER BY e.enrollment_id ASC
+    ";
+
+    if ($query = call_mysql_query($sql_enrolled_courses)) {
+        while ($data = call_mysql_fetch_array($query)) {
+            $class_id = intVal($data['class_id'] ?? 0);
+            $curriculum_year_level = intVal($data['curriculum_year_level'] ?? 0);
+            $scheduled_year_level = intVal($data['scheduled_year_level'] ?? 0);
+            $unit = intVal($data['curriculum_unit'] ?? 0);
+
+            if ($unit <= 0) {
+                $unit = intVal($data['subject_unit'] ?? 0);
+            }
+
+            $row = array(
+                'enrollment_id' => intVal($data['enrollment_id'] ?? 0),
+                'teacher_class_id' => intVal($data['teacher_class_id'] ?? 0),
+                'subject_id' => intVal($data['subject_id'] ?? 0),
+                'class_id' => $class_id,
+                'class_name' => !empty($data['section_name']) ? $data['section_name'] : ($data['class_name'] ?? ''),
+                'subject_code' => $data['subject_code'] ?? '',
+                'subject_title' => $data['subject_title'] ?? '',
+                'unit' => $unit,
+                'pre_req' => $data['pre_req'] ?? '',
+                'schedule' => $data['schedule'] ?? '',
+                'section_text' => 'Enrolled',
+                'offered_program' => $data['offered_program'] ?? '',
+                'year_level' => $scheduled_year_level > 0 ? $scheduled_year_level : $curriculum_year_level,
+                'curriculum_year_level' => $curriculum_year_level,
+                'curriculum_semester' => $data['curriculum_semester'] ?? '',
+                'status' => $data['status'] ?? 'Enrolled'
+            );
+
+            $enrolled_courses[] = $row;
+
+            if ($student_class_id > 0 && $class_id > 0 && $class_id !== $student_class_id) {
+                $enrolled_offered_courses[] = $row;
+            } else {
+                $enrolled_fixed_courses[] = $row;
+            }
         }
     }
 }
+
+// $sql_back_subject_request = "SELECT backSubject_enroll_id FROM backSubject_enroll
+// WHERE student_id_no = '".   escape($db_connect, $g_general_id)."'
+// AND school_year_id = '".   escape($db_connect, $active_school_year_id)."'
+// AND sem = '".   escape($db_connect, strtoupper($active_semester))."'
+// AND status IN ('Pending', 'Approved')
+// LIMIT 1
+// ";
+
+// if($sql = call_mysql_query($sql_back_subject_request)){
+//     if($data = call_mysql_fetch_array($sql)){
+//         if(!empty($data['backSubject_enroll_id'])){
+//             $back_subject_request_status = true;
+//         }
+//     }
+// }
 
 ?>
 <!DOCTYPE html>
@@ -429,6 +521,9 @@ if($sql = call_mysql_query($sql_back_subject_request)){
 
             <div class="container">
                 <div class="page-inner">    
+                    <?php
+                    include_once DOMAIN_PATH . '/global/page_header.php'; ## page header 
+                    ?>
 
                     <!-- <?php
                     // Global banner indicating whether the currently
@@ -471,10 +566,12 @@ if($sql = call_mysql_query($sql_back_subject_request)){
                         <div>
                             <!-- Container 1: Available Subjects -->
                             <div class="card card-round">
-                                              <div class="card-header bg-primary rounded-top-2 pb-1 pt-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 id="available_subjects_title" class="fw-bolder mb-0 text-white">Available Subjects for Your Program</h4>
-                                        </div></div>
+                                <div class="card-header bg-primary rounded-top-2 pb-1 pt-3">
+                                    <div class="d-flex row align-items-center mb-2">
+                                        <h4 id="available_subjects_title" class="fw-bolder mb-0 text-white">Available Subjects for Your Program</h4>
+                                        <span class="text-body-secodary">Courses you need to enroll base on your curriculum</span>
+                                    </div>
+                                </div>
                                 <div class="card-body">
                                     <!-- <ul class="nav nav-tabs mb-3" id="subjects_tabs" role="tablist">
                                         <li class="nav-item" role="presentation" id="subjects_tab_available_item">
@@ -518,8 +615,16 @@ if($sql = call_mysql_query($sql_back_subject_request)){
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="required_units_label" class="form-label">Required Units: </label>
-                                                <span name="required_units_label" class="fw-bold" id="required_units_label"></span>
+                                                <div class="d-flex flex-column">
+                                                    <div class="col-md-6">
+                                                        <label for="required_units_label" class="form-label">Required Units: </label>
+                                                        <span name="required_units_label" class="fw-bold" id="required_units_label">0</span>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="units_viewed" class="form-label">Reflected Units: </label>
+                                                        <span name="units_viewed" class="fw-bold" id="units_viewed">0</span>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div class="col-md-4 d-flex align-items-end justify-content-end">
@@ -538,26 +643,27 @@ if($sql = call_mysql_query($sql_back_subject_request)){
                             <div class="card card-round mt-4" id="offered_back_subjects_card">
                                 <div class="card-header bg-warning rounded-top-2 pb-1 pt-3">
                                     <div class="d-flex row align-items-center mb-2">
-                                        <h4 class="fw-bolder mb-0 text-dark">Suggested Subjects</h4>
-                                        <span>For This Term</span>
+                                        <h4 class="fw-bolder mb-0 text-dark">Offered Courses</h4>
+                                        <span class="text-body-secondary">Applicable offered course base on your curriculum.</span>
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row mb-3 d-flex justify-content-evenly align-items center">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Missing Units: </label>
-                                            <span class="fw-bold" id="back_required_units_label">0</span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Required Units: </label>
-                                            <span class="fw-bold" id="back_target_units_label">0</span>
+                                    <div class="d-flex row mb-2 align-items-center">
+                                        <div class="d-flex col-md-6 flex-column justify-content-evenly align-items-start">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Missing Units: </label>
+                                                <span class="fw-bold" id="back_required_units_label">0</span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Total Units Selected: </label>
+                                                <span class="fw-bold" id="back_target_units_label">0</span>
+                                            </div>
                                         </div>
 
-                                        <!-- <div class="col-md-4 d-flex justify-content-end">
-                                            <button class="btn btn-secondary" id="submitBackSubjects" disabled>Request back subjects for Dean approval</button>
-                                        </div> -->
+                                        <div class="d-flex col-md-6 justify-content-end">
+                                            <button class="btn btn-secondary btn-sm fs-6" id="submitBackSubjects" disabled>Enroll Offered Courses</button>
+                                        </div>
                                     </div>
-
                                     <div class="table-responsive">
                                         <div id="offered_back_subjects_table"></div>
                                     </div>
@@ -614,11 +720,25 @@ document.addEventListener('DOMContentLoaded', function(){
         return selectEl.value || '';
     }
 
+    function setSectionDropdownEnabled(enabled) {
+        const sectionEl = document.getElementById('section');
+        if (!sectionEl) return;
+
+        if (sectionEl.selectize) {
+            if (enabled) {
+                sectionEl.selectize.enable();
+            } else {
+                sectionEl.selectize.disable();
+            }
+            return;
+        }
+
+        sectionEl.disabled = !enabled;
+    }
+
     function populateSectionDropdown(selector, sections, selectedId = null) {
         const $dropdown = $(selector);
         if (!$dropdown.length) return;
-
-        const currentValue = $dropdown.val();
 
         if ($dropdown[0].selectize) {
             $dropdown[0].selectize.destroy();
@@ -642,82 +762,20 @@ document.addEventListener('DOMContentLoaded', function(){
             sortField: 'text',
             onChange: function(value) {
                 if (!value) return;
-                loadOfferedSubjects();
-                loadBackSubjects();
+                loadOfferedSubjects(value);
+                loadBackSubjects(value);
             }
         });
 
         const selectize = $dropdown[0].selectize;
-        const finalValue = selectedId || currentValue || '';
+        const finalValue = selectedId || '';
 
         if (finalValue) {
             selectize.setValue(String(finalValue), true);
         }
+
+        setSectionDropdownEnabled(isEnrollmentPeriodOpen && enroll_status !== true);
     }
-
-    // const offeredTable = new Tabulator('#offered_subjects_table', {
-    //     ajaxURL: "<?php echo BASE_URL; ?>student/actions/fetchEligibleSections.php",
-    //     ajaxConfig: "GET",
-    //     pagination: "remote",
-    //     paginationSize: 10,
-    //     movableColumns: true,
-    //     ajaxFiltering: true,
-    //     ajaxSorting: true,
-    //     headerFilterPlaceholder: "Search",
-    //     placeholder: "No Data Found",
-    //     layout: "fitDataStretch",
-    //     minHeight: 150,
-    //     ajaxResponse: function (url, params, response) {
-    //         if (!response || response.msg_status !== true) {
-    //             return [];
-    //         }
-
-    //         document.getElementById('required_units_label').textContent = response.required_units ?? 'N/A';
-
-    //         if (document.getElementById('cart_section_label')) {
-    //             document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
-    //         }
-
-    //         return Array.isArray(response.data) ? response.data : [];
-    //     },
-    //     columns: [
-    //         {
-    //             title: "Course Code",
-    //             field: "subject_code",
-    //             headerFilter: "input"
-    //         },
-    //         {
-    //             title: "Course Title",
-    //             field: "subject_title",
-    //             headerFilter: "input"
-    //         },
-    //         {
-    //             title: "Schedule",
-    //             field: "schedule",
-    //             headerFilter: "input"
-    //         },
-    //         {
-    //             title: "Units",
-    //             field: "unit",
-    //             hozAlign: "center",
-    //             headerFilter: "input"
-    //         },
-    //         {
-    //             title: "Pre-req",
-    //             field: "pre_req",
-    //             headerFilter: "input"
-    //         },
-    //         {
-    //             title: "Action",
-    //             field: "section_text",
-    //             formatter: function () {
-    //                 return '<span class="badge bg-success">Fixed</span>';
-    //             },
-    //             hozAlign: "center"
-    //         }
-    //     ]
-
-    // })
 
     function formatSchedule(scheduleValue) {
         if (!scheduleValue) return '';
@@ -762,6 +820,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
     }
 
+    const enroll_status = <?php echo json_encode($enroll_status); ?>;
+    const enrolledCoursesData = <?php echo json_encode($enrolled_courses); ?>;
+    const enrolledFixedCoursesData = <?php echo json_encode($enrolled_fixed_courses); ?>;
+    const enrolledOfferedCoursesData = <?php echo json_encode($enrolled_offered_courses); ?>;
+
     const offeredTable = new Tabulator('#offered_subjects_table', {
         pagination: "local",
         paginationSize: 10,
@@ -781,7 +844,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 return [];
             }
 
-            document.getElementById('required_units_label').textContent = enrollmentContext.display_required_units || response.required_units || 'N/A';
+            document.getElementById('required_units_label').textContent = response.required_units || enrollmentContext.display_required_units || 'N/A';
+            document.getElementById('units_viewed').textContent = response.fixed_subject_units || 'N/A';
 
             if (document.getElementById('cart_section_label')) {
                 document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
@@ -791,12 +855,15 @@ document.addEventListener('DOMContentLoaded', function(){
         },
         columns: [
             {
-                title: "Action",
+                title: "Status",
                 field: "section_text",
-                formatter: function () {
-                    return '<span class="badge bg-success">Fixed</span>';
+                formatter: function (cell) {
+                    return cell.getValue() === 'Enrolled'
+                        ? '<span class="badge bg-primary">Enrolled</span>'
+                        : '<span class="badge bg-success">Fixed</span>';
                 },
-                hozAlign: "center"
+                hozAlign: "center",
+                headerHozAlign: "center"
             },
             {
                 title: "Course Code",
@@ -830,61 +897,114 @@ document.addEventListener('DOMContentLoaded', function(){
         ]
     });
 
+    const primaryEnrollBtn = document.getElementById('submitCourse');
     const backSubjectSubmitBtn = document.getElementById('submitBackSubjects');
     let isEnrollmentPeriodOpen = false;
-    let hasBackSubjectRequest = <?php echo json_encode($back_subject_request_status); ?>;
+    const requiresSectionSelection = enrollmentContext.academic_status === 'Irregular';
+    const isIrregularEnrollment = enrollmentContext.academic_status === 'Irregular';
+    let backSubjectMissingUnits = 0;
+    let backSubjectAvailableUnits = 0;
+    let backSubjectsTable = null;
+
+    function getSelectedBackSubjectRows() {
+        return backSubjectsTable ? backSubjectsTable.getSelectedData() : [];
+    }
+
+    function sumBackSubjectUnits(rows) {
+        return (rows || []).reduce((total, row) => total + (parseInt(row.unit, 10) || 0), 0);
+    }
+
+    function enrolledBadgeFormatter() {
+        return '<span class="badge bg-primary">Enrolled</span>';
+    }
+
+    function updateBackSubjectSummary() {
+        const backRequiredEl = document.getElementById('back_required_units_label');
+        const backTargetEl = document.getElementById('back_target_units_label');
+        const selectedUnits = sumBackSubjectUnits(getSelectedBackSubjectRows());
+
+        if (backRequiredEl) backRequiredEl.textContent = backSubjectMissingUnits;
+        if (backTargetEl) backTargetEl.textContent = selectedUnits;
+
+        return selectedUnits;
+    }
 
     function updateBackSubjectButtonState() {
-        if (!backSubjectSubmitBtn || !backSubjectsTable) return;
+        if (!backSubjectsTable) return;
 
+        const selectedSectionId = getSelectedSectionId();
         const hasRows = backSubjectsTable.getDataCount() > 0;
-        backSubjectSubmitBtn.disabled = hasBackSubjectRequest || !(isEnrollmentPeriodOpen && hasRows);
-        backSubjectSubmitBtn.textContent = hasBackSubjectRequest
-            ? 'Subject offer request submitted'
-            : (hasRows ? 'Request for Subject Offer to Dean' : 'No back subjects to request');
-        backSubjectSubmitBtn.classList.remove('btn-success', 'btn-secondary');
-        backSubjectSubmitBtn.classList.add(backSubjectSubmitBtn.disabled ? 'btn-secondary' : 'btn-success');
+        const selectedUnits = updateBackSubjectSummary();
+        const hasSelections = getSelectedBackSubjectRows().length > 0;
+        const underloadAllowed = backSubjectAvailableUnits > 0 && backSubjectAvailableUnits < backSubjectMissingUnits;
+        const unitsMatch = backSubjectMissingUnits > 0 && (
+            selectedUnits === backSubjectMissingUnits ||
+            (underloadAllowed && selectedUnits === backSubjectAvailableUnits)
+        );
+        const canSubmit = isEnrollmentPeriodOpen && hasRows && selectedSectionId && hasSelections && unitsMatch;
+
+        let buttonText = 'Enroll Offered Courses';
+
+        if (!selectedSectionId) {
+            buttonText = 'Select a section first';
+        } else if (!hasRows) {
+            buttonText = 'No offered courses available';
+        } else if (backSubjectMissingUnits <= 0) {
+            buttonText = 'No missing units';
+        } else if (!hasSelections) {
+            buttonText = 'Select offered courses';
+        } else if (selectedUnits < backSubjectMissingUnits && !(underloadAllowed && selectedUnits === backSubjectAvailableUnits)) {
+            buttonText = 'Select more offered courses';
+        } else if (selectedUnits > backSubjectMissingUnits) {
+            buttonText = 'Overloading not allowed';
+        } else {
+            buttonText = 'Enroll Selected Subjects';
+        }
+
+        if (backSubjectSubmitBtn) {
+            backSubjectSubmitBtn.disabled = !canSubmit;
+            backSubjectSubmitBtn.textContent = buttonText;
+            backSubjectSubmitBtn.classList.remove('btn-success', 'btn-secondary');
+            backSubjectSubmitBtn.classList.add(backSubjectSubmitBtn.disabled ? 'btn-secondary' : 'btn-success');
+        }
+
+        if (isIrregularEnrollment && primaryEnrollBtn && enroll_status !== true) {
+            primaryEnrollBtn.disabled = !canSubmit;
+            primaryEnrollBtn.textContent = buttonText;
+            primaryEnrollBtn.classList.remove('btn-success', 'btn-secondary');
+            primaryEnrollBtn.classList.add(primaryEnrollBtn.disabled ? 'btn-secondary' : 'btn-success');
+        }
     }
 
     const backSubjectsTableEl = document.getElementById('offered_back_subjects_table');
-    const backSubjectsTable = backSubjectsTableEl ? new Tabulator('#offered_back_subjects_table', {
-        pagination: "local",
-        paginationSize: 10,
-        movableColumns: true,
-        headerFilterPlaceholder: "Search",
-        placeholder: "No Data Found",
-        layout: "fitDataStretch",
-        minHeight: 120,
-        ajaxResponse: function (url, params, response) {
-            if (!response || response.msg_status !== true) {
-                const backRequiredEl = document.getElementById('back_required_units_label');
-                const backTargetEl = document.getElementById('back_target_units_label');
+    if (isIrregularEnrollment && backSubjectSubmitBtn) {
+        backSubjectSubmitBtn.classList.add('d-none');
+    }
 
-                if (backRequiredEl) backRequiredEl.textContent = '0';
-                if (backTargetEl) backTargetEl.textContent = '0';
-
-                return [];
-            }
-
-            const backRequiredEl = document.getElementById('back_required_units_label');
-            const backTargetEl = document.getElementById('back_target_units_label');
-
-            if (backRequiredEl) backRequiredEl.textContent = response.missing_units ?? 0;
-            if (backTargetEl) backTargetEl.textContent = response.required_units ?? 0;
-
-            setTimeout(updateBackSubjectButtonState, 0);
-
-            return Array.isArray(response.data) ? response.data : [];
-        },
-        columns: [
-            {
-                title: "Action",
+    function buildBackSubjectColumns(isEnrolledMode = false) {
+        const actionColumn = isEnrolledMode
+            ? {
+                title: "Status",
                 field: "section_text",
-                formatter: function () {
-                    return '<span class="badge bg-warning text-dark">Offered Back</span>';
-                },
-                hozAlign: "center"
-            },
+                formatter: enrolledBadgeFormatter,
+                hozAlign: "center",
+                headerSort: false,
+                width: 100,
+                headerHozAlign:"center"
+            }
+            : {
+                title: "Action",
+                formatter: "rowSelection",
+                titleFormatter: "rowSelection",
+                hozAlign: "center",
+                headerSort: false,
+                width: 60,
+                headerAlign: "center",
+                headerHozAlign:"center"
+            };
+
+        return [
+            actionColumn,
             {
                 title: "Course Code",
                 field: "subject_code",
@@ -896,9 +1016,16 @@ document.addEventListener('DOMContentLoaded', function(){
                 headerFilter: "input"
             },
             {
-                title: "Offered By",
+                title: "Program Offered",
                 field: "offered_program",
-                headerFilter: "input"
+                headerFilter: "input",
+                align: "center"
+            },
+            {
+                title: "Year Level",
+                field: "year_level",
+                headerFilter: "input",
+                align: "center"
             },
             {
                 title: "Section",
@@ -924,11 +1051,160 @@ document.addEventListener('DOMContentLoaded', function(){
                     return formatSchedule(cell.getValue());
                 }
             },
-        ]
+        ];
+    }
+
+    backSubjectsTable = backSubjectsTableEl ? new Tabulator('#offered_back_subjects_table', {
+        pagination: "local",
+        paginationSize: 10,
+        movableColumns: true,
+        selectableRows: true,
+        headerFilterPlaceholder: "Search",
+        placeholder: "No Data Found",
+        layout: "fitDataStretch",
+        minHeight: 120,
+        ajaxResponse: function (url, params, response) {
+            if (!response || response.msg_status !== true) {
+                const backRequiredEl = document.getElementById('back_required_units_label');
+                const backTargetEl = document.getElementById('back_target_units_label');
+
+                backSubjectMissingUnits = 0;
+                backSubjectAvailableUnits = 0;
+                if (backRequiredEl) backRequiredEl.textContent = '0';
+                if (backTargetEl) backTargetEl.textContent = '0';
+
+                if (response && response.msg_response && getSelectedSectionId()) {
+                    swal({
+                        title: "Offered Courses Unavailable",
+                        icon: 'info',
+                        text: response.msg_response,
+                        button: true
+                    });
+                }
+
+                return [];
+            }
+
+            const backRequiredEl = document.getElementById('back_required_units_label');
+            const backTargetEl = document.getElementById('back_target_units_label');
+
+            backSubjectMissingUnits = parseInt(response.missing_units ?? 0, 10) || 0;
+            backSubjectAvailableUnits = parseInt(response.available_offered_units ?? 0, 10) || 0;
+            if (backRequiredEl) backRequiredEl.textContent = backSubjectMissingUnits;
+            if (backTargetEl) backTargetEl.textContent = '0';
+
+            setTimeout(updateBackSubjectButtonState, 0);
+
+            return Array.isArray(response.data) ? response.data : [];
+        },
+        columns: buildBackSubjectColumns(false),
+        rowSelectionChanged: function () {
+            updateBackSubjectButtonState();
+        }
     }) : null;
 
-    function loadOfferedSubjects() {
-        const selectedClassId = getSelectedSectionId();
+    function disableEnrollmentControls() {
+        const submitCourseBtn = document.getElementById('submitCourse');
+
+        if (submitCourseBtn) {
+            submitCourseBtn.disabled = true;
+            submitCourseBtn.textContent = 'Already Enrolled';
+            submitCourseBtn.classList.remove('btn-success');
+            submitCourseBtn.classList.add('btn-secondary');
+        }
+
+        if (backSubjectSubmitBtn) {
+            backSubjectSubmitBtn.disabled = true;
+            backSubjectSubmitBtn.textContent = 'Already Enrolled';
+            backSubjectSubmitBtn.classList.remove('btn-success');
+            backSubjectSubmitBtn.classList.add('btn-secondary');
+        }
+
+        const sectionEl = document.getElementById('section');
+
+        if (sectionEl && sectionEl.selectize) {
+            sectionEl.selectize.disable();
+        } else if (sectionEl) {
+            sectionEl.disabled = true;
+        }
+    }
+
+    function setEnrolledFixedSection(fixedRows) {
+        const sectionRow = (fixedRows || []).find(function(row) {
+            return parseInt(row.class_id, 10) > 0;
+        });
+
+        if (!sectionRow) {
+            return;
+        }
+
+        const sectionEl = document.getElementById('section');
+        if (!sectionEl || !sectionEl.selectize) {
+            if (sectionEl) sectionEl.value = sectionRow.class_id;
+            return;
+        }
+
+        const sectionId = String(sectionRow.class_id);
+        const sectionName = sectionRow.class_name || sectionRow.section_name || 'Selected Section';
+
+        if (!sectionEl.selectize.options[sectionId]) {
+            sectionEl.selectize.addOption({
+                class_id: sectionId,
+                class_name: sectionName,
+                value: sectionId,
+                text: sectionName
+            });
+            sectionEl.selectize.refreshOptions(false);
+        }
+
+        sectionEl.selectize.setValue(sectionId, true);
+    }
+
+    function markRowsAsEnrolled(rows) {
+        return (rows || []).map(function(row) {
+            return Object.assign({}, row, {
+                section_text: 'Enrolled',
+                status: 'Enrolled'
+            });
+        });
+    }
+
+    function applyEnrolledCourses(fixedRowsInput, offeredRowsInput) {
+        const fixedRows = markRowsAsEnrolled(fixedRowsInput);
+        const offeredRows = markRowsAsEnrolled(offeredRowsInput);
+        const fixedUnits = fixedRows.reduce((total, row) => total + (parseInt(row.unit, 10) || 0), 0);
+        const offeredUnits = offeredRows.reduce((total, row) => total + (parseInt(row.unit, 10) || 0), 0);
+
+        document.getElementById('available_subjects_title').textContent = 'Enrolled Subjects';
+        document.getElementById('required_units_label').textContent = enrollmentContext.display_required_units || 'N/A';
+        document.getElementById('units_viewed').textContent = fixedUnits || 'N/A';
+
+        offeredTable.setData(fixedRows);
+        setEnrolledFixedSection(fixedRows);
+
+        if (backSubjectsTable) {
+            backSubjectMissingUnits = 0;
+            backSubjectAvailableUnits = offeredUnits;
+            backSubjectsTable.setColumns(buildBackSubjectColumns(true));
+            backSubjectsTable.setData(offeredRows);
+
+            const backRequiredEl = document.getElementById('back_required_units_label');
+            const backTargetEl = document.getElementById('back_target_units_label');
+            if (backRequiredEl) backRequiredEl.textContent = '0';
+            if (backTargetEl) backTargetEl.textContent = offeredUnits;
+        }
+
+        disableEnrollmentControls();
+    }
+
+    function applyEnrolledCoursesFromDb() {
+        const fixedRows = enrolledFixedCoursesData.length > 0 ? enrolledFixedCoursesData : enrolledCoursesData;
+        const offeredRows = enrolledOfferedCoursesData;
+        applyEnrolledCourses(fixedRows, offeredRows);
+    }
+
+    function loadOfferedSubjects(selectedClassIdOverride = null) {
+        const selectedClassId = selectedClassIdOverride || getSelectedSectionId();
 
 
         if (!selectedClassId) {
@@ -950,15 +1226,29 @@ document.addEventListener('DOMContentLoaded', function(){
         );
     }
 
-    function loadBackSubjects() {
+    function loadBackSubjects(selectedClassIdOverride = null) {
         if (!backSubjectsTable) return;
 
-        const selectedClassId = getSelectedSectionId();
+        const selectedClassId = selectedClassIdOverride || getSelectedSectionId();
+
+        if (!selectedClassId) {
+            backSubjectsTable.clearData();
+            const backRequiredEl = document.getElementById('back_required_units_label');
+            const backTargetEl = document.getElementById('back_target_units_label');
+
+            backSubjectMissingUnits = 0;
+            backSubjectAvailableUnits = 0;
+            if (backRequiredEl) backRequiredEl.textContent = '0';
+            if (backTargetEl) backTargetEl.textContent = '0';
+
+            updateBackSubjectButtonState();
+            return;
+        }
 
         backSubjectsTable.setData(
             "<?php echo BASE_URL; ?>student/actions/backSubjects.php",
             {
-                selected_class_id: hasBackSubjectRequest ? '' : selectedClassId
+                selected_class_id: selectedClassId
             }
         );
     }
@@ -973,14 +1263,29 @@ document.addEventListener('DOMContentLoaded', function(){
                     return;
                 }
 
-                populateSectionDropdown('#section', response.sections || [], response.selected_class_id || '');
+                const preferredSectionId = response.requires_section_selection ? '' : (response.selected_class_id || '');
+                populateSectionDropdown('#section', response.sections || [], preferredSectionId);
 
                 if (document.getElementById('cart_section_label')) {
                     document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
                 }
 
-                loadOfferedSubjects();
-                loadBackSubjects();
+                if (response.incoming_year_level) {
+                    document.getElementById('year_level').textContent = formatYearLevel(response.incoming_year_level);
+                }
+
+                if (enroll_status === true) {
+                    applyEnrolledCoursesFromDb();
+                    return;
+                }
+
+                if (!response.requires_section_selection || response.selected_class_id) {
+                    loadOfferedSubjects(response.selected_class_id || preferredSectionId || '');
+                    loadBackSubjects(response.selected_class_id || preferredSectionId || '');
+                } else {
+                    offeredTable.clearData();
+                    loadBackSubjects();
+                }
             }
         });
     }
@@ -992,20 +1297,19 @@ document.addEventListener('DOMContentLoaded', function(){
         
         console.log("fiscal yaer:", fy_data);
 
-        // 2026-01-30T00:00:00
-        const today = new Date('2026-01-30T00:00:00');
-        const dateFrom = new Date(fy_data[0].date_from + "T00:00:00");
-        dateFrom.setHours(0, 0, 0, 0);
+        function parseDateOnly(dateValue) {
+            if (!dateValue) return null;
+            const parsedDate = new Date(dateValue + "T00:00:00");
+            return isNaN(parsedDate.getTime()) ? null : parsedDate;
+        }
 
-        const enrollmentStart = new Date(dateFrom);
-        enrollmentStart.setDate(enrollmentStart.getDate() - 14);
-
-        const startEnrollPeriod = formatReadableDate(enrollmentStart);
-        const endEnrollPeriod = formatReadableDate(dateFrom);
-
-
-        const isEnrollmentPeriod = today >= enrollmentStart && today < dateFrom;
-
+        const today = parseDateOnly(<?php echo json_encode(DATE_NOW); ?>);
+        const enrollmentStart = parseDateOnly(fy_data[0]?.enrollment_start_date || "");
+        const enrollmentEnd = parseDateOnly(fy_data[0]?.enrollment_end_date || "");
+        const hasEnrollmentPeriod = enrollmentStart !== null && enrollmentEnd !== null;
+        const startEnrollPeriod = hasEnrollmentPeriod ? formatReadableDate(enrollmentStart) : "";
+        const endEnrollPeriod = hasEnrollmentPeriod ? formatReadableDate(enrollmentEnd) : "";
+        const isEnrollmentPeriod = hasEnrollmentPeriod && today >= enrollmentStart && today <= enrollmentEnd;
         const alertBox = document.getElementById('enroll_period');
 
         if (isEnrollmentPeriod) {
@@ -1017,21 +1321,30 @@ document.addEventListener('DOMContentLoaded', function(){
             `;
 
             document.getElementById('submitCourse').disabled = false;
-            document.getElementById('submitCourse').textContent = 'Enroll Courses and Create Request';
+            document.getElementById('submitCourse').textContent = 'Enroll Available Subjects';
             document.getElementById('submitCourse').classList.remove('btn-secondary');
             document.getElementById('submitCourse').classList.add('btn-success');
             isEnrollmentPeriodOpen = true;
+            setSectionDropdownEnabled(enroll_status !== true);
         } else {
             alertBox.className = "alert alert-danger text-black";
-            alertBox.innerHTML = `  
-                <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
-                Enrollment period is from ${startEnrollPeriod} to ${endEnrollPeriod}.
-            `;
+            if (hasEnrollmentPeriod) {
+                alertBox.innerHTML = `
+                    <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
+                    Enrollment period is from ${startEnrollPeriod} to ${endEnrollPeriod}.
+                `;
+            } else {
+                alertBox.innerHTML = `
+                    <span class="fs-4 fw-bold">Enrollment Period Closed</span><br>
+                    Enrollment period has not been configured for ${fy_data[0].school_year} ${fy_data[0].sem}.
+                `;
+            }
             document.getElementById('submitCourse').disabled = true;
             document.getElementById('submitCourse').textContent = 'Enrollment Period Closed';
             document.getElementById('submitCourse').classList.remove('btn-success');
             document.getElementById('submitCourse').classList.add('btn-secondary');
             isEnrollmentPeriodOpen = false;
+            setSectionDropdownEnabled(false);
         }
 
         updateBackSubjectButtonState();
@@ -1041,14 +1354,152 @@ document.addEventListener('DOMContentLoaded', function(){
         document.getElementById('id_num').textContent = student_data[0].student_id_no;
         document.getElementById('full_name').textContent = `${student_data[0].lastname}, ${student_data[0].firstname} ${student_data[0].middle_name}`;
         document.getElementById('student_class').textContent = `${student_classification}`;
-        document.getElementById('year_level').textContent = formatYearLevel(student_data[0].year_level);
+        document.getElementById('year_level').textContent = formatYearLevel(enrollmentContext.tracked_year_level || student_data[0].year_level);
         document.getElementById('program_name').value = student_prog;
         document.getElementById('enrollPeriod').value = `F.Y. ${fy_data[0].school_year}  ${fy_data[0].sem}`
+
+        function validateSelectedOfferedCourses() {
+            if (!backSubjectsTable) {
+                return {
+                    valid: false,
+                    title: "Offered Courses Unavailable",
+                    text: "No offered courses table is available for this enrollment."
+                };
+            }
+
+            const selectedSectionId = getSelectedSectionId();
+            const selectedOfferedRows = getSelectedBackSubjectRows();
+            const selectedUnits = sumBackSubjectUnits(selectedOfferedRows);
+
+            if (!selectedSectionId) {
+                return {
+                    valid: false,
+                    title: "Section Required",
+                    text: "Please select a section before enrolling."
+                };
+            }
+
+            if (!Array.isArray(selectedOfferedRows) || selectedOfferedRows.length === 0) {
+                return {
+                    valid: false,
+                    title: "Selection Required",
+                    text: "Please select the offered courses you want to include in this enrollment."
+                };
+            }
+
+            const underloadAllowed = backSubjectAvailableUnits > 0 && backSubjectAvailableUnits < backSubjectMissingUnits;
+            const unitsValid = selectedUnits === backSubjectMissingUnits || (underloadAllowed && selectedUnits === backSubjectAvailableUnits);
+
+            if (!unitsValid) {
+                return {
+                    valid: false,
+                    title: "Unit Validation",
+                    text: underloadAllowed
+                        ? `Please select all available offered units (${backSubjectAvailableUnits}) to underload this term.`
+                        : `Selected offered-course units must exactly match your missing units (${backSubjectMissingUnits}).`
+                };
+            }
+
+            return {
+                valid: true,
+                selectedSectionId,
+                selectedOfferedRows
+            };
+        }
         
         $('#submitCourse').on('click', function(){
             const tableData = offeredTable.getData();
             console.log(JSON.stringify(tableData))
             console.log("context: ", enrollmentContext)
+
+            if (isIrregularEnrollment) {
+                const validation = validateSelectedOfferedCourses();
+                if (!validation.valid) {
+                    swal({
+                        title: validation.title,
+                        icon: 'info',
+                        text: validation.text,
+                        button: true
+                    });
+                    return;
+                }
+
+                const postData = [
+                    {
+                        name: "submitBackSubjectEnrollment",
+                        value: "createIrregularEnrollment"
+                    },
+                    {
+                        name: "school_year_id",
+                        value: enrollmentContext.school_year_id
+                    },
+                    {
+                        name: "selected_class_id",
+                        value: validation.selectedSectionId
+                    },
+                    {
+                        name: "idNumber",
+                        value: enrollmentContext.student_id_no
+                    },
+                    {
+                        name: "fixedCourses",
+                        value: JSON.stringify(tableData)
+                    },
+                    {
+                        name: "backSubjectCourses",
+                        value: JSON.stringify(validation.selectedOfferedRows)
+                    },
+                    {
+                        name: "curriculum_id",
+                        value: enrollmentContext.curriculum_id
+                    },
+                    {
+                        name: "semester",
+                        value: enrollmentContext.semester
+                    },
+                    {
+                        name: "program_id",
+                        value: enrollmentContext.program_id
+                    }
+                ];
+
+                $.ajax({
+                    url: "<?php echo BASE_URL; ?>student/actions/enroll_backSubject_process.php",
+                    method: "POST",
+                    data: postData,
+                    dataType: "json",
+                    success: function(data){
+                        if (data && data.code === 200 && data.msg_status === true) {
+                            swal({
+                                title: "Enrollment Successful",
+                                icon: 'success',
+                                text: data.msg_response,
+                                button: true
+                            }).then(function () {
+                                applyEnrolledCourses(tableData, validation.selectedOfferedRows);
+                            });
+                        } else {
+                            swal({
+                                title: "Enrollment Failed",
+                                icon: 'error',
+                                text: data?.msg_response || 'Unable to save enrollment.',
+                                button: true
+                            });
+                        }
+                    },
+                    error: function(){
+                        swal({
+                            title: "Error",
+                            icon: "error",
+                            text: "Network/Server error occured",
+                            button:true
+                        });
+                    }
+                });
+
+                return;
+            }
+
             const postData = [
                 {
                     name: "submitEnrollment",
@@ -1057,6 +1508,10 @@ document.addEventListener('DOMContentLoaded', function(){
                 {
                     name: "school_year_id",
                     value: enrollmentContext.school_year_id
+                },
+                {
+                    name: "selected_class_id",
+                    value: getSelectedSectionId()
                 },
                 {
                     name: "idNumber",
@@ -1093,20 +1548,9 @@ document.addEventListener('DOMContentLoaded', function(){
                                 icon: 'success',
                                 text: data.msg_response,
                                 button: true
-                            })
-
-                            document.getElementById('available_subjects_title').textContent = 'Enrolled Courses';
-                            document.getElementById('submitCourse').disabled = true;
-                            document.getElementById('submitCourse').textContent = 'Already Enrolled';
-                            document.getElementById('submitCourse').classList.remove('btn-success');
-                            document.getElementById('submitCourse').classList.add('btn-secondary');
-
-                            const sectionEl = document.getElementById('section');
-                            if (sectionEl && sectionEl.selectize) {
-                                sectionEl.selectize.disable();
-                            } else if (sectionEl) {
-                                sectionEl.disabled = true;
-                            }
+                            }).then(function () {
+                                applyEnrolledCourses(tableData, []);
+                            });
                         } else {
                             swal({
                                 title: "Enrollment Failedl",
@@ -1130,108 +1574,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
         });
 
-        $('#submitCourse').on('click', function(){
-            if (!backSubjectsTable) return;
-
-            const tableData = backSubjectsTable.getData();
-
-            if (!Array.isArray(tableData) || tableData.length === 0) {
-                swal({
-                    title: "No Back Subjects",
-                    icon: 'info',
-                    text: "No offered back subjects are available to request.",
-                    button: true
-                });
-                return;
-            }
-
-            const postData = [
-                {
-                    name: "submitBackSubjectEnrollment",
-                    value: "createBackSubjectRequest"
-                },
-                {
-                    name: "school_year_id",
-                    value: enrollmentContext.school_year_id
-                },
-                {
-                    name: "idNumber",
-                    value: enrollmentContext.student_id_no
-                },
-                {
-                    name: "backSubjectCourses",
-                    value: JSON.stringify(tableData)
-                },
-                {
-                    name: "curriculum_id",
-                    value: enrollmentContext.curriculum_id
-                },
-                {
-                    name: "semester",
-                    value: enrollmentContext.semester
-                },
-                {
-                    name: "program_id",
-                    value: enrollmentContext.program_id
-                }
-            ];
-
-            $.ajax({
-                url: "<?php echo BASE_URL; ?>student/actions/enroll_backSubject_process.php",
-                method: "POST",
-                data: postData,
-                dataType: "json",
-                success: function(data){
-                    if (data && data.code === 200 && data.msg_status === true) {
-                        swal({
-                            title: "Done!",
-                            icon: 'success',
-                            text: "Request has been sent and fixed courses has been enrolled.",
-                            button: true
-                        });
-
-                        if (backSubjectSubmitBtn) {
-                            hasBackSubjectRequest = true;
-                            backSubjectSubmitBtn.disabled = true;
-                            backSubjectSubmitBtn.textContent = 'Subject offer request submitted';
-                            backSubjectSubmitBtn.classList.remove('btn-success');
-                            backSubjectSubmitBtn.classList.add('btn-secondary');
-                        }
-                    } else {
-                        swal({
-                            title: "Request Failed",
-                            icon: 'error',
-                            text: data?.msg_response || 'Unable to submit back subject request.',
-                            button: true
-                        });
-                    }
-                },
-                error: function(){
-                    swal({
-                        title: "Error",
-                        icon: "error",
-                        text: "Network/Server error occured",
-                        button:true
-                    });
-                }
-            });
+        $('#submitBackSubjects').on('click', function(){
+            $('#submitCourse').trigger('click');
         });
 
-        const enroll_status = <?php echo json_encode($enroll_status); ?>;
-
         if(enroll_status === true) {
-            document.getElementById('available_subjects_title').textContent = 'Enrolled Subjects';
-            document.getElementById('submitCourse').disabled = true;
-            document.getElementById('submitCourse').textContent = 'Already Enrolled';
-            document.getElementById('submitCourse').classList.remove('btn-success');
-            document.getElementById('submitCourse').classList.add('btn-secondary');
-            const sectionEl = document.getElementById('section');
-
-            if (sectionEl && sectionEl.selectize) {
-                sectionEl.selectize.disable();
-            } else if (sectionEl) {
-                sectionEl.disabled = true;
-            }
+            applyEnrolledCoursesFromDb();
         }
 
 
