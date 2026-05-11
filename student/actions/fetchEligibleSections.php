@@ -323,7 +323,6 @@ try {
 
     $offeringsByClass = [];
     $classMetaById = [];
-    $deanOfferCountsByClass = [];
 
     $sql_offerings = "
         SELECT
@@ -439,62 +438,6 @@ try {
         }
     }
 
-    if ($student_academic_status === 'Irregular' && $incoming_year_level > 0) {
-        $sql_dean_offers = "
-            SELECT
-                bse.class_id,
-                bse.class_name,
-                bse.section_limit,
-                bse.subject_id,
-                bse.course_code,
-                bse.course_title,
-                bse.course_limit
-            FROM backsubject_enroll bse
-            WHERE bse.school_year_id = '" . escape($db_connect, $school_year_id) . "'
-              AND bse.program_id = '" . escape($db_connect, $program_id) . "'
-              AND bse.year_level = '" . escape($db_connect, $incoming_year_level) . "'
-              AND UPPER(bse.sem) = UPPER('" . escape($db_connect, $active_term_semester) . "')
-              AND UPPER(bse.status) = 'ACTIVE'
-        ";
-
-        if ($query = call_mysql_query($sql_dean_offers)) {
-            while ($row = call_mysql_fetch_array($query)) {
-                $classId = intVal($row['class_id'] ?? 0);
-                $subjectId = intVal($row['subject_id'] ?? 0);
-                $courseCode = trim((string)($row['course_code'] ?? ''));
-
-                if ($classId <= 0 || $subjectId <= 0 || $courseCode === '') {
-                    continue;
-                }
-
-                if (!isset($classMetaById[$classId])) {
-                    $classMetaById[$classId] = [
-                        'class_id' => $classId,
-                        'class_name' => trim((string)($row['class_name'] ?? '')),
-                        'section_limit' => intVal($row['section_limit'] ?? 0),
-                        'section_enrolled' => intVal($sectionEnrolledMap[$classId] ?? 0),
-                        'subjects' => [],
-                    ];
-                }
-
-                if (!isset($classMetaById[$classId]['subjects'][$courseCode])) {
-                    $classMetaById[$classId]['subjects'][$courseCode] = [
-                        'teacher_class_id' => 0,
-                        'subject_id' => $subjectId,
-                        'course_limit' => intVal($row['course_limit'] ?? 0),
-                        'enrolled' => 0,
-                    ];
-                }
-
-                if (!isset($deanOfferCountsByClass[$classId])) {
-                    $deanOfferCountsByClass[$classId] = 0;
-                }
-
-                $deanOfferCountsByClass[$classId]++;
-            }
-        }
-    }
-
     $sections = [];
     foreach ($classMetaById as $classId => $classMeta) {
         $sectionLimit = intVal($classMeta['section_limit'] ?? 0);
@@ -527,8 +470,6 @@ try {
         }
 
         if ($student_academic_status === 'Irregular') {
-            $matched_subject_count += intVal($deanOfferCountsByClass[$classId] ?? 0);
-
             if ($matched_subject_count <= 0) {
                 continue;
             }

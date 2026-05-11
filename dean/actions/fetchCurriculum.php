@@ -21,7 +21,10 @@ if ($g_user_role !== "DEAN") {
 $query_limit = QUERY_LIMIT;
 $table_name = "curriculum_master AS c";
 $left_join = "
-    LEFT JOIN programs AS p ON c.program_id = p.program_id
+    INNER JOIN programs AS p ON c.program_id = p.program_id
+    INNER JOIN departments d_auth ON p.department_id = d_auth.department_id
+    INNER JOIN users u_auth ON d_auth.user_id = u_auth.user_id
+        AND u_auth.general_id = '" . escape($db_connect, $g_general_id) . "'
 ";
 
 $dbfield = [

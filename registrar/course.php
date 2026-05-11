@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         movableColumns: true,
         ajaxFiltering: true,
         ajaxSorting: true,
+        height: 550,
         headerFilterPlaceholder: "Search",
         placeholder: "No Data Found",
         columns: [

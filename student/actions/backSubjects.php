@@ -108,6 +108,7 @@ try {
     }
 
     $selected_class_id = isset($_GET['selected_class_id']) ? intVal($_GET['selected_class_id']) : 0;
+    $offered_class_id = isset($_GET['offered_class_id']) ? intVal($_GET['offered_class_id']) : 0;
 
     $student = [];
     $sql_student = "
@@ -323,6 +324,8 @@ try {
             'mode' => 'regular',
             'missing_units' => 0,
             'selected_units' => 0,
+            'offered_sections' => [],
+            'selected_offered_class_id' => 0,
         ]);
     }
 
@@ -334,6 +337,8 @@ try {
             'mode' => 'irregular',
             'missing_units' => 0,
             'selected_units' => 0,
+            'offered_sections' => [],
+            'selected_offered_class_id' => 0,
             'msg_response' => 'Please select a section first.',
         ]);
     }
@@ -562,6 +567,7 @@ try {
     }
 
     $offeredCourses = [];
+    $offeredSectionsById = [];
     $missing_units = max(0, $incoming_required_units - $fixed_units_for_selected_section);
     $available_offered_units = 0;
     $availableOfferedUnitCodes = [];
@@ -601,6 +607,23 @@ try {
             $availableOfferedUnitCodes[$course_code] = true;
             $available_offered_units += $unit;
         }
+
+        if (!isset($offeredSectionsById[$class_id])) {
+            $offeredSectionsById[$class_id] = [
+                'class_id' => $class_id,
+                'class_name' => trim((string)($teacherClassRow['class_name'] ?? '')),
+                'matched_subject_count' => 0,
+                'class_enrolled_count' => $section_enrolled,
+                'class_section_limit' => $section_limit,
+                'remaining_slots' => $section_limit > 0 ? max(0, $section_limit - $section_enrolled) : null,
+            ];
+        }
+        $offeredSectionsById[$class_id]['matched_subject_count']++;
+
+        if ($offered_class_id > 0 && $class_id !== $offered_class_id) {
+            continue;
+        }
+
         $offeredCourses[] = [
             'offered_subject_id' => intVal($offeredRow['offered_subject_id'] ?? 0),
             'teacher_class_id' => intVal($teacherClassRow['teacher_class_id'] ?? 0),
@@ -625,16 +648,23 @@ try {
         ];
     }
 
+    $offeredSections = array_values($offeredSectionsById);
+    usort($offeredSections, function($a, $b) {
+        return strcasecmp($a['class_name'] ?? '', $b['class_name'] ?? '');
+    });
+
     json_exit([
         'last_page' => 1,
-        'data' => $offeredCourses,
+        'data' => ($offered_class_id <= 0) ? [] : $offeredCourses,
         'msg_status' => true,
         'mode' => 'irregular',
         'school_year' => $active_school_year,
         'semester' => $active_term_semester,
         'missing_units' => $missing_units,
         'selected_class_id' => $selected_class_id,
+        'selected_offered_class_id' => $offered_class_id,
         'selected_section' => '',
+        'offered_sections' => $offeredSections,
         'stored_year_level' => $stored_year_level,
         'planning_year_level' => $planning_year_level,
         'planning_semester' => $planning_semester,

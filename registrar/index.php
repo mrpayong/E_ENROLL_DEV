@@ -13,7 +13,7 @@ if (isset($g_user_role) || !empty($g_user_role)) {
 		header("Location: " . BASE_URL . "admin/main_admin.php");
 		exit();
 	} else if ($g_user_role == "REGISTRAR") {
-		header("Location: " . BASE_URL . "registrar/main_registrar.php");
+		header("Location: " . BASE_URL . "registrar/student_infos.php");
 		exit();
 	} else  if ($g_user_role == "DEAN") {
 		header("Location: " . BASE_URL . "app/main_dean.php");

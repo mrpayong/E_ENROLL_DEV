@@ -789,13 +789,13 @@ if ($sem_query = call_mysql_query($query)) {
                     <i class="bi bi-pencil-square"></i> Update
                 </button>
             `;
-            if (studentLimit === 0) {
-                buttons += `
-                    <button class="btn btn-sm btn-danger archive-sched" data-id="${rowData.teacher_class_id}">
-                       <i class="bi bi-archive"></i> Archive
-                    </button>
-                `;
-            }
+            // if (studentLimit === 0) {
+            //     buttons += `
+            //         <button class="btn btn-sm btn-danger archive-sched" data-id="${rowData.teacher_class_id}">
+            //            <i class="bi bi-archive"></i> Archive
+            //         </button>
+            //     `;
+            // }
             return buttons;
         };
 
@@ -816,7 +816,7 @@ if ($sem_query = call_mysql_query($query)) {
                 if(response && response.data && response.data.length > 0){
                     this.setHeight("auto"); // Set height to auto if data exists
                 }else{
-                    this.setHeight("170px"); // Fixed height if no data
+                    this.setHeight("550px"); // Fixed height if no data
                 }
                 return response;
             },

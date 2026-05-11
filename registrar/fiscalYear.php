@@ -72,7 +72,7 @@ if (!($g_user_role == "REGISTRAR")) {
                         <div class="modal-dialog" role="document">
                             <form class="modal-content" id="fiscalYearForm" autocomplete="off">
                             <header class="modal-header bg-primary py-2">
-                                <h2 class="modal-title fs-5 text-light" id="fiscalYearModalLabel">Create Fiscal Year</h2>
+                                <h2 class="modal-title fs-3 text-light" id="fiscalYearModalLabel">Create Fiscal Year</h2>
                                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </header>
                             <section class="modal-body">
@@ -106,8 +106,8 @@ if (!($g_user_role == "REGISTRAR")) {
                                 </div>
                             </section>
                             <footer class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Create</button>
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="fs-6 btn btn-sm btn-primary">Create</button>
+                                <button type="button" class="fs-6 btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
                             </footer>
                             </form>
                         </div>
@@ -347,7 +347,6 @@ if (!($g_user_role == "REGISTRAR")) {
             ajaxContentType: "form",
             layout: "fitDataStretch",
             resizableColumns:true,
-            movableColumns:true,
             pagination: "remote",
             paginationSize: 10,
             paginationDataSent: {
@@ -461,7 +460,7 @@ if (!($g_user_role == "REGISTRAR")) {
                 }
             ],
             // autoResize: true,
-            height: "auto",
+            height: 550,
             // resizableColumns: true,
             headerFilterPlaceholder: "Search",
             tooltips: false,
@@ -716,7 +715,7 @@ if (!($g_user_role == "REGISTRAR")) {
                         $("#fiscalYearForm :button").prop("disabled", true);
                     },
                     complete: function() {
-                        $('#fiscalYearForm :submit').html('Created');
+                        $('#fiscalYearForm :submit').html('Create');
                         $("#fiscalYearForm :input").prop("disabled", false);
                         $("#fiscalYearForm :button").prop("disabled", false);
                     },

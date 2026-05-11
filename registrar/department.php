@@ -81,11 +81,11 @@ if($sql_depts = call_mysql_query($sql_depts)){
 
                 <!-- Modal for Add Department -->
                 <section>
-                    <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-modal="true" role="dialog">
+                    <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
                         <div class="modal-dialog" role="document">
                         <form class="modal-content" id="departmentForm" autocomplete="off">
                             <header class="modal-header py-2 bg-primary text-white">
-                            <h2 class="modal-title fs-5" id="departmentModalLabel">Add Department</h2>
+                            <h2 class="modal-title fs-3" id="departmentModalLabel">Add Department</h2>
                             <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </header>
                             <section class="modal-body">
@@ -105,8 +105,8 @@ if($sql_depts = call_mysql_query($sql_depts)){
                             </div>
                             </section>
                             <footer class="modal-footer py-1">
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
+                            <button type="submit" class="fs-6 btn btn-sm btn-primary">Submit</button>
+                            <button type="button" class="fs-6 btn btn-sm btn-danger" data-bs-dismiss="modal" id="cancelDepartmentBtn">Cancel</button>
                             </footer>
                         </form>
                         </div>
@@ -115,7 +115,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
 
                 <!-- modal for edit department -->
                 <section>
-                    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-modal="true" role="dialog">
+                    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
                         <div class="modal-dialog" role="document">
                         <form class="modal-content" id="editDepartmentForm" autocomplete="off">
                             <header class="modal-header py-2 bg-primary text-white">
@@ -149,11 +149,11 @@ if($sql_depts = call_mysql_query($sql_depts)){
 
                 <!-- add program  -->
                 <section>
-                    <div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
                         <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="programForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
-                                    <h5 class="modal-title" id="programModalLabel">Add Program</h5>
+                                    <h2 class="modal-title fs-3" id="programModalLabel">Add Program</h2>
                                     <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
@@ -181,8 +181,8 @@ if($sql_depts = call_mysql_query($sql_depts)){
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary">Submit</button>
-                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="fs-6 btn btn-sm btn-primary">Submit</button>
+                                    <button type="button" id="closeModal" class="fs-6 btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </form>
                         </div>
@@ -191,7 +191,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
 
                 <!-- add major -->
                 <section>
-                    <div class="modal fade" id="majorModal" tabindex="-1" aria-labelledby="majorModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="majorModal" tabindex="-1" aria-labelledby="majorModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
                         <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="majorForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
@@ -229,7 +229,7 @@ if($sql_depts = call_mysql_query($sql_depts)){
             
                 <!-- update program -->
                 <section>
-                    <div class="modal fade" id="editProgramModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="editProgramModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
                         <div class="modal-dialog modal-lg">
                             <form class="modal-content" id="editProgramModalForm" autocomplete="off">
                                 <div class="modal-header bg-primary text-white py-2">
@@ -280,7 +280,10 @@ if($sql_depts = call_mysql_query($sql_depts)){
 <script>
 document.addEventListener('DOMContentLoaded', function () {
         // Modal logic
-        var departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'));
+        var departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'), {
+            backdrop: 'static',
+            keyboard: false
+        });
         var cancelBtn = document.getElementById('cancelDepartmentBtn');
         var form = document.getElementById('departmentForm');
         let swalOpenLock = false;
@@ -369,8 +372,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // `;
             // }
             return `
-                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fs-6" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
-                <button data-id="${row.program_id}" data-major="${row.major}" class="btn btn-sm btn-warning update-prog-btn fs-6" title="Update Program"><i class="bi bi-pencil-square"></i> Update Program</button>
+                <button data-id="${row.program_id}" class="btn btn-sm btn-primary me-2 btn-major fw-bold" title="Add Major"><i class="bi bi-plus-circle"></i> Add Major</button>
+                <button data-id="${row.program_id}" data-major="${row.major}" class="btn btn-sm btn-warning update-prog-btn fw-bold" title="Update Program"><i class="bi bi-pencil-square"></i> Update Program</button>
             `;
         }
 
@@ -386,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pagination: "remote",
             paginationSize: 10,
             groupStartOpen: false,
+            height: 550,
             groupBy: function(data){
                 return data.department
             },
@@ -407,6 +411,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headerHozAlign: "center",
                     hozAlign: "center",
                     frozen: !isMobile(),
+                    width: 250,
                     formatter: actionsFormatter,
                 },
                 {
@@ -424,6 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     field: "program",
                     headerFilter: "input",
                     headerFilterFunc: "like",
+                    width: 200,
                     headerFilterParams: { allowEmpty: true },
                     headerFilterLiveFilter: true,
                     headerHozAlign: "center",
@@ -442,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     field: "department",
                     headerFilter: "input",
                     headerFilterFunc: "like",
+                    // width: "auto",
                     headerFilterParams: { allowEmpty: true },
                     headerFilterLiveFilter: true,
                     headerHozAlign: "center",
@@ -461,6 +468,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             ]
         });
+
+        document.getElementById('closeModal').addEventListener('click', function(){
+            $('#programForm')[0].reset();
+        })
 
 
  

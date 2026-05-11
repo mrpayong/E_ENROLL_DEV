@@ -106,13 +106,13 @@ if ($g_user_role !== "DEAN") {
                     <div class="alert alert-warning text-black mb-3">
                         <strong><i class="fas fa-exclamation-triangle text-warning"></i> WARNING: Closing this form or reloading the page will remove your progress.</strong>
                     </div>
-                    <div class="offer-entry-grid mb-3 align-items-center">
-                        <div>
+                    <div class="d-flex flex-row mb-3 gap-2 align-items-center">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold mb-1">Course</label>
                             <select class="form-control" id="offerCourseSelect"></select>
                         </div>
-                        <div>
-                            <label class="form-label fw-semibold mb-1">Year Level</label>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold mb-1">Offer to Year Level</label>
                             <select class="form-control" id="offerYearLevelSelect">
                                 <option value="" disabled selected>Select Year Level</option>
                                 <option value="1">1st Year</option>
@@ -121,9 +121,9 @@ if ($g_user_role !== "DEAN") {
                                 <option value="4">4th Year</option>
                             </select>
                         </div>
-                        <div>
+                        <div class="col-md-2">
                             <label class="form-label fw-semibold mb-1 d-block">&nbsp;</label>
-                            <button type="button" class="btn btn-success btn-sm w-100" id="addOfferRowBtn">
+                            <button type="button" class="btn btn-success btn-sm mb-1" id="addOfferRowBtn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -132,8 +132,8 @@ if ($g_user_role !== "DEAN") {
                     <div id="offerRowsTable"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary btn-sm">Confirm</button>
-                    <button type="button" id="hideCreateModal" class="btn btn-danger btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm fs-6">Confirm</button>
+                    <button type="button" id="hideCreateModal" class="btn btn-danger btn-sm fs-6">Cancel</button>
                 </div>
             </form>
         </div>

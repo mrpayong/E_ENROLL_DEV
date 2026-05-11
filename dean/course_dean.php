@@ -105,29 +105,29 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    const highlightColors = [
-        "#FFF3CD", // yellow
-        "#D1ECF1", // blue
-    ];
-    let duplicateCodes = {};
-    let codeColorMap = {};
+    // const highlightColors = [
+    //     "#FFF3CD", // yellow
+    //     "#D1ECF1", // blue
+    // ];
+    // let duplicateCodes = {};
+    // let codeColorMap = {};
 
-    function findDuplicateCodes(data) {
-        const codeCount = {};
-        data.forEach(row => {
-            codeCount[row.subject_code] = (codeCount[row.subject_code] || 0) + 1;
-        });
-        duplicateCodes = {};
-        codeColorMap = {};
-        let colorIndex = 0;
-        Object.keys(codeCount).forEach(code => {
-            if(codeCount[code] > 1) {
-                duplicateCodes[code] = true;
-                codeColorMap[code] = highlightColors[colorIndex % highlightColors.length];
-                colorIndex++;
-            }
-        });
-    }
+    // function findDuplicateCodes(data) {
+    //     const codeCount = {};
+    //     data.forEach(row => {
+    //         codeCount[row.subject_code] = (codeCount[row.subject_code] || 0) + 1;
+    //     });
+    //     duplicateCodes = {};
+    //     codeColorMap = {};
+    //     let colorIndex = 0;
+    //     Object.keys(codeCount).forEach(code => {
+    //         if(codeCount[code] > 1) {
+    //             duplicateCodes[code] = true;
+    //             codeColorMap[code] = highlightColors[colorIndex % highlightColors.length];
+    //             colorIndex++;
+    //         }
+    //     });
+    // }
     
     const courseTable = new Tabulator("#courseTable", {
         ajaxURL: "<?php echo BASE_URL; ?>dean/actions/fetchCourse.php",
@@ -139,18 +139,19 @@ document.addEventListener('DOMContentLoaded', function() {
         movableColumns: true,
         ajaxFiltering: true,
         ajaxSorting: true,
+        height: 550,
         headerFilterPlaceholder: "Search",
         placeholder: "No Data Found",
-        ajaxResponse: function(url, params, response){
-            findDuplicateCodes(response.data);
-            return response;
-        },
-        rowFormatter: function(row){
-            const data = row.getData();
-            if(duplicateCodes[data.subject_code]){
-                row.getElement().style.backgroundColor = codeColorMap[data.subject_code];
-            }
-        },
+        // ajaxResponse: function(url, params, response){
+        //     findDuplicateCodes(response.data);
+        //     return response;
+        // },
+        // rowFormatter: function(row){
+        //     const data = row.getData();
+        //     if(duplicateCodes[data.subject_code]){
+        //         row.getElement().style.backgroundColor = codeColorMap[data.subject_code];
+        //     }
+        // },
         columns: [
             {
                 title: "Course code",

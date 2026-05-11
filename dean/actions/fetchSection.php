@@ -44,7 +44,10 @@ $dborig = [
 ];
 
 $left = "
-    LEFT JOIN programs p ON cs.program_id = p.program_id
+    INNER JOIN programs p ON cs.program_id = p.program_id
+    INNER JOIN departments d_auth ON p.department_id = d_auth.department_id
+    INNER JOIN users u_auth ON d_auth.user_id = u_auth.user_id
+        AND u_auth.general_id = '" . escape($db_connect, $g_general_id) . "'
     LEFT JOIN school_year sy ON cs.school_year_id = sy.school_year_id
 ";
 

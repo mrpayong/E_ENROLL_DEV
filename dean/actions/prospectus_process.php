@@ -183,6 +183,7 @@ try {
 
 
             $currValues = [];
+            $total_units = 0;
 
             // echo "subject map: ";var_dump($subjectMap);
             // echo "\n curr rows: ";var_dump($currRows);
@@ -205,6 +206,7 @@ try {
                     '".escape($db_connect, $r['lec_lab'])."',
                     '".escape($db_connect, $r['pre_req'])."'
                 )";
+                $total_units += intVal($r['unit']);
             }
 
             // var_dump($currValues);
@@ -217,7 +219,13 @@ try {
                 subject_code, subject_title, unit, lec_lab, pre_req)
                 VALUES".implode(',', $currValues);
 
-                call_mysql_query($create_sql);
+                if(call_mysql_query($create_sql)){
+                    $update_units_sql = "UPDATE curriculum_master
+                    SET units = '".escape($db_connect, $total_units)."'
+                    WHERE curriculum_id = '".escape($db_connect, $curr_id)."'";
+
+                    call_mysql_query($update_units_sql);
+                }
                 $db_connect-> commit();
             }
 

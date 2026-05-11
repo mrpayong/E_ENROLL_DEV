@@ -648,8 +648,13 @@ if (!empty($g_general_id) && $active_school_year_id > 0 && !empty($active_semest
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="d-flex row mb-2 align-items-center">
-                                        <div class="d-flex col-md-6 flex-column justify-content-evenly align-items-start">
+                                    <div class="row mb-3 align-items-end">
+                                        <div class="col-md-4 mb-2 mb-md-0" id="offered_section_select_group">
+                                            <label for="offeredSection" class="form-label fw-bold">Offered Course Section</label>
+                                            <select name="offeredSection" id="offeredSection">
+                                            </select>
+                                        </div>
+                                        <div class="d-flex col-md-4 flex-column justify-content-evenly align-items-start">
                                             <div class="col-md-6">
                                                 <label class="form-label">Missing Units: </label>
                                                 <span class="fw-bold" id="back_required_units_label">0</span>
@@ -660,7 +665,7 @@ if (!empty($g_general_id) && $active_school_year_id > 0 && !empty($active_semest
                                             </div>
                                         </div>
 
-                                        <div class="d-flex col-md-6 justify-content-end">
+                                        <div class="d-flex col-md-4 justify-content-end">
                                             <button class="btn btn-secondary btn-sm fs-6" id="submitBackSubjects" disabled>Enroll Offered Courses</button>
                                         </div>
                                     </div>
@@ -720,6 +725,17 @@ document.addEventListener('DOMContentLoaded', function(){
         return selectEl.value || '';
     }
 
+    function getSelectedOfferedSectionId() {
+        const selectEl = document.getElementById('offeredSection');
+        if (!selectEl) return '';
+
+        if (selectEl.selectize) {
+            return selectEl.selectize.getValue() || '';
+        }
+
+        return selectEl.value || '';
+    }
+
     function setSectionDropdownEnabled(enabled) {
         const sectionEl = document.getElementById('section');
         if (!sectionEl) return;
@@ -734,6 +750,42 @@ document.addEventListener('DOMContentLoaded', function(){
         }
 
         sectionEl.disabled = !enabled;
+    }
+
+    function setOfferedSectionDropdownEnabled(enabled) {
+        const sectionEl = document.getElementById('offeredSection');
+        if (!sectionEl) return;
+
+        if (sectionEl.selectize) {
+            if (enabled) {
+                sectionEl.selectize.enable();
+            } else {
+                sectionEl.selectize.disable();
+            }
+            return;
+        }
+
+        sectionEl.disabled = !enabled;
+    }
+
+    function offeredSectionHasOptions() {
+        const sectionEl = document.getElementById('offeredSection');
+        if (!sectionEl) return false;
+
+        if (sectionEl.selectize) {
+            return Object.keys(sectionEl.selectize.options || {}).length > 0;
+        }
+
+        return sectionEl.querySelectorAll('option[value]:not([value=""])').length > 0;
+    }
+
+    function refreshOfferedSectionDropdownState() {
+        setOfferedSectionDropdownEnabled(
+            isEnrollmentPeriodOpen &&
+            enroll_status !== true &&
+            !!getSelectedSectionId() &&
+            offeredSectionHasOptions()
+        );
     }
 
     function populateSectionDropdown(selector, sections, selectedId = null) {
@@ -763,7 +815,8 @@ document.addEventListener('DOMContentLoaded', function(){
             onChange: function(value) {
                 if (!value) return;
                 loadOfferedSubjects(value);
-                loadBackSubjects(value);
+                populateOfferedSectionDropdown([], '');
+                loadBackSubjects(value, '');
             }
         });
 
@@ -775,6 +828,47 @@ document.addEventListener('DOMContentLoaded', function(){
         }
 
         setSectionDropdownEnabled(isEnrollmentPeriodOpen && enroll_status !== true);
+    }
+
+    function populateOfferedSectionDropdown(sections, selectedId = null) {
+        const $dropdown = $('#offeredSection');
+        if (!$dropdown.length) return;
+
+        const currentValue = selectedId !== null ? selectedId : getSelectedOfferedSectionId();
+
+        if ($dropdown[0].selectize) {
+            $dropdown[0].selectize.destroy();
+        }
+
+        $dropdown.empty();
+        const placeholderText = getSelectedSectionId()
+            ? 'Select Offered Course Section'
+            : 'Select fixed section first';
+        $dropdown.append(`<option value="" selected disabled>${placeholderText}</option>`);
+
+        (sections || []).forEach(function(item) {
+            $dropdown.append(
+                $('<option>', {
+                    value: item.class_id,
+                    text: item.class_name
+                })
+            );
+        });
+
+        $dropdown.selectize({
+            allowEmptyOption: true,
+            create: false,
+            sortField: 'text',
+            onChange: function(value) {
+                loadBackSubjects(getSelectedSectionId(), value || '');
+            }
+        });
+
+        if (currentValue && $dropdown[0].selectize.options[String(currentValue)]) {
+            $dropdown[0].selectize.setValue(String(currentValue), true);
+        }
+
+        refreshOfferedSectionDropdownState();
     }
 
     function formatSchedule(scheduleValue) {
@@ -800,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 .replaceAll('::', ' ')
                 .replace(/\s+/g, ' ')
                 .trim();
-        }).join('<br>');
+        }).join('| <br>');
     }
 
     function loadingAPIrequest(status){
@@ -933,6 +1027,7 @@ document.addEventListener('DOMContentLoaded', function(){
         if (!backSubjectsTable) return;
 
         const selectedSectionId = getSelectedSectionId();
+        const selectedOfferedSectionId = getSelectedOfferedSectionId();
         const hasRows = backSubjectsTable.getDataCount() > 0;
         const selectedUnits = updateBackSubjectSummary();
         const hasSelections = getSelectedBackSubjectRows().length > 0;
@@ -942,11 +1037,14 @@ document.addEventListener('DOMContentLoaded', function(){
             (underloadAllowed && selectedUnits === backSubjectAvailableUnits)
         );
         const canSubmit = isEnrollmentPeriodOpen && hasRows && selectedSectionId && hasSelections && unitsMatch;
+        const canSubmitWithOfferedSection = canSubmit && selectedOfferedSectionId;
 
         let buttonText = 'Enroll Offered Courses';
 
         if (!selectedSectionId) {
             buttonText = 'Select a section first';
+        } else if (!selectedOfferedSectionId) {
+            buttonText = 'Select offered course section';
         } else if (!hasRows) {
             buttonText = 'No offered courses available';
         } else if (backSubjectMissingUnits <= 0) {
@@ -962,14 +1060,14 @@ document.addEventListener('DOMContentLoaded', function(){
         }
 
         if (backSubjectSubmitBtn) {
-            backSubjectSubmitBtn.disabled = !canSubmit;
+            backSubjectSubmitBtn.disabled = !canSubmitWithOfferedSection;
             backSubjectSubmitBtn.textContent = buttonText;
             backSubjectSubmitBtn.classList.remove('btn-success', 'btn-secondary');
             backSubjectSubmitBtn.classList.add(backSubjectSubmitBtn.disabled ? 'btn-secondary' : 'btn-success');
         }
 
         if (isIrregularEnrollment && primaryEnrollBtn && enroll_status !== true) {
-            primaryEnrollBtn.disabled = !canSubmit;
+            primaryEnrollBtn.disabled = !canSubmitWithOfferedSection;
             primaryEnrollBtn.textContent = buttonText;
             primaryEnrollBtn.classList.remove('btn-success', 'btn-secondary');
             primaryEnrollBtn.classList.add(primaryEnrollBtn.disabled ? 'btn-secondary' : 'btn-success');
@@ -1072,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 backSubjectAvailableUnits = 0;
                 if (backRequiredEl) backRequiredEl.textContent = '0';
                 if (backTargetEl) backTargetEl.textContent = '0';
+                populateOfferedSectionDropdown([], '');
 
                 if (response && response.msg_response && getSelectedSectionId()) {
                     swal({
@@ -1092,6 +1191,10 @@ document.addEventListener('DOMContentLoaded', function(){
             backSubjectAvailableUnits = parseInt(response.available_offered_units ?? 0, 10) || 0;
             if (backRequiredEl) backRequiredEl.textContent = backSubjectMissingUnits;
             if (backTargetEl) backTargetEl.textContent = '0';
+            populateOfferedSectionDropdown(
+                response.offered_sections || [],
+                response.selected_offered_class_id || getSelectedOfferedSectionId() || ''
+            );
 
             setTimeout(updateBackSubjectButtonState, 0);
 
@@ -1127,6 +1230,14 @@ document.addEventListener('DOMContentLoaded', function(){
         } else if (sectionEl) {
             sectionEl.disabled = true;
         }
+
+        const offeredSectionEl = document.getElementById('offeredSection');
+
+        if (offeredSectionEl && offeredSectionEl.selectize) {
+            offeredSectionEl.selectize.disable();
+        } else if (offeredSectionEl) {
+            offeredSectionEl.disabled = true;
+        }
     }
 
     function setEnrolledFixedSection(fixedRows) {
@@ -1146,6 +1257,37 @@ document.addEventListener('DOMContentLoaded', function(){
 
         const sectionId = String(sectionRow.class_id);
         const sectionName = sectionRow.class_name || sectionRow.section_name || 'Selected Section';
+
+        if (!sectionEl.selectize.options[sectionId]) {
+            sectionEl.selectize.addOption({
+                class_id: sectionId,
+                class_name: sectionName,
+                value: sectionId,
+                text: sectionName
+            });
+            sectionEl.selectize.refreshOptions(false);
+        }
+
+        sectionEl.selectize.setValue(sectionId, true);
+    }
+
+    function setEnrolledOfferedSection(offeredRows) {
+        const sectionRow = (offeredRows || []).find(function(row) {
+            return parseInt(row.class_id, 10) > 0;
+        });
+
+        if (!sectionRow) {
+            return;
+        }
+
+        const sectionEl = document.getElementById('offeredSection');
+        if (!sectionEl || !sectionEl.selectize) {
+            if (sectionEl) sectionEl.value = sectionRow.class_id;
+            return;
+        }
+
+        const sectionId = String(sectionRow.class_id);
+        const sectionName = sectionRow.class_name || sectionRow.section_name || 'Selected Offered Section';
 
         if (!sectionEl.selectize.options[sectionId]) {
             sectionEl.selectize.addOption({
@@ -1187,6 +1329,7 @@ document.addEventListener('DOMContentLoaded', function(){
             backSubjectAvailableUnits = offeredUnits;
             backSubjectsTable.setColumns(buildBackSubjectColumns(true));
             backSubjectsTable.setData(offeredRows);
+            setEnrolledOfferedSection(offeredRows);
 
             const backRequiredEl = document.getElementById('back_required_units_label');
             const backTargetEl = document.getElementById('back_target_units_label');
@@ -1226,10 +1369,11 @@ document.addEventListener('DOMContentLoaded', function(){
         );
     }
 
-    function loadBackSubjects(selectedClassIdOverride = null) {
+    function loadBackSubjects(selectedClassIdOverride = null, offeredClassIdOverride = null) {
         if (!backSubjectsTable) return;
 
         const selectedClassId = selectedClassIdOverride || getSelectedSectionId();
+        const offeredClassId = offeredClassIdOverride !== null ? offeredClassIdOverride : getSelectedOfferedSectionId();
 
         if (!selectedClassId) {
             backSubjectsTable.clearData();
@@ -1240,6 +1384,7 @@ document.addEventListener('DOMContentLoaded', function(){
             backSubjectAvailableUnits = 0;
             if (backRequiredEl) backRequiredEl.textContent = '0';
             if (backTargetEl) backTargetEl.textContent = '0';
+            populateOfferedSectionDropdown([], '');
 
             updateBackSubjectButtonState();
             return;
@@ -1248,7 +1393,8 @@ document.addEventListener('DOMContentLoaded', function(){
         backSubjectsTable.setData(
             "<?php echo BASE_URL; ?>student/actions/backSubjects.php",
             {
-                selected_class_id: selectedClassId
+                selected_class_id: selectedClassId,
+                offered_class_id: offeredClassId || ''
             }
         );
     }
@@ -1270,8 +1416,8 @@ document.addEventListener('DOMContentLoaded', function(){
                     document.getElementById('cart_section_label').textContent = response.base_section_label || 'Not yet determined';
                 }
 
-                if (response.incoming_year_level) {
-                    document.getElementById('year_level').textContent = formatYearLevel(response.incoming_year_level);
+                if (response.progressed_year_level) {
+                    document.getElementById('year_level').textContent = formatYearLevel(response.progressed_year_level);
                 }
 
                 if (enroll_status === true) {
@@ -1326,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', function(){
             document.getElementById('submitCourse').classList.add('btn-success');
             isEnrollmentPeriodOpen = true;
             setSectionDropdownEnabled(enroll_status !== true);
+            refreshOfferedSectionDropdownState();
         } else {
             alertBox.className = "alert alert-danger text-black";
             if (hasEnrollmentPeriod) {
@@ -1345,6 +1492,7 @@ document.addEventListener('DOMContentLoaded', function(){
             document.getElementById('submitCourse').classList.add('btn-secondary');
             isEnrollmentPeriodOpen = false;
             setSectionDropdownEnabled(false);
+            refreshOfferedSectionDropdownState();
         }
 
         updateBackSubjectButtonState();
@@ -1368,6 +1516,7 @@ document.addEventListener('DOMContentLoaded', function(){
             }
 
             const selectedSectionId = getSelectedSectionId();
+            const selectedOfferedSectionId = getSelectedOfferedSectionId();
             const selectedOfferedRows = getSelectedBackSubjectRows();
             const selectedUnits = sumBackSubjectUnits(selectedOfferedRows);
 
@@ -1376,6 +1525,14 @@ document.addEventListener('DOMContentLoaded', function(){
                     valid: false,
                     title: "Section Required",
                     text: "Please select a section before enrolling."
+                };
+            }
+
+            if (!selectedOfferedSectionId) {
+                return {
+                    valid: false,
+                    title: "Offered Course Section Required",
+                    text: "Please select the section where the offered course is scheduled."
                 };
             }
 

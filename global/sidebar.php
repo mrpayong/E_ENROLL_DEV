@@ -195,12 +195,12 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                     </li>
 
                     <!-- start navigation -->
-                    <li class="nav-item <?php echo navigation_active("main_registrar"); ?>">
+                    <!-- <li class="nav-item <?php echo navigation_active("main_registrar"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/main_registrar.php">
                             <i class="fas fa-home"></i>
                             <span>Dashboard</span>
                         </a>
-                    </li>
+                    </li> -->
 
                     <li class="nav-item <?php echo navigation_active("student_infos"); ?>">
                         <a href="<?php echo BASE_URL; ?>registrar/student_infos.php">
@@ -278,7 +278,7 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                     <li class="nav-item <?php echo navigation_active("student_enroll"); ?>">
                         <a href="<?php echo BASE_URL . "student/student_enroll.php" ?>">
                             <i class="fas fa-clipboard-list"></i>
-                            <p>Enrollment Status</p>
+                            <p>Student Enrollment</p>
                         </a>
                     </li>
 
@@ -290,12 +290,12 @@ function navigation_active($pages, $class = 'active', $conditions = [])
                     </li>
 
                     <!-- Fiscal Year (Student) - opens global modal -->
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a href="#" id="student_fiscal_year_link">
                             <i class="fas fa-calendar-alt"></i>
                             <p>Fiscal Year</p>
                         </a>
-                    </li>
+                    </li> -->
 
                 
                 

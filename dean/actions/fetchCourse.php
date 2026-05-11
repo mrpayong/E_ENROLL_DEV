@@ -20,7 +20,13 @@ if ($g_user_role !== "DEAN") {
 }
 
 $query_limit = QUERY_LIMIT;
-$table_name = "subject as S";
+$table_name = "subject AS s";
+$left_join = "
+    INNER JOIN programs p ON s.program_id = p.program_id
+    INNER JOIN departments d_auth ON p.department_id = d_auth.department_id
+    INNER JOIN users u_auth ON d_auth.user_id = u_auth.user_id
+        AND u_auth.general_id = '" . escape($db_connect, $g_general_id) . "'
+";
 
 $dbfield = [
     's.subject_id', 's.subject_code', 's.subject_title',
@@ -97,7 +103,7 @@ if (empty($sql_where)) {
 } else {
     $sql_conds = "WHERE s.status = 0 AND $sql_where";
 }
-$count_query = "SELECT $field_query FROM $table_name $sql_conds";
+$count_query = "SELECT $field_query FROM $table_name $left_join $sql_conds";
 $total_query = 0;
 if ($query = call_mysql_query($count_query)) {
     if ($num = call_mysql_num_rows($query)) {
@@ -114,7 +120,7 @@ if (empty($sql_where)) {
 } else {
     $sql_conds = "WHERE s.status = 0 AND $sql_where";
 }
-$data_query = "SELECT $field_query FROM $table_name $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
+$data_query = "SELECT $field_query FROM $table_name $left_join $sql_conds ORDER BY $orderby LIMIT $start_no, $query_limit";
 
 $to_encode = [];
 $lec = 0;

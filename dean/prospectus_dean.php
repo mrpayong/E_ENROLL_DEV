@@ -36,7 +36,7 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                     style="padding:0.75rem; padding-left:1.25em; padding-bottom:0.5rem;">
                     <label class="fs-2 text-white fw-bolder">Curriculum Builder</label>
 
-                    <button class="btn btn-light btn-sm fw-semibold px-4 py-2 rounded-3" id="bulkUpload" style="background:#173ea5;">
+                    <button class="btn btn-light btn-sm fs-6 fw-semibold rounded-3" id="bulkUpload" style="background:#173ea5;">
                         <i class="fas fa-upload"></i> Upload Courses
                     </button>
                 </header>
@@ -227,7 +227,7 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                 <div class="modal-dialog">
                     <form class="modal-content" id="import_course_form" autocomplete="off">
                         <div class="modal-header bg-primary text-white py-2">
-                            <label id="bulkLabel" class="modal-title">
+                            <label id="bulkLabel" class="modal-title fs-3">
                                 Upload Courses
                             </label>
                             <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -241,8 +241,8 @@ $preselectCurriculumId = $_GET['curriculum_id'] ?? '';
                             <input type="file" name="import_course_file" id="import_course_file" class="bulk_dropify" data-allowed-file-extensions="csv" accept=".csv"  required>
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-success btn-sm">Confirm</button>
-                            <button type="button" id="cancelUpload" class="btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="fs-6 btn btn-success btn-sm">Confirm</button>
+                            <button type="button" id="cancelUpload" class="fs-6 btn btn-cancel btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
                         </div>
                     </form>
                 </div>

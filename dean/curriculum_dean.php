@@ -74,8 +74,8 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
         <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <form class="modal-content" id="createForm">
-              <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="createModalLabel">Create Curriculum</h5>
+              <div class="modal-header bg-primary text-white py-2">
+                <h5 class="modal-title fs-3" id="createModalLabel">Create Curriculum</h5>
                 <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
@@ -99,8 +99,8 @@ $fetch_pros = "SELECT DISTINCT curriculum_id FROM curriculum";
 
 
               <div class="modal-footer">
-                <button type="submit" class="fs-6 btn btn-primary">Create</button>
-                <button type="button" class="fs-6 btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="fs-6 btn btn-sm btn-primary">Create</button>
+                <button type="button" class="fs-6 btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
               </div>
 
             </form>
@@ -245,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
     paginationSize: 10,
     movableColumns: true,
     resizableColumns:true,
+    height: 550,
     headerFilterPlaceholder: "Search",
     placeholder: "No Data Found",
     minHeight:500,
@@ -279,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         },
         {
-          title: "Required Units",
+          title: "Total Required Units",
           field: "units",
           headerFilterLiveFilter: true,
           headerFilter: "input",

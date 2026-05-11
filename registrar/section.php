@@ -232,11 +232,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if(response && response.data && response.data.length > 0){
                 this.setHeight("auto"); // Set height to auto if data exists
             }else{
-                this.setHeight("170px"); // Fixed height if no data
+                this.setHeight("550px"); // Fixed height if no data
             }
             return response;
         },
-        placeholder: "Select semester then click &quot;Generate&quot; to load data.",
+        placeholder: "Select fiscal year then click &quot;Generate&quot; to load data.",
         columns: [
             {
                 title: "Actions",
